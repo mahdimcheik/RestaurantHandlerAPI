@@ -61,7 +61,10 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
         return ToDetails(ingredient);
     }
 
-    /// <summary>Refusé tant qu'un produit non archivé l'utilise (composition, remplacement, supplément, choix d'option).</summary>
+    /// <summary>
+    /// Refusé tant qu'un produit non archivé l'utilise (composition, remplacement, supplément) ou
+    /// qu'un choix d'un groupe d'options non archivé y est lié, même si le groupe ne sert à aucun produit.
+    /// </summary>
     public async Task ArchiveAsync(Guid id)
     {
         var ingredient = await FindAsync(id);
@@ -69,9 +72,7 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
         var users = await db.Products.AsNoTracking()
             .Where(p => p.ArchivedAt == null
                 && (p.Ingredients.Any(pi => pi.IngredientId == id || pi.Substitutions.Any(s => s.SubstituteIngredientId == id))
-                    || p.Supplements.Any(s => s.IngredientId == id)
-                    || p.OptionGroups.Any(g => g.ArchivedAt == null
-                        && g.Choices.Any(c => c.ArchivedAt == null && c.IngredientId == id))))
+                    || p.Supplements.Any(s => s.IngredientId == id)))
             .OrderBy(p => p.Name)
             .Select(p => p.Name)
             .Take(5)
@@ -79,6 +80,16 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
         if (users.Count > 0)
             throw new BusinessConflictException(
                 $"Ingrédient utilisé par : {string.Join(", ", users)}. Retirez-le de ces produits avant de l'archiver.");
+
+        var groups = await db.OptionGroups.AsNoTracking()
+            .Where(g => g.ArchivedAt == null && g.Choices.Any(c => c.ArchivedAt == null && c.IngredientId == id))
+            .OrderBy(g => g.Label)
+            .Select(g => g.Label)
+            .Take(5)
+            .ToListAsync();
+        if (groups.Count > 0)
+            throw new BusinessConflictException(
+                $"Ingrédient lié à un choix des groupes d'options : {string.Join(", ", groups)}. Retirez ces choix avant de l'archiver.");
 
         ingredient.ArchivedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync();

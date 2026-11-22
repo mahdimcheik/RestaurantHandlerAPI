@@ -85,29 +85,10 @@ public class ProductsController(ProductService products) : ControllerBase
     public async Task<ActionResult<Response<ProductDetails>>> UpdateComposition(Guid id, [FromBody] CompositionUpdate dto) =>
         Success(await products.UpdateCompositionAsync(id, dto));
 
-    /// <summary>Remplace les groupes d'options (pain, sauces, taille…) dans l'ordre d'affichage.</summary>
+    /// <summary>Groupes d'options proposés (pain, sauces, taille…), dans l'ordre d'affichage.</summary>
     [HttpPut("{id:guid}/option-groups")]
     public async Task<ActionResult<Response<ProductDetails>>> UpdateOptionGroups(Guid id, [FromBody] OptionGroupsUpdate dto) =>
         Success(await products.UpdateOptionGroupsAsync(id, dto));
-
-    [HttpPost("{id:guid}/option-groups/{groupId:guid}/image")]
-    [Consumes("multipart/form-data")]
-    public async Task<ActionResult<Response<ProductDetails>>> SetOptionGroupImage(
-        Guid id,
-        Guid groupId,
-        IFormFile file,
-        CancellationToken ct
-    ) => Success(await products.SetOptionGroupImageAsync(id, groupId, file, ct));
-
-    [HttpPost("{id:guid}/option-groups/{groupId:guid}/choices/{choiceId:guid}/image")]
-    [Consumes("multipart/form-data")]
-    public async Task<ActionResult<Response<ProductDetails>>> SetOptionChoiceImage(
-        Guid id,
-        Guid groupId,
-        Guid choiceId,
-        IFormFile file,
-        CancellationToken ct
-    ) => Success(await products.SetOptionChoiceImageAsync(id, groupId, choiceId, file, ct));
 
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<Response<object>>> Archive(Guid id)
@@ -120,6 +101,52 @@ public class ProductsController(ProductService products) : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<Response<ProductDetails>>> SetImage(Guid id, IFormFile file, CancellationToken ct) =>
         Success(await products.SetImageAsync(id, file, ct));
+}
+
+[ApiController]
+[Route("manage/option-groups")]
+[Produces("application/json")]
+[EnableCors]
+[Authorize(Roles = "Manager")]
+public class OptionGroupsController(OptionGroupService groups) : ControllerBase
+{
+    [HttpGet]
+    public async Task<ActionResult<Response<List<OptionGroupDetails>>>> List([FromQuery] bool includeArchived = false) =>
+        Success(await groups.ListAsync(includeArchived));
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<Response<OptionGroupDetails>>> Get(Guid id) => Success(await groups.GetAsync(id));
+
+    [HttpPost]
+    public async Task<ActionResult<Response<OptionGroupDetails>>> Create([FromBody] OptionGroupWrite dto) =>
+        CreatedWith(await groups.CreateAsync(dto));
+
+    /// <summary>Met à jour le groupe et remplace ses choix, pour tous les produits qui le proposent.</summary>
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<Response<OptionGroupDetails>>> Update(Guid id, [FromBody] OptionGroupWrite dto) =>
+        Success(await groups.UpdateAsync(id, dto));
+
+    /// <summary>Archive (jamais de suppression) ; refusé tant qu'un produit le propose.</summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult<Response<object>>> Archive(Guid id)
+    {
+        await groups.ArchiveAsync(id);
+        return Done("Groupe d'options archivé");
+    }
+
+    [HttpPost("{id:guid}/image")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<Response<OptionGroupDetails>>> SetImage(Guid id, IFormFile file, CancellationToken ct) =>
+        Success(await groups.SetImageAsync(id, file, ct));
+
+    [HttpPost("{id:guid}/choices/{choiceId:guid}/image")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<Response<OptionGroupDetails>>> SetChoiceImage(
+        Guid id,
+        Guid choiceId,
+        IFormFile file,
+        CancellationToken ct
+    ) => Success(await groups.SetChoiceImageAsync(id, choiceId, file, ct));
 }
 
 [ApiController]

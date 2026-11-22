@@ -155,6 +155,13 @@ Règle pure `OptionChoicePolicy` (R2/R4/R6, 16 tests), `PUT /manage/products/{id
 ou composant de menu). `InitialCreate` régénérée (32 tables) ; 5 nouveaux tests d'intégration
 (30 au total). Écran back-office et sélection côté client à faire avec les écrans.
 
+**Groupes d'options partagés (API, 2026-11-23) :** un même groupe (« Sauces », « Pain ») sert à
+plusieurs produits : `OptionGroup` / `OptionChoice` sans produit, liaison ordonnée
+`ProductOptionGroup`. Routes `/manage/option-groups` (CRUD, archivage refusé tant qu'un produit
+le propose, images du groupe et des choix) ; `PUT /manage/products/{id}/option-groups` ne prend
+plus que `{ optionGroupIds }`. Carte publique et commande inchangées pour le client.
+`InitialCreate` régénérée ; 4 nouveaux tests d'intégration (34 au total).
+
 ## J6 — Mise en service (S10–S12)
 
 - Production : VPS, domaine, TLS, variables, SumUp en mode réel, sauvegardes + test de

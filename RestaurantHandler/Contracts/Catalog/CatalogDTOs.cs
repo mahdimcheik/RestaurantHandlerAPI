@@ -191,34 +191,31 @@ public class SupplementDetails
     [Required] public bool IsAvailable { get; set; }
 }
 
-// ---------- Groupes d'options (remplacés en un seul appel) ----------
+// ---------- Groupes d'options (partagés entre produits) ----------
 
 /// <summary>
-/// Groupes dans l'ordre d'affichage. Un groupe ou un choix sans <c>Id</c> est créé ; un existant
-/// absent de la liste est archivé (les commandes passées y pointent). Les images s'envoient à
-/// part et sont conservées par ce remplacement.
+/// Groupes d'options proposés sur un produit, dans l'ordre d'affichage. Remplace la liste
+/// entière ; les groupes eux-mêmes se gèrent sous <c>/manage/option-groups</c>.
 /// </summary>
 public class OptionGroupsUpdate : IValidatableObject
 {
     [Required]
-    public List<OptionGroupWrite> Groups { get; set; } = [];
+    public List<Guid> OptionGroupIds { get; set; } = [];
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        var groupIds = Groups.Where(g => g.Id is not null).Select(g => g.Id).ToList();
-        if (groupIds.Distinct().Count() != groupIds.Count)
-            yield return new("Un groupe ne figure qu'une fois.", [nameof(Groups)]);
-
-        var choiceIds = Groups.SelectMany(g => g.Choices).Where(c => c.Id is not null).Select(c => c.Id).ToList();
-        if (choiceIds.Distinct().Count() != choiceIds.Count)
-            yield return new("Un choix ne figure qu'une fois.", [nameof(Groups)]);
+        if (OptionGroupIds.Distinct().Count() != OptionGroupIds.Count)
+            yield return new("Un groupe ne figure qu'une fois.", [nameof(OptionGroupIds)]);
     }
 }
 
+/// <summary>
+/// Groupe d'options partagé entre produits. Les choix sont remplacés en un seul appel, dans
+/// l'ordre d'affichage : un choix sans identifiant est créé, un choix absent est archivé (les
+/// commandes passées y pointent). Les images s'envoient à part et sont conservées.
+/// </summary>
 public class OptionGroupWrite : IValidatableObject
 {
-    public Guid? Id { get; set; }
-
     [Required(ErrorMessage = "Le libellé est obligatoire.")]
     [MaxLength(64)]
     public string Label { get; set; } = string.Empty;
@@ -248,6 +245,9 @@ public class OptionGroupWrite : IValidatableObject
             yield return new($"« {Label} » propose moins de choix que le minimum.", [nameof(Choices)]);
         if (Choices.Select(c => c.Name.Trim().ToLowerInvariant()).Distinct().Count() != Choices.Count)
             yield return new($"« {Label} » : un nom de choix ne figure qu'une fois.", [nameof(Choices)]);
+        var choiceIds = Choices.Where(c => c.Id is not null).Select(c => c.Id).ToList();
+        if (choiceIds.Distinct().Count() != choiceIds.Count)
+            yield return new("Un choix ne figure qu'une fois.", [nameof(Choices)]);
     }
 }
 
@@ -271,12 +271,18 @@ public class OptionGroupDetails
     [Required] public Guid Id { get; set; }
     [Required] public string Label { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
+
+    /// <summary>Place dans le produit (détail d'un produit) ; 0 hors d'un produit.</summary>
     [Required] public int Position { get; set; }
     [Required] public int MinChoices { get; set; }
     [Required] public int MaxChoices { get; set; }
     [Required] public int FreeChoices { get; set; }
     [Required] public int ExtraChoicePriceCents { get; set; }
     [Required] public List<OptionChoiceDetails> Choices { get; set; } = [];
+    [Required] public bool IsArchived { get; set; }
+
+    /// <summary>Produits non archivés qui proposent ce groupe ; 0 dans le détail d'un produit.</summary>
+    [Required] public int ProductCount { get; set; }
 }
 
 public class OptionChoiceDetails

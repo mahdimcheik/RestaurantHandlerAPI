@@ -21,10 +21,10 @@ public class CatalogFixture
     public readonly Ingredient Samourai = new() { Id = Guid.NewGuid(), Name = "Samouraï" };
     public readonly Product Classic;
     public readonly Product Kebab;
-    public readonly ProductOptionGroup PainGroup;
-    public readonly ProductOptionGroup SauceGroup;
+    public readonly OptionGroup PainGroup;
+    public readonly OptionGroup SauceGroup;
     public readonly Product Margherita;
-    public readonly ProductOptionGroup TailleGroup;
+    public readonly OptionGroup TailleGroup;
     public readonly Product Cola;
     public readonly Product GrandCola;
     public readonly Menu Menu;
@@ -47,15 +47,15 @@ public class CatalogFixture
         GrandCola = new Product { Id = Guid.NewGuid(), Name = "Grand Cola", Category = Burgers, PriceCents = 350, VatRate = 5.5m };
 
         Kebab = new Product { Id = Guid.NewGuid(), Name = "Kebab", Category = Burgers, PriceCents = 800, VatRate = 10 };
-        PainGroup = Group("Pain", 0, 1, 1, 1, 0, Choice("Baguette", 0, Baguette), Choice("Pita", 0, Pita));
-        SauceGroup = Group("Sauces", 1, 0, 3, 2, 50,
+        PainGroup = Group("Pain", 1, 1, 1, 0, Choice("Baguette", 0, Baguette), Choice("Pita", 0, Pita));
+        SauceGroup = Group("Sauces", 0, 3, 2, 50,
             Choice("Blanche", 0, Blanche), Choice("Algérienne", 0, Algerienne), Choice("Samouraï", 0, Samourai));
-        Kebab.OptionGroups.Add(PainGroup);
-        Kebab.OptionGroups.Add(SauceGroup);
+        Link(Kebab, PainGroup, 0);
+        Link(Kebab, SauceGroup, 1);
 
         Margherita = new Product { Id = Guid.NewGuid(), Name = "Margherita", Category = Burgers, PriceCents = 1000, VatRate = 10 };
-        TailleGroup = Group("Taille", 0, 1, 1, 1, 0, Choice("29 cm", 0), Choice("33 cm", 300));
-        Margherita.OptionGroups.Add(TailleGroup);
+        TailleGroup = Group("Taille", 1, 1, 1, 0, Choice("29 cm", 0), Choice("33 cm", 300));
+        Link(Margherita, TailleGroup, 0);
 
         Menu = new Menu { Id = Guid.NewGuid(), Name = "Menu Classic", PriceCents = 1290, VatRate = 10 };
         PlatSlot = new MenuSlot { Id = Guid.NewGuid(), Label = "Plat", Position = 0, MinChoices = 1, MaxChoices = 1 };
@@ -70,13 +70,19 @@ public class CatalogFixture
     public Dictionary<Guid, Product> Products =>
         new[] { Classic, Cola, GrandCola, Kebab, Margherita }.ToDictionary(p => p.Id);
 
-    public ProductOptionChoice ChoiceOf(ProductOptionGroup group, string name) => group.Choices.Single(c => c.Name == name);
+    public OptionChoice ChoiceOf(OptionGroup group, string name) => group.Choices.Single(c => c.Name == name);
 
-    private static ProductOptionGroup Group(string label, int position, int min, int max, int free, int extra, params ProductOptionChoice[] choices)
-    {
-        var group = new ProductOptionGroup
+    private static void Link(Product product, OptionGroup group, int position) =>
+        product.OptionGroups.Add(new ProductOptionGroup
         {
-            Id = Guid.NewGuid(), Label = label, Position = position,
+            ProductId = product.Id, Product = product, OptionGroupId = group.Id, OptionGroup = group, Position = position,
+        });
+
+    private static OptionGroup Group(string label, int min, int max, int free, int extra, params OptionChoice[] choices)
+    {
+        var group = new OptionGroup
+        {
+            Id = Guid.NewGuid(), Label = label,
             MinChoices = min, MaxChoices = max, FreeChoices = free, ExtraChoicePriceCents = extra,
         };
         for (var i = 0; i < choices.Length; i++)
@@ -88,7 +94,7 @@ public class CatalogFixture
         return group;
     }
 
-    private static ProductOptionChoice Choice(string name, int extra, Ingredient? ingredient = null) =>
+    private static OptionChoice Choice(string name, int extra, Ingredient? ingredient = null) =>
         new() { Id = Guid.NewGuid(), Name = name, ExtraPriceCents = extra, IngredientId = ingredient?.Id, Ingredient = ingredient };
     public Dictionary<Guid, Menu> Menus => new[] { Menu }.ToDictionary(m => m.Id);
 }

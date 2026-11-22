@@ -80,7 +80,7 @@ public static class OptionChoicePolicy
         return ok ? modifications : null;
     }
 
-    private static string BoundsMessage(Product product, ProductOptionGroup group) =>
+    private static string BoundsMessage(Product product, OptionGroup group) =>
         (group.MinChoices, group.MaxChoices) switch
         {
             var (min, max) when min == max => $"{product.Name} : choisissez {min} « {group.Label} ».",

@@ -183,7 +183,7 @@ public class OrderItemModification : BaseModel
 
     /// <summary>Renseigné si et seulement si <see cref="Type"/> vaut Choice.</summary>
     public Guid? OptionChoiceId { get; set; }
-    public ProductOptionChoice? OptionChoice { get; set; }
+    public OptionChoice? OptionChoice { get; set; }
 
     /// <summary>Renseigné si et seulement si <see cref="Type"/> vaut Replace.</summary>
     public Guid? SubstituteIngredientId { get; set; }

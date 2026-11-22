@@ -118,15 +118,12 @@ public class ProductSupplement
 }
 
 /// <summary>
-/// Choix dans une liste propre au produit (« Pain », « Sauces », « Taille »), borné par
-/// <see cref="MinChoices"/> et <see cref="MaxChoices"/>. Archivé, jamais supprimé : les lignes de
-/// commande pointent vers ses choix.
+/// Choix dans une liste (« Pain », « Sauces », « Taille »), borné par <see cref="MinChoices"/> et
+/// <see cref="MaxChoices"/>. Partagé entre produits par <see cref="ProductOptionGroup"/>. Archivé,
+/// jamais supprimé : les lignes de commande pointent vers ses choix.
 /// </summary>
-public class ProductOptionGroup : BaseModel
+public class OptionGroup : BaseModel
 {
-    public Guid ProductId { get; set; }
-    public Product? Product { get; set; }
-
     [Required]
     [MaxLength(64)]
     public string Label { get; set; } = string.Empty;
@@ -134,7 +131,6 @@ public class ProductOptionGroup : BaseModel
     [MaxLength(500)]
     public string? ImageUrl { get; set; }
 
-    public int Position { get; set; }
     public int MinChoices { get; set; }
     public int MaxChoices { get; set; } = 1;
 
@@ -143,13 +139,14 @@ public class ProductOptionGroup : BaseModel
 
     public int ExtraChoicePriceCents { get; set; }
 
-    public ICollection<ProductOptionChoice> Choices { get; set; } = new List<ProductOptionChoice>();
+    public ICollection<OptionChoice> Choices { get; set; } = new List<OptionChoice>();
+    public ICollection<ProductOptionGroup> Products { get; set; } = new List<ProductOptionGroup>();
 }
 
-public class ProductOptionChoice : BaseModel
+public class OptionChoice : BaseModel
 {
     public Guid GroupId { get; set; }
-    public ProductOptionGroup? Group { get; set; }
+    public OptionGroup? Group { get; set; }
 
     [Required]
     [MaxLength(64)]
@@ -164,6 +161,18 @@ public class ProductOptionChoice : BaseModel
 
     /// <summary>Surcoût propre au choix, ex. +300 pour la grande taille.</summary>
     public int ExtraPriceCents { get; set; }
+
+    public int Position { get; set; }
+}
+
+/// <summary>Groupe d'options proposé sur un produit, à sa place dans l'ordre d'affichage.</summary>
+public class ProductOptionGroup
+{
+    public Guid ProductId { get; set; }
+    public Product? Product { get; set; }
+
+    public Guid OptionGroupId { get; set; }
+    public OptionGroup? OptionGroup { get; set; }
 
     public int Position { get; set; }
 }

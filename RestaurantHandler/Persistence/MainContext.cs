@@ -26,8 +26,9 @@ public class MainContext : IdentityDbContext<UserApp, RoleApp, Guid>
     public DbSet<ProductIngredient> ProductIngredients { get; set; }
     public DbSet<IngredientSubstitution> IngredientSubstitutions { get; set; }
     public DbSet<ProductSupplement> ProductSupplements { get; set; }
-    public DbSet<ProductOptionGroup> ProductOptionGroups { get; set; }
-    public DbSet<ProductOptionChoice> ProductOptionChoices { get; set; }
+    public DbSet<OptionGroup> OptionGroups { get; set; }
+    public DbSet<OptionChoice> OptionChoices { get; set; }
+    public DbSet<ProductOptionGroup> ProductOptionGroups { get; set; } // groupes proposés par produit, ordonnés
     public DbSet<Menu> Menus { get; set; }
     public DbSet<MenuSlot> MenuSlots { get; set; }
     public DbSet<MenuSlotOption> MenuSlotOptions { get; set; }

@@ -119,27 +119,36 @@ En tant que client, je veux connaître les allergènes d'un produit afin de comm
 - En V1, l'information est assurée hors application (affichage en salle) — cf.
   [conformité](../20-regles-metier/04-conformite-legale.md).
 
-### US-E02-9 — Définir les groupes d'options d'un produit
+### US-E02-9 — Définir les groupes d'options et les proposer sur les produits
 
-En tant que Manager, je veux proposer sur un produit des choix dans une liste (pain d'un
-sandwich, sauces, taille d'une pizza), avec un minimum, un maximum, un nombre de choix offerts
-et des surcoûts, afin que le client compose son plat sans passer par la composition.
+En tant que Manager, je veux définir des choix dans une liste (pain d'un sandwich, sauces, taille
+d'une pizza), avec un minimum, un maximum, un nombre de choix offerts et des surcoûts, et les
+proposer sur plusieurs produits, afin que le client compose son plat sans passer par la
+composition.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite (`PUT /manage/products/{id}/option-groups`, carte publique,
-commande) ; écran à faire.
+**Avancement :** API faite : groupes partagés (`/manage/option-groups`), groupes proposés par
+produit (`PUT /manage/products/{id}/option-groups`), carte publique, commande ; écran du
+back-office en cours (client, `/gestion/options`).
 
 **Critères d'acceptation**
-- Les groupes sont propres au produit et remplacés en un seul appel, dans l'ordre d'affichage ;
-  un groupe ou un choix retiré est archivé, jamais supprimé.
+- Un groupe est **partagé** : il se définit une fois (`/manage/option-groups`) et se propose sur
+  autant de produits que voulu. Le modifier le modifie pour tous ces produits.
+- Chaque produit choisit ses groupes et leur ordre d'affichage en un seul appel
+  (`{ optionGroupIds }`) ; un groupe archivé ou inconnu est refusé.
+- Le libellé d'un groupe est unique parmi les groupes non archivés.
+- Les choix d'un groupe sont remplacés en un seul appel, dans l'ordre d'affichage ; un choix
+  retiré est archivé, jamais supprimé.
+- Un groupe proposé sur un produit non archivé ne peut pas être archivé ; l'archivage est
+  définitif.
 - Un groupe a un libellé, `0 ≤ min ≤ max`, au moins `min` choix, un nombre de choix offerts
   (tous par défaut) et un prix par choix au-delà des offerts (≥ 0).
 - Un choix a un nom unique dans son groupe, un surcoût ≥ 0 (ex. +3 € pour la grande taille) et
   peut être lié à un ingrédient : la rupture de l'ingrédient grise le choix.
-- Un ingrédient lié à un choix ne peut pas être archivé.
+- Un ingrédient lié à un choix d'un groupe non archivé ne peut pas être archivé.
 - Groupes et choix peuvent avoir une photo (même contrôle et format que les produits),
-  envoyée à part (`POST …/option-groups/{groupId}/image`, `…/choices/{choiceId}/image`) et
-  conservée quand les groupes sont remplacés.
+  envoyée à part (`POST /manage/option-groups/{id}/image`, `…/choices/{choiceId}/image`) et
+  conservée quand les choix sont remplacés.
 - Exemples : « Pain » 1 parmi baguette / pita ; « Sauces » 0 à 3, 2 offertes puis +0,50 € ;
   « Taille » 1 parmi 29 cm / 33 cm (+3 €).

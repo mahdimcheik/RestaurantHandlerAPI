@@ -10,12 +10,12 @@ public class OptionChoicePolicyTests
 
     private PricedCart Price(params CartLine[] lines) => CartPolicy.Price(lines, _c.Products, _c.Menus);
 
-    private static CartLine Product(Guid id, params ProductOptionChoice[] choices) =>
+    private static CartLine Product(Guid id, params OptionChoice[] choices) =>
         new(id, null, 1, [], [], choices.Select(c => c.Id).ToList());
 
-    private ProductOptionChoice Pain(string name) => _c.ChoiceOf(_c.PainGroup, name);
-    private ProductOptionChoice Sauce(string name) => _c.ChoiceOf(_c.SauceGroup, name);
-    private ProductOptionChoice Taille(string name) => _c.ChoiceOf(_c.TailleGroup, name);
+    private OptionChoice Pain(string name) => _c.ChoiceOf(_c.PainGroup, name);
+    private OptionChoice Sauce(string name) => _c.ChoiceOf(_c.SauceGroup, name);
+    private OptionChoice Taille(string name) => _c.ChoiceOf(_c.TailleGroup, name);
 
     [Fact]
     public void Pain_et_deux_sauces_offertes_au_prix_du_produit_avec_libelles()

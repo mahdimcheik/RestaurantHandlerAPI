@@ -44,8 +44,8 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
             .Include(p => p.Ingredients).ThenInclude(pi => pi.Ingredient)
             .Include(p => p.Ingredients).ThenInclude(pi => pi.Substitutions).ThenInclude(s => s.SubstituteIngredient)
             .Include(p => p.Supplements).ThenInclude(s => s.Ingredient)
-            .Include(p => p.OptionGroups.Where(g => g.ArchivedAt == null))
-            .ThenInclude(g => g.Choices.Where(c => c.ArchivedAt == null)).ThenInclude(c => c.Ingredient)
+            .Include(p => p.OptionGroups).ThenInclude(l => l.OptionGroup)
+            .ThenInclude(g => g!.Choices.Where(c => c.ArchivedAt == null)).ThenInclude(c => c.Ingredient)
             .AsSplitQuery()
             .OrderBy(p => p.Position).ThenBy(p => p.Name)
             .ToListAsync(ct);

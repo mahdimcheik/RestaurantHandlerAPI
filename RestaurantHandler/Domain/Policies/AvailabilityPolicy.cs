@@ -11,7 +11,7 @@ public sealed record ProductAvailability(bool IsOrderable, IReadOnlyList<Guid> F
 /// <summary>
 /// R6 (docs/20-regles-metier/01-regles-commande.md) sur un graphe de carte déjà chargé :
 /// <c>Product.Category</c>, <c>Product.Ingredients[].Ingredient</c>, substitutions et suppléments
-/// avec leurs ingrédients, <c>Product.OptionGroups[].Choices[].Ingredient</c>,
+/// avec leurs ingrédients, <c>Product.OptionGroups[].OptionGroup.Choices[].Ingredient</c>,
 /// <c>Menu.Slots[].Options[].Product</c> (et le graphe produit ci-dessus).
 /// </summary>
 public static class AvailabilityPolicy
@@ -46,11 +46,15 @@ public static class AvailabilityPolicy
         return new ProductAvailability(true, forcedRemovals);
     }
 
-    public static IEnumerable<ProductOptionGroup> ActiveOptionGroups(Product product) =>
-        product.OptionGroups.Where(g => g.ArchivedAt is null).OrderBy(g => g.Position);
+    /// <summary>Groupes non archivés proposés sur le produit, dans son ordre d'affichage.</summary>
+    public static IEnumerable<OptionGroup> ActiveOptionGroups(Product product) =>
+        product.OptionGroups
+            .OrderBy(l => l.Position)
+            .Select(l => l.OptionGroup!)
+            .Where(g => g.ArchivedAt is null);
 
     /// <summary>Non archivé et, s'il est lié à un ingrédient, celui-ci est disponible.</summary>
-    public static bool IsOptionChoiceOffered(ProductOptionChoice choice) =>
+    public static bool IsOptionChoiceOffered(OptionChoice choice) =>
         choice.ArchivedAt is null && (choice.IngredientId is null || IsIngredientAvailable(choice.Ingredient));
 
     /// <summary>

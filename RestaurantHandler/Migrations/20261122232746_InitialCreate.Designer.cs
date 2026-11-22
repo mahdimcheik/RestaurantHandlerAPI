@@ -13,7 +13,7 @@ using RestaurantHandler.Contexts;
 namespace RestaurantHandler.Migrations
 {
     [DbContext(typeof(MainContext))]
-    [Migration("20261122195556_InitialCreate")]
+    [Migration("20261122232746_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -528,6 +528,108 @@ namespace RestaurantHandler.Migrations
                         });
                 });
 
+            modelBuilder.Entity("RestaurantHandler.Models.OptionChoice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ExtraPriceCents")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid?>("IngredientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IngredientId");
+
+                    b.HasIndex("GroupId", "Name")
+                        .IsUnique()
+                        .HasFilter("\"ArchivedAt\" IS NULL");
+
+                    b.ToTable("OptionChoices", t =>
+                        {
+                            t.HasCheckConstraint("CK_OptionChoices_ExtraPriceCents", "\"ExtraPriceCents\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.OptionGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ExtraChoicePriceCents")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("FreeChoices")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("MaxChoices")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MinChoices")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Label")
+                        .IsUnique()
+                        .HasFilter("\"ArchivedAt\" IS NULL");
+
+                    b.ToTable("OptionGroups", t =>
+                        {
+                            t.HasCheckConstraint("CK_OptionGroups_Choices", "\"MinChoices\" >= 0 AND \"MaxChoices\" >= 1 AND \"MinChoices\" <= \"MaxChoices\"");
+
+                            t.HasCheckConstraint("CK_OptionGroups_ExtraChoicePriceCents", "\"ExtraChoicePriceCents\" >= 0");
+
+                            t.HasCheckConstraint("CK_OptionGroups_FreeChoices", "\"FreeChoices\" >= 0");
+                        });
+                });
+
             modelBuilder.Entity("RestaurantHandler.Models.Order", b =>
                 {
                     b.Property<Guid>("Id")
@@ -992,110 +1094,24 @@ namespace RestaurantHandler.Migrations
                     b.ToTable("ProductIngredients");
                 });
 
-            modelBuilder.Entity("RestaurantHandler.Models.ProductOptionChoice", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("ArchivedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("ExtraPriceCents")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("GroupId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<Guid?>("IngredientId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<int>("Position")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IngredientId");
-
-                    b.HasIndex("GroupId", "Name")
-                        .IsUnique()
-                        .HasFilter("\"ArchivedAt\" IS NULL");
-
-                    b.ToTable("ProductOptionChoices", t =>
-                        {
-                            t.HasCheckConstraint("CK_ProductOptionChoices_ExtraPriceCents", "\"ExtraPriceCents\" >= 0");
-                        });
-                });
-
             modelBuilder.Entity("RestaurantHandler.Models.ProductOptionGroup", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("ArchivedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("ExtraChoicePriceCents")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("FreeChoices")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<int>("MaxChoices")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("MinChoices")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Position")
-                        .HasColumnType("integer");
-
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<Guid>("OptionGroupId")
+                        .HasColumnType("uuid");
 
-                    b.HasKey("Id");
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ProductId", "OptionGroupId");
+
+                    b.HasIndex("OptionGroupId");
 
                     b.HasIndex("ProductId", "Position");
 
-                    b.ToTable("ProductOptionGroups", t =>
-                        {
-                            t.HasCheckConstraint("CK_ProductOptionGroups_Choices", "\"MinChoices\" >= 0 AND \"MaxChoices\" >= 1 AND \"MinChoices\" <= \"MaxChoices\"");
-
-                            t.HasCheckConstraint("CK_ProductOptionGroups_ExtraChoicePriceCents", "\"ExtraChoicePriceCents\" >= 0");
-
-                            t.HasCheckConstraint("CK_ProductOptionGroups_FreeChoices", "\"FreeChoices\" >= 0");
-                        });
+                    b.ToTable("ProductOptionGroups");
                 });
 
             modelBuilder.Entity("RestaurantHandler.Models.ProductSupplement", b =>
@@ -1695,6 +1711,24 @@ namespace RestaurantHandler.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("RestaurantHandler.Models.OptionChoice", b =>
+                {
+                    b.HasOne("RestaurantHandler.Models.OptionGroup", "Group")
+                        .WithMany("Choices")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RestaurantHandler.Models.Ingredient", "Ingredient")
+                        .WithMany()
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Group");
+
+                    b.Navigation("Ingredient");
+                });
+
             modelBuilder.Entity("RestaurantHandler.Models.Order", b =>
                 {
                     b.HasOne("RestaurantHandler.Models.UserApp", "CreatedByUser")
@@ -1759,7 +1793,7 @@ namespace RestaurantHandler.Migrations
                         .HasForeignKey("IngredientId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("RestaurantHandler.Models.ProductOptionChoice", "OptionChoice")
+                    b.HasOne("RestaurantHandler.Models.OptionChoice", "OptionChoice")
                         .WithMany()
                         .HasForeignKey("OptionChoiceId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1843,31 +1877,21 @@ namespace RestaurantHandler.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("RestaurantHandler.Models.ProductOptionChoice", b =>
-                {
-                    b.HasOne("RestaurantHandler.Models.ProductOptionGroup", "Group")
-                        .WithMany("Choices")
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantHandler.Models.Ingredient", "Ingredient")
-                        .WithMany()
-                        .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Group");
-
-                    b.Navigation("Ingredient");
-                });
-
             modelBuilder.Entity("RestaurantHandler.Models.ProductOptionGroup", b =>
                 {
+                    b.HasOne("RestaurantHandler.Models.OptionGroup", "OptionGroup")
+                        .WithMany("Products")
+                        .HasForeignKey("OptionGroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("RestaurantHandler.Models.Product", "Product")
                         .WithMany("OptionGroups")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("OptionGroup");
 
                     b.Navigation("Product");
                 });
@@ -1937,6 +1961,13 @@ namespace RestaurantHandler.Migrations
                     b.Navigation("Options");
                 });
 
+            modelBuilder.Entity("RestaurantHandler.Models.OptionGroup", b =>
+                {
+                    b.Navigation("Choices");
+
+                    b.Navigation("Products");
+                });
+
             modelBuilder.Entity("RestaurantHandler.Models.Order", b =>
                 {
                     b.Navigation("Items");
@@ -1965,11 +1996,6 @@ namespace RestaurantHandler.Migrations
             modelBuilder.Entity("RestaurantHandler.Models.ProductIngredient", b =>
                 {
                     b.Navigation("Substitutions");
-                });
-
-            modelBuilder.Entity("RestaurantHandler.Models.ProductOptionGroup", b =>
-                {
-                    b.Navigation("Choices");
                 });
 
             modelBuilder.Entity("RestaurantHandler.Models.RoleApp", b =>
