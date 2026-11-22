@@ -42,7 +42,8 @@ En tant que Manager, je veux réautoriser le paiement au retrait pour un client 
 gérer une exception.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J5 (`POST /manage/customers/{userId}/no-shows/reset`, historisé dans `NoShowResets` ; compteur visible du Manager dans le détail de commande) ; écran à faire.
 
 **Critères d'acceptation**
 - Remet à zéro le compteur de non-venues ; action historisée.

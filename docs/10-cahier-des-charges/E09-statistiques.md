@@ -16,7 +16,8 @@ comptables : la référence fiscale des ventes sur place est la caisse certifié
 En tant que gérant, je veux voir l'activité du jour en direct afin de piloter le service.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J5 (`GET /manage/stats/dashboard`) ; écran à faire avec le front.
 
 **Critères d'acceptation**
 - Indicateurs : CA TTC, nombre de commandes, panier moyen (CA / commandes), répartition
@@ -30,7 +31,8 @@ En tant que gérant, je veux le classement des produits et menus vendus sur une 
 d'ajuster la carte.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J5 (`GET /manage/stats/products` (jour, semaine, mois, plage libre ≤ 366 jours)) ; écran à faire avec le front.
 
 **Critères d'acceptation**
 - Période : jour, semaine, mois, ou dates libres.
@@ -43,7 +45,8 @@ En tant que gérant, je veux voir le nombre de commandes et le CA par tranche ho
 de semaine afin d'organiser les équipes.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J5 (`GET /manage/stats/peak-hours` (tranches de 15 ou 30 min, temps moyen de préparation)) ; écran à faire avec le front.
 
 **Critères d'acceptation**
 - Histogramme par tranche de 15 ou 30 min sur une période choisie.

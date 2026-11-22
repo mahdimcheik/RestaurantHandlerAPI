@@ -85,6 +85,8 @@ public class OrderQueryService(MainContext db, TimeProvider clock)
             query = query.Where(o => o.Channel == channel);
         if (filter.IsPaid is { } paid)
             query = query.Where(o => (o.PaidAt != null) == paid);
+        if (filter.Number is { } number)
+            query = query.Where(o => o.DailyNumber == number);
 
         var orders = await query.OrderBy(o => o.PickupAt).ThenBy(o => o.DailyNumber).ToListAsync();
         return orders.Select(OrderMapping.ToSummary).ToList();

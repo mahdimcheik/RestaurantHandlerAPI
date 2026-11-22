@@ -66,7 +66,7 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 | M7 | ✅ Nouvelles tables : `OpeningHours` (jour, début, fin), `Closure` (début, fin, motif), `RestaurantSettings` (identité légale, délais, créneaux, pause jusqu'à) | E03, E10 | J1 |
 | M8 | ✅ `UserApp.NoShowCount` : compteur de non-venues / blocage paiement au retrait | [US-E04-5](../10-cahier-des-charges/E04-commande-en-ligne.md#us-e04-5--limiter-les-abus-du-paiement-au-retrait) | J2 |
 | M9 | ✅ Filtre automatique `ArchivedAt == null` : **non rétabli**, les services filtrent explicitement | lecture de commandes anciennes | J1 |
-| M10 | Index de lecture pour les statistiques : `Order(Status, CompletedAt)` | E09 | J5 |
+| M10 | ✅ Index de lecture pour les statistiques : `Order(Status, CompletedAt)` et `Order(Status, ReadyAt)` ; table `NoShowResets` (historique des levées de blocage, US-E10-4) | E09, E10 | J5 |
 | M11 | Socle : retirer `HelpEntry`, `MailBroadcast`, paramètres de maintenance | J0 | J0 |
 
 Chaque écart est une migration nommée (`dotnet ef migrations add <Nom>`) ; plus de

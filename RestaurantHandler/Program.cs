@@ -164,6 +164,9 @@ static void ConfigureServices(IServiceCollection services)
     services.AddHttpClient<SumUpClient>(SumUpClient.Configure);
     services.AddScoped<OnlinePaymentService>();
 
+    // Statistiques (J5)
+    services.AddScoped<StatsService>();
+
     services.AddLogging(loggingBuilder =>
     {
         loggingBuilder.ClearProviders();

@@ -491,6 +491,34 @@ namespace RestaurantHandler.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "NoShowResets",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PreviousCount = table.Column<int>(type: "integer", nullable: false),
+                    ResetByUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ResetAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NoShowResets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_NoShowResets_Users_ResetByUserId",
+                        column: x => x.ResetByUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_NoShowResets_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Notifications",
                 columns: table => new
                 {
@@ -906,6 +934,16 @@ namespace RestaurantHandler.Migrations
                 filter: "\"ArchivedAt\" IS NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_NoShowResets_ResetByUserId",
+                table: "NoShowResets",
+                column: "ResetByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_NoShowResets_UserId_ResetAt",
+                table: "NoShowResets",
+                columns: new[] { "UserId", "ResetAt" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Notifications_UserId",
                 table: "Notifications",
                 column: "UserId");
@@ -989,9 +1027,19 @@ namespace RestaurantHandler.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Orders_Status_CompletedAt",
+                table: "Orders",
+                columns: new[] { "Status", "CompletedAt" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_Status_CreatedAt",
                 table: "Orders",
                 columns: new[] { "Status", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_Status_ReadyAt",
+                table: "Orders",
+                columns: new[] { "Status", "ReadyAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderStatusHistory_ChangedByUserId",
@@ -1122,6 +1170,9 @@ namespace RestaurantHandler.Migrations
 
             migrationBuilder.DropTable(
                 name: "MenuSlotOptions");
+
+            migrationBuilder.DropTable(
+                name: "NoShowResets");
 
             migrationBuilder.DropTable(
                 name: "Notifications");

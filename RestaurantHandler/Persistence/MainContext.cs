@@ -13,6 +13,7 @@ public class MainContext : IdentityDbContext<UserApp, RoleApp, Guid>
     public DbSet<UserApp> Users { get; set; }
     public DbSet<RoleApp> Roles { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<NoShowReset> NoShowResets { get; set; }
 
     // notifications
     public DbSet<Notification> Notifications { get; set; }

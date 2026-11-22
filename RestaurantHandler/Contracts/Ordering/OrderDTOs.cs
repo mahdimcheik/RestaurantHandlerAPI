@@ -201,6 +201,9 @@ public class OrderDetails : OrderSummary
 
     /// <summary>Anomalie de paiement à traiter (Manager uniquement).</summary>
     public string? PaymentIssue { get; set; }
+
+    /// <summary>Non-venues du client (Manager uniquement) ; au seuil, le paiement au retrait est bloqué.</summary>
+    public int? CustomerNoShowCount { get; set; }
     [Required] public List<OrderItemDto> Items { get; set; } = [];
     [Required] public List<VatLineDto> Vat { get; set; } = [];
     [Required] public List<OrderHistoryDto> History { get; set; } = [];
@@ -235,6 +238,10 @@ public class OrderFilter
     public OrderStatus? Status { get; set; }
     public OrderChannel? Channel { get; set; }
     public bool? IsPaid { get; set; }
+
+    /// <summary>Numéro d'appel du jour (recherche rapide à la remise).</summary>
+    [Range(1, int.MaxValue)]
+    public int? Number { get; set; }
 }
 
 /// <summary>

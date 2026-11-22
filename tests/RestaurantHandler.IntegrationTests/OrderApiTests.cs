@@ -225,6 +225,9 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
 
         var manager = await api.ManagerAsync();
         (await manager.PostAsync($"/manage/customers/{blockedId}/no-shows/reset", null)).EnsureSuccessStatusCode();
+        var reset = await api.WithDbAsync(db => db.NoShowResets.SingleAsync(r => r.UserId == blockedId));
+        Assert.Equal(2, reset.PreviousCount);
+        Assert.Equal(await api.WithDbAsync(db => db.Users.Where(u => u.Email == ApiFixture.ManagerEmail).Select(u => u.Id).SingleAsync()), reset.ResetByUserId);
         Assert.Equal(HttpStatusCode.Created, (await blocked.PostAsJsonAsync("/orders", Order([ClassicLine()]), ApiFixture.Json)).StatusCode);
     }
 
@@ -243,6 +246,10 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
         (await manager.PostAsync($"/manage/orders/{id}/no-show", null)).EnsureSuccessStatusCode();
 
         Assert.Equal(1, await api.WithDbAsync(db => db.Users.Where(u => u.Id == userId).Select(u => u.NoShowCount).SingleAsync()));
+        var details = await DataAsync(await manager.GetAsync($"/manage/orders/{id}"));
+        Assert.Equal(1, details.GetProperty("customerNoShowCount").GetInt32());
+        var clientView = await DataAsync(await client.GetAsync($"/orders/{id}"));
+        Assert.Equal(JsonValueKind.Null, clientView.GetProperty("customerNoShowCount").ValueKind);
     }
 
     [Fact]

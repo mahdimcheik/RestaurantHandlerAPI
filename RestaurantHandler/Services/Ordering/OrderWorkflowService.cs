@@ -108,10 +108,17 @@ public class OrderWorkflowService(MainContext db, OrderNotifier notifier, IBackg
     }
 
     /// <summary>US-E04-5 : le Manager lève le blocage du paiement au retrait.</summary>
-    public async Task ResetNoShowsAsync(Guid userId)
+    public async Task ResetNoShowsAsync(Guid userId, CallerIdentity caller)
     {
         var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new ResourceNotFoundException("Utilisateur introuvable.");
+        db.NoShowResets.Add(new NoShowReset
+        {
+            UserId = user.Id,
+            PreviousCount = user.NoShowCount,
+            ResetByUserId = caller.UserId,
+            ResetAt = clock.GetUtcNow(),
+        });
         user.NoShowCount = 0;
         await db.SaveChangesAsync();
     }

@@ -178,7 +178,7 @@ public class ManageOrdersController(
     [HttpPost("/manage/customers/{userId:guid}/no-shows/reset")]
     public async Task<ActionResult<Response<object>>> ResetNoShows(Guid userId)
     {
-        await workflow.ResetNoShowsAsync(userId);
+        await workflow.ResetNoShowsAsync(userId, await CallerAsync());
         return Done("Compteur de non-venues remis à zéro");
     }
 

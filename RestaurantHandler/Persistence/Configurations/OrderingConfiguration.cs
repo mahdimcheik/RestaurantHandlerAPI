@@ -17,6 +17,9 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasIndex(o => new { o.ServiceDate, o.DailyNumber }).IsUnique();
         builder.HasIndex(o => new { o.CreatedByUserId, o.IdempotencyKey }).IsUnique();
         builder.HasIndex(o => new { o.PickupAt, o.Status });
+        // Statistiques (M10) : commandes comptées par instant de retrait.
+        builder.HasIndex(o => new { o.Status, o.CompletedAt });
+        builder.HasIndex(o => new { o.Status, o.ReadyAt });
         builder.HasIndex(o => o.CustomerId);
         builder.HasIndex(o => o.CreatedByUserId);
 

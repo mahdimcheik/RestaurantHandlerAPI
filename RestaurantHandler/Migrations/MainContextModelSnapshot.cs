@@ -406,6 +406,35 @@ namespace RestaurantHandler.Migrations
                         });
                 });
 
+            modelBuilder.Entity("RestaurantHandler.Models.NoShowReset", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("PreviousCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ResetAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ResetByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ResetByUserId");
+
+                    b.HasIndex("UserId", "ResetAt");
+
+                    b.ToTable("NoShowResets");
+                });
+
             modelBuilder.Entity("RestaurantHandler.Models.Notification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -607,7 +636,11 @@ namespace RestaurantHandler.Migrations
                     b.HasIndex("ServiceDate", "DailyNumber")
                         .IsUnique();
 
+                    b.HasIndex("Status", "CompletedAt");
+
                     b.HasIndex("Status", "CreatedAt");
+
+                    b.HasIndex("Status", "ReadyAt");
 
                     b.ToTable("Orders", t =>
                         {
@@ -1509,6 +1542,25 @@ namespace RestaurantHandler.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Slot");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.NoShowReset", b =>
+                {
+                    b.HasOne("RestaurantHandler.Models.UserApp", "ResetByUser")
+                        .WithMany()
+                        .HasForeignKey("ResetByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RestaurantHandler.Models.UserApp", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ResetByUser");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RestaurantHandler.Models.Notification", b =>

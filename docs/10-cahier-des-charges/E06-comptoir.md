@@ -58,7 +58,7 @@ En tant que Manager, je veux marquer une commande comme retirée afin de clore s
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`complete`, refusé si non payée) ; recherche par numéro en J5.
+**Avancement :** API faite en J2 (`complete`, refusé si non payée) ; recherche par numéro faite en J5 (`GET /manage/orders?number=`) ; écran à faire.
 
 **Critères d'acceptation**
 - Possible uniquement depuis `Prête` et si la commande est payée.

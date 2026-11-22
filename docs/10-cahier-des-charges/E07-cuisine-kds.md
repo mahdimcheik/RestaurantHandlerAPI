@@ -43,7 +43,8 @@ En tant que cuisinier, je veux que le KDS reste fiable malgré une coupure rése
 perdre aucune commande.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** côté serveur, la resynchronisation complète passe par `GET /manage/orders/kitchen` et une transition refusée renvoie une erreur explicite ; bandeau et refus hors ligne à faire dans l'écran.
 
 **Critères d'acceptation**
 - Un bandeau rouge signale la perte de connexion.

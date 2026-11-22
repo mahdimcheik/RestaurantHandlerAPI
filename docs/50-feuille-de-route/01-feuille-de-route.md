@@ -128,7 +128,7 @@ l'API. **Reste pour la sortie :** le même parcours en sandbox SumUp réel (proc
 - Pages légales (CGV, confidentialité, mentions, lien allergènes).
 - **Sortie :** parcours 1 et 2 complets sur un iPhone et un Android réels.
 
-## J5 — Back-office & KDS (S8–S10)
+## J5 — Back-office & KDS (S8–S10) — 🟡 API terminée le 2026-11-22, écrans à faire
 
 - Back-office tablette : commandes du jour, validation `AValider` (son + badge), saisie
   comptoir rapide, encaissement déclaré, remise, non venu, annulation.
@@ -136,6 +136,16 @@ l'API. **Reste pour la sortie :** le même parcours en sandbox SumUp réel (proc
 - Gestion de la carte, ruptures, pause, horaires, paramètres (écrans sur l'API de J1).
 - Statistiques : tableau du jour, ventes par produit, heures de pointe (écart M10).
 - **Sortie :** service simulé de 30 minutes (comptoir + en ligne + KDS) sans papier.
+
+**Bilan J5 (API, 2026-11-22) :** J4 sauté pour l'instant, front non créé : seule la partie serveur
+est faite. Règle pure `StatsPolicy` (commande comptée = retirée, ou prête et payée, à son
+instant de retrait ; journées en heure de Paris ; 18 tests) et routes Manager
+`/manage/stats/dashboard`, `/products`, `/peak-hours` (US-E09-1 à 3). Écart M10 (index
+`Status + CompletedAt` / `ReadyAt`). Recherche par numéro du jour (`GET /manage/orders?number=`),
+levée du blocage non-venues historisée (`NoShowResets`) et compteur exposé au Manager dans le
+détail de commande. `InitialCreate` régénérée (30 tables). 2 nouveaux tests d'intégration (25 au
+total). **Reste pour la sortie :** les écrans back-office, KDS et statistiques, puis le service
+simulé.
 
 ## J6 — Mise en service (S10–S12)
 
