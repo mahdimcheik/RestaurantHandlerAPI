@@ -1,0 +1,115 @@
+# Stack de TEST sur serveur dédié (https://test-api.bonprof.fr) — ~/bonprof/back-end-test/docker-compose.yml
+# .env : modèle dans .env.test.example. Déployé par .github/workflows/docker-image-test.yml.
+name: bonprof-test
+
+services:
+  db:
+    image: postgres:15
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    container_name: container-db-test
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - local-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: container-pgadmin-test
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-root}
+    ports:
+      - "127.0.0.1:5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - local-network
+      - global-network
+
+  api:
+    image: mahdimcheik/bonprof:test
+    container_name: container-api-test
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      JWT_KEY: ${JWT_KEY}
+      ADDRESS_ENCRYPTION_KEY: ${ADDRESS_ENCRYPTION_KEY}
+      API_BACK_URL: ${API_BACK_URL}
+      API_FRONT_URL: ${API_FRONT_URL}
+      DB_PORT: ${DB_PORT}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL}
+      SUPER_ADMIN_PASSWORD: ${SUPER_ADMIN_PASSWORD}
+      COOKIES_VALIDITY_DAYS: ${COOKIES_VALIDITY_DAYS}
+      TOKEN_VALIDITY_MINUTES: ${TOKEN_VALIDITY_MINUTES}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_LOGIN: ${SMTP_LOGIN}
+      SMTP_KEY: ${SMTP_KEY}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_ALLOW_SELF_SIGNED: ${SMTP_ALLOW_SELF_SIGNED:-false}
+      DO_NO_REPLY_MAIL: ${DO_NO_REPLY_MAIL}
+      STRIPE_PK: ${STRIPE_PK}
+      STRIPE_SK: ${STRIPE_SK}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_CONNECT_WEBHOOK_SECRET: ${STRIPE_CONNECT_WEBHOOK_SECRET}
+      PAYMENTS_ENABLED: ${PAYMENTS_ENABLED:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      ALLOW_DEMO_SEED: ${ALLOW_DEMO_SEED}
+      S3_UPLOAD_URL: ${S3_UPLOAD_URL}
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET}
+      SIGNED_URL_MINUTES: ${SIGNED_URL_MINUTES:-60}
+      MAX_UPLOAD_SIZE_MB: ${MAX_UPLOAD_SIZE_MB:-25}
+      PRIVACY_DOCUMENT_RETENTION_DAYS: ${PRIVACY_DOCUMENT_RETENTION_DAYS:-30}
+      INSEE_API_KEY: ${INSEE_API_KEY}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:contact@bonprof.fr}
+      RATE_LIMITING_ENABLED: ${RATE_LIMITING_ENABLED:-true}
+      RATE_LIMIT_IP_PER_MINUTE: ${RATE_LIMIT_IP_PER_MINUTE:-300}
+      RATE_LIMIT_USER_PER_MINUTE: ${RATE_LIMIT_USER_PER_MINUTE:-200}
+      RATE_LIMIT_AUTH_PER_MINUTE: ${RATE_LIMIT_AUTH_PER_MINUTE:-10}
+      RATE_LIMIT_EXEMPT_IPS: ${RATE_LIMIT_EXEMPT_IPS:-}
+      INSEE_SIRENE_BASE_URL: ${INSEE_SIRENE_BASE_URL:-https://api.insee.fr/api-sirene/3.11/}
+
+    expose:
+      - 7113
+    # Pour un reverse proxy installé sur l'hôte ; un proxy conteneurisé passe par global-network.
+    ports:
+      - "127.0.0.1:7113:7113"
+    networks:
+      - local-network
+      - global-network
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+
+networks:
+  local-network:
+    driver: bridge
+  global-network:
+    external: true

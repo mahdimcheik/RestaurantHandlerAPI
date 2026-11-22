@@ -1,0 +1,880 @@
+[
+  {
+    "language": "fr",
+    "question": "Par où commencer quand on est professeur ?",
+    "summary": "Les étapes pour que les élèves puissent vous trouver et réserver vos cours.",
+    "answerHtml": "<p>Pour recevoir vos premières réservations, suivez ces étapes dans votre tableau de bord :</p><ol><li><strong>Complétez votre profil</strong> : titre, description, langues, tarif indicatif et formations. C'est votre fiche publique, celle que consultent les élèves avant de réserver.</li><li><strong>Créez au moins un cursus</strong> (page « Mes cursus ») : sans cursus, personne ne peut réserver.</li><li><strong>Ouvrez des créneaux</strong> dans votre planification : les élèves ne peuvent réserver que ces créneaux libres.</li><li><strong>Envoyez vos documents</strong> (page « Documents ») pour faire vérifier votre compte et obtenir le badge « Certifié ».</li><li><strong>Connectez Stripe</strong> (Profil › Statut du compte) pour être payé en ligne.</li></ol><p>L'onglet « Statut du compte » de votre profil liste les étapes qu'il vous reste à compléter.</p>",
+    "category": "GettingStarted",
+    "audience": "Teacher",
+    "keywords": [
+      "débuter",
+      "commencer",
+      "inscription professeur",
+      "checklist"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "en",
+    "question": "How do I get started as a teacher?",
+    "summary": "The steps that let students find you and book your lessons.",
+    "answerHtml": "<p>To receive your first bookings, follow these steps in your dashboard:</p><ol><li><strong>Complete your profile</strong>: title, description, languages, indicative rate and education. It is your public page, the one students look at before booking.</li><li><strong>Create at least one course</strong> (\"My courses\" page): without a course, nobody can book.</li><li><strong>Open time slots</strong> in your schedule: students can only book these free slots.</li><li><strong>Upload your documents</strong> (\"Documents\" page) to get your account verified and earn the \"Certified\" badge.</li><li><strong>Connect Stripe</strong> (Profile › Account status) to get paid online.</li></ol><p>The \"Account status\" tab of your profile lists the steps you still have to complete.</p>",
+    "category": "GettingStarted",
+    "audience": "Teacher",
+    "keywords": [
+      "start",
+      "getting started",
+      "teacher sign-up",
+      "checklist"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "fr",
+    "question": "Comment réserver mon premier cours ?",
+    "summary": "Trouver un professeur, réserver un créneau puis payer : le parcours en trois étapes.",
+    "answerHtml": "<ol><li><strong>Confirmez votre adresse email</strong> : sans cela, vous ne pouvez ni réserver ni payer.</li><li><strong>Trouvez un professeur</strong> avec « Trouver un BonProf », puis cliquez sur « Réserver » pour voir ses créneaux libres.</li><li><strong>Choisissez un créneau</strong>, le cours souhaité, un titre et un objectif.</li><li><strong>Payez dans « Commandes »</strong> dans les 30 minutes, sinon le créneau est libéré. Si le professeur n'accepte pas le paiement en ligne, il valide lui-même votre demande, sans paiement.</li></ol>",
+    "category": "GettingStarted",
+    "audience": "Student",
+    "keywords": [
+      "débuter",
+      "commencer",
+      "premier cours",
+      "inscription élève"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "en",
+    "question": "How do I book my first lesson?",
+    "summary": "Find a teacher, book a slot, then pay: the journey in three steps.",
+    "answerHtml": "<ol><li><strong>Confirm your email address</strong>: without it you can neither book nor pay.</li><li><strong>Find a teacher</strong> with \"Find a BonProf\", then click \"Book\" to see their free slots.</li><li><strong>Pick a slot</strong>, the course you want, a title and a goal.</li><li><strong>Pay in \"Orders\"</strong> within 30 minutes, otherwise the slot is released. If the teacher does not accept online payment, they approve your request themselves, with no payment.</li></ol>",
+    "category": "GettingStarted",
+    "audience": "Student",
+    "keywords": [
+      "start",
+      "getting started",
+      "first lesson",
+      "student sign-up"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "fr",
+    "question": "Pourquoi dois-je confirmer mon adresse email ?",
+    "summary": "Sans email confirmé, vous ne pouvez ni réserver ni payer de cours.",
+    "answerHtml": "<p>La confirmation de votre adresse email est nécessaire pour réserver et payer des cours.</p><p>L'onglet « Statut du compte » de votre profil indique si votre adresse est confirmée. Pour les professeurs, c'est aussi la première des étapes listées avant de pouvoir recevoir des réservations.</p>",
+    "category": "Account",
+    "audience": "All",
+    "keywords": [
+      "email",
+      "mail",
+      "confirmation",
+      "vérification",
+      "statut du compte"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "en",
+    "question": "Why do I need to confirm my email address?",
+    "summary": "Without a confirmed email, you can neither book nor pay for lessons.",
+    "answerHtml": "<p>Confirming your email address is required to book and pay for lessons.</p><p>The \"Account status\" tab of your profile shows whether your address is confirmed. For teachers, it is also the first of the steps listed before you can receive bookings.</p>",
+    "category": "Account",
+    "audience": "All",
+    "keywords": [
+      "email",
+      "confirmation",
+      "verification",
+      "account status"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "fr",
+    "question": "Comment personnaliser l'apparence de mon tableau de bord ?",
+    "summary": "Couleurs, thème et disposition du menu se règlent dans les paramètres.",
+    "answerHtml": "<p>Depuis les paramètres de votre tableau de bord, vous pouvez :</p><ul><li>choisir la couleur principale, la couleur de fond et le thème ;</li><li>choisir la disposition du menu latéral : fixe ou en superposition.</li></ul><p>Ces réglages sont mémorisés dans votre navigateur : ils ne vous suivent pas sur un autre appareil.</p>",
+    "category": "Account",
+    "audience": "All",
+    "keywords": [
+      "thème",
+      "mode sombre",
+      "couleur",
+      "menu",
+      "paramètres"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "en",
+    "question": "How do I customise how my dashboard looks?",
+    "summary": "Colours, theme and menu layout are set in the settings.",
+    "answerHtml": "<p>From your dashboard settings you can:</p><ul><li>choose the primary colour, the background colour and the theme;</li><li>choose the side menu layout: static or overlay.</li></ul><p>These settings are stored in your browser: they do not follow you to another device.</p>",
+    "category": "Account",
+    "audience": "All",
+    "keywords": [
+      "theme",
+      "dark mode",
+      "colour",
+      "menu",
+      "settings"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "fr",
+    "question": "Que voient les élèves sur mon profil public ?",
+    "summary": "L'onglet « Profil » de votre tableau de bord est exactement votre fiche publique.",
+    "answerHtml": "<p>L'onglet « Profil » est exactement votre fiche publique, celle que consultent les élèves avant de réserver. On y trouve :</p><ul><li>votre titre et votre description ;</li><li>vos langues et votre tarif indicatif ;</li><li>vos formations ;</li><li>vos cursus, avec leur prix ;</li><li>le badge « Certifié » une fois vos documents validés.</li></ul><p>L'onglet « Statut du compte » liste quant à lui les étapes à compléter : confirmation de l'email, SIRET, documents justificatifs et connexion Stripe.</p>",
+    "category": "Profile",
+    "audience": "Teacher",
+    "keywords": [
+      "fiche publique",
+      "profil professeur",
+      "description",
+      "tarif"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "en",
+    "question": "What do students see on my public profile?",
+    "summary": "The \"Profile\" tab of your dashboard is exactly your public page.",
+    "answerHtml": "<p>The \"Profile\" tab is exactly your public page, the one students look at before booking. It shows:</p><ul><li>your title and description;</li><li>your languages and indicative rate;</li><li>your education;</li><li>your courses, with their price;</li><li>the \"Certified\" badge once your documents are approved.</li></ul><p>The \"Account status\" tab lists the steps to complete: email confirmation, SIRET, supporting documents and Stripe connection.</p>",
+    "category": "Profile",
+    "audience": "Teacher",
+    "keywords": [
+      "public page",
+      "teacher profile",
+      "description",
+      "rate"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "fr",
+    "question": "Comment créer mes cursus ?",
+    "summary": "Un cursus est un type de cours avec un prix : l'élève en choisit un au moment de réserver.",
+    "answerHtml": "<p>Vos cursus sont les cours que vous proposez. Ils sont affichés sur votre profil public et l'élève en choisit un au moment de réserver un créneau.</p><ul><li>Un cursus comprend un titre, un niveau, des catégories, un prix et une description.</li><li>Le prix s'applique à chaque réservation. Il n'y a pas de durée : elle dépend du créneau choisi par l'élève.</li><li>Le prix est figé au moment de la réservation : le modifier ensuite ne change pas les réservations existantes.</li><li>Les niveaux et catégories viennent du référentiel tenu par l'administration ; ils aident les élèves à vous trouver dans la recherche.</li></ul><p><strong>Sans cursus, personne ne peut réserver.</strong> Créez-les depuis la page « Mes cursus ».</p>",
+    "category": "Profile",
+    "audience": "Teacher",
+    "keywords": [
+      "cursus",
+      "cours",
+      "prix",
+      "tarif",
+      "niveau",
+      "catégorie",
+      "mes cursus"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "en",
+    "question": "How do I create my courses?",
+    "summary": "A course has a title, a level and a price: students pick one when booking.",
+    "answerHtml": "<p>Your courses are what you offer. They are shown on your public profile and students pick one when booking a slot.</p><ul><li>A course has a title, a level, categories, a price and a description.</li><li>The price applies to each booking. There is no duration: it depends on the slot the student picks.</li><li>The price is locked when the booking is made: changing it later does not affect existing bookings.</li><li>Levels and categories come from the list maintained by the administration; they help students find you in search.</li></ul><p><strong>Without a course, nobody can book.</strong> Create them from the \"My courses\" page.</p>",
+    "category": "Profile",
+    "audience": "Teacher",
+    "keywords": [
+      "course",
+      "price",
+      "rate",
+      "level",
+      "category",
+      "my courses"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "fr",
+    "question": "Comment trouver un professeur ?",
+    "summary": "Cherchez par matière, lieu ou disponibilité, puis réservez l'un de ses créneaux.",
+    "answerHtml": "<p>La page « Trouver un BonProf » vous permet de filtrer les professeurs par :</p><ul><li>dates et disponibilité ;</li><li>ville et rayon ;</li><li>nom ;</li><li>matière ou catégories.</li></ul><p>Les badges indiquent un professeur <strong>certifié</strong> (documents vérifiés) ou acceptant le <strong>paiement en ligne</strong>.</p><p>« Voir profil » ouvre la fiche publique du professeur, avec ses cours et ses avis. « Réserver » ouvre votre planification avec ses créneaux libres.</p>",
+    "category": "Search",
+    "audience": "Student",
+    "keywords": [
+      "recherche",
+      "chercher",
+      "trouver un prof",
+      "matière",
+      "filtre",
+      "ville"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "en",
+    "question": "How do I find a teacher?",
+    "summary": "Search by subject, location or availability, then book one of their slots.",
+    "answerHtml": "<p>The \"Find a BonProf\" page lets you filter teachers by:</p><ul><li>dates and availability;</li><li>city and radius;</li><li>name;</li><li>subject or categories.</li></ul><p>Badges show a <strong>certified</strong> teacher (verified documents) or one accepting <strong>online payment</strong>.</p><p>\"View profile\" opens the teacher's public page, with their courses and reviews. \"Book\" opens your schedule with their free slots.</p>",
+    "category": "Search",
+    "audience": "Student",
+    "keywords": [
+      "search",
+      "find a teacher",
+      "subject",
+      "filter",
+      "city"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "fr",
+    "question": "Comment retrouver mes professeurs favoris ?",
+    "summary": "Ajoutez des professeurs à vos favoris et filtrez la recherche sur eux.",
+    "answerHtml": "<p>Dans « Trouver un BonProf », ajoutez des professeurs à vos favoris. Vous les retrouvez ensuite avec le filtre « Uniquement mes favoris ».</p>",
+    "category": "Search",
+    "audience": "Student",
+    "keywords": [
+      "favori",
+      "favoris",
+      "enregistrer"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "en",
+    "question": "How do I find my favourite teachers again?",
+    "summary": "Add teachers to your favourites and filter the search on them.",
+    "answerHtml": "<p>In \"Find a BonProf\", add teachers to your favourites. You can then find them with the \"Only my favorites\" filter.</p>",
+    "category": "Search",
+    "audience": "Student",
+    "keywords": [
+      "favourite",
+      "favorites",
+      "save"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "fr",
+    "question": "Comment réserver un cours ?",
+    "summary": "Choisissez un créneau libre du professeur, le cours souhaité, un titre et un objectif.",
+    "answerHtml": "<p>Depuis la fiche d'un professeur (bouton « Réserver »), votre planification affiche ses créneaux libres.</p><ul><li>Cliquez sur un créneau libre pour le réserver.</li><li>Choisissez le cours : il fixe le prix de la réservation.</li><li>Donnez un titre et un objectif à la séance.</li></ul><p>Payez ensuite la réservation dans « Commandes » dans les 30 minutes, sinon le créneau est libéré. Si le professeur n'accepte pas le paiement en ligne, il valide lui-même votre demande, sans paiement.</p>",
+    "category": "Booking",
+    "audience": "Student",
+    "keywords": [
+      "réserver",
+      "réservation",
+      "créneau",
+      "booking",
+      "planification"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "en",
+    "question": "How do I book a lesson?",
+    "summary": "Pick one of the teacher's free slots, the course you want, a title and a goal.",
+    "answerHtml": "<p>From a teacher's page (\"Book\" button), your schedule shows their free slots.</p><ul><li>Click a free slot to book it.</li><li>Pick the course: it sets the booking price.</li><li>Give the lesson a title and a goal.</li></ul><p>Then pay for the booking in \"Orders\" within 30 minutes, otherwise the slot is released. If the teacher does not accept online payment, they approve your request themselves, with no payment.</p>",
+    "category": "Booking",
+    "audience": "Student",
+    "keywords": [
+      "book",
+      "booking",
+      "slot",
+      "schedule"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "fr",
+    "question": "Comment annuler une réservation et être remboursé ?",
+    "summary": "Remboursement à 100 % jusqu'à 48 h avant le cours, 95 % ensuite.",
+    "answerHtml": "<p>Vous pouvez annuler tant que la séance n'a pas commencé, depuis votre planification ou le détail de la réservation.</p><ul><li><strong>Jusqu'à 48 h avant le cours</strong> : remboursement à 100 %.</li><li><strong>Moins de 48 h avant</strong> : remboursement à 95 %.</li></ul><p>Un aperçu du montant remboursé s'affiche avant que vous confirmiez l'annulation.</p>",
+    "category": "Booking",
+    "audience": "Student",
+    "keywords": [
+      "annuler",
+      "annulation",
+      "remboursement",
+      "rembourser",
+      "48h"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "en",
+    "question": "How do I cancel a booking and get a refund?",
+    "summary": "100% refund up to 48 hours before the lesson, 95% after that.",
+    "answerHtml": "<p>You can cancel as long as the lesson has not started, from your schedule or the booking details.</p><ul><li><strong>Up to 48 hours before the lesson</strong>: 100% refund.</li><li><strong>Less than 48 hours before</strong>: 95% refund.</li></ul><p>A preview of the refunded amount is shown before you confirm the cancellation.</p>",
+    "category": "Booking",
+    "audience": "Student",
+    "keywords": [
+      "cancel",
+      "cancellation",
+      "refund",
+      "48 hours"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "fr",
+    "question": "À quoi sert le code de présence ?",
+    "summary": "Il confirme que la séance a bien eu lieu : l'élève le communique, le professeur le saisit.",
+    "answerHtml": "<p>Chaque réservation a un code de présence, affiché chez l'élève.</p><ul><li><strong>Élève</strong> : pendant la séance, communiquez ce code à votre professeur.</li><li><strong>Professeur</strong> : demandez le code à l'élève et saisissez-le avec « Confirmer » dans le détail de la réservation.</li></ul><p>Le code confirme que la séance a eu lieu. Après la séance et la période de contestation, la réservation devient payable et le professeur est versé automatiquement.</p>",
+    "category": "Booking",
+    "audience": "All",
+    "keywords": [
+      "code",
+      "présence",
+      "confirmer",
+      "séance effectuée"
+    ],
+    "sortOrder": 3
+  },
+  {
+    "language": "en",
+    "question": "What is the attendance code for?",
+    "summary": "It confirms the lesson took place: the student shares it, the teacher enters it.",
+    "answerHtml": "<p>Each booking has an attendance code, shown to the student.</p><ul><li><strong>Student</strong>: during the lesson, give this code to your teacher.</li><li><strong>Teacher</strong>: ask the student for the code and enter it with \"Confirm\" in the booking details.</li></ul><p>The code confirms the lesson took place. After the lesson and the dispute period, the booking becomes payable and the teacher is paid out automatically.</p>",
+    "category": "Booking",
+    "audience": "All",
+    "keywords": [
+      "code",
+      "attendance",
+      "confirm",
+      "lesson delivered"
+    ],
+    "sortOrder": 3
+  },
+  {
+    "language": "fr",
+    "question": "Comment accepter, refuser ou annuler une réservation ?",
+    "summary": "Cliquez sur un créneau réservé de votre planification pour voir la demande de l'élève.",
+    "answerHtml": "<p>Dans votre planification, cliquez sur un créneau réservé pour voir la demande de l'élève. Vous pouvez :</p><ul><li>la <strong>refuser</strong> ;</li><li>la <strong>valider</strong>, pour les réservations sans paiement en ligne ;</li><li>l'<strong>annuler</strong>.</li></ul><p>Annuler une réservation confirmée rembourse entièrement l'élève et entraîne une <strong>pénalité de 5 %</strong>, déduite de votre solde.</p><p>Toutes vos séances, avec leur statut, sont aussi listées dans la page « Réservations ».</p>",
+    "category": "Booking",
+    "audience": "Teacher",
+    "keywords": [
+      "accepter",
+      "refuser",
+      "valider",
+      "annuler",
+      "pénalité"
+    ],
+    "sortOrder": 4
+  },
+  {
+    "language": "en",
+    "question": "How do I accept, reject or cancel a booking?",
+    "summary": "Click a booked slot in your schedule to see the student's request.",
+    "answerHtml": "<p>In your schedule, click a booked slot to see the student's request. You can:</p><ul><li><strong>reject</strong> it;</li><li><strong>approve</strong> it, for bookings without online payment;</li><li><strong>cancel</strong> it.</li></ul><p>Cancelling a confirmed booking fully refunds the student and costs you a <strong>5% penalty</strong>, deducted from your balance.</p><p>All your lessons, with their status, are also listed on the \"Bookings\" page.</p>",
+    "category": "Booking",
+    "audience": "Teacher",
+    "keywords": [
+      "accept",
+      "reject",
+      "approve",
+      "cancel",
+      "penalty"
+    ],
+    "sortOrder": 4
+  },
+  {
+    "language": "fr",
+    "question": "Quels sont les statuts d'une réservation ?",
+    "summary": "En attente, acceptée, effectuée, payable, terminée — ou refusée, annulée, en litige.",
+    "answerHtml": "<p>Une réservation passe par plusieurs statuts :</p><ul><li><strong>en attente</strong>, puis <strong>acceptée</strong> ;</li><li><strong>effectuée</strong>, une fois le code de présence saisi ;</li><li><strong>payable</strong>, après la période de contestation : vous êtes versé automatiquement ;</li><li><strong>terminée</strong>.</li></ul><p>Elle peut aussi être <strong>refusée</strong>, <strong>annulée</strong> ou <strong>en litige</strong> si l'élève conteste la séance.</p>",
+    "category": "Booking",
+    "audience": "Teacher",
+    "keywords": [
+      "statut",
+      "état",
+      "payable",
+      "effectuée"
+    ],
+    "sortOrder": 5
+  },
+  {
+    "language": "en",
+    "question": "What are the statuses of a booking?",
+    "summary": "Pending, accepted, delivered, payable, done — or rejected, cancelled, disputed.",
+    "answerHtml": "<p>A booking goes through several statuses:</p><ul><li><strong>pending</strong>, then <strong>accepted</strong>;</li><li><strong>delivered</strong>, once the attendance code is entered;</li><li><strong>payable</strong>, after the dispute period: you are paid out automatically;</li><li><strong>done</strong>.</li></ul><p>It can also be <strong>rejected</strong>, <strong>cancelled</strong> or <strong>disputed</strong> if the student contests the lesson.</p>",
+    "category": "Booking",
+    "audience": "Teacher",
+    "keywords": [
+      "status",
+      "state",
+      "payable",
+      "delivered"
+    ],
+    "sortOrder": 5
+  },
+  {
+    "language": "fr",
+    "question": "Pourquoi les élèves ne peuvent-ils pas réserver chez moi ?",
+    "summary": "Il faut au moins un cursus et des créneaux libres dans votre planification.",
+    "answerHtml": "<p>Un élève réserve un créneau libre de votre planification en choisissant l'un de vos cursus. Vérifiez donc :</p><ul><li>que vous avez créé <strong>au moins un cursus</strong> (page « Mes cursus ») ;</li><li>que vous avez ouvert des <strong>créneaux futurs et libres</strong> dans votre planification.</li></ul><p>Pour être payé en ligne, il faut en plus un compte vérifié et Stripe connecté (Profil › Statut du compte). Sinon, vous validez vous-même chaque réservation, sans paiement ni commission.</p>",
+    "category": "Booking",
+    "audience": "Teacher",
+    "keywords": [
+      "pas de réservation",
+      "réserver impossible",
+      "aucune réservation",
+      "visible"
+    ],
+    "sortOrder": 6
+  },
+  {
+    "language": "en",
+    "question": "Why can't students book with me?",
+    "summary": "You need at least one course and free slots in your schedule.",
+    "answerHtml": "<p>A student books a free slot from your schedule by picking one of your courses. Check that:</p><ul><li>you have created <strong>at least one course</strong> (\"My courses\" page);</li><li>you have opened <strong>future free slots</strong> in your schedule.</li></ul><p>To be paid online, you also need a verified account and Stripe connected (Profile › Account status). Otherwise you approve each booking yourself, with no payment and no commission.</p>",
+    "category": "Booking",
+    "audience": "Teacher",
+    "keywords": [
+      "no bookings",
+      "cannot book",
+      "visible"
+    ],
+    "sortOrder": 6
+  },
+  {
+    "language": "fr",
+    "question": "Comment payer ma réservation ?",
+    "summary": "Payez dans « Commandes » dans les 30 minutes, de façon sécurisée via Stripe.",
+    "answerHtml": "<p>Une commande regroupe vos réservations chez un même professeur. Elle se paie depuis la page « Commandes ».</p><ul><li>Vous avez <strong>30 minutes</strong> pour payer ; chaque nouvelle réservation ajoutée relance ce délai.</li><li>Passé ce délai, les réservations sont annulées et les créneaux libérés.</li><li>Le paiement se fait de façon sécurisée via Stripe.</li></ul><p>Avec un professeur qui n'accepte pas le paiement en ligne, aucun paiement n'est demandé : il confirme lui-même chaque réservation.</p>",
+    "category": "Payments",
+    "audience": "Student",
+    "keywords": [
+      "payer",
+      "paiement",
+      "commande",
+      "stripe",
+      "carte",
+      "30 minutes"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "en",
+    "question": "How do I pay for my booking?",
+    "summary": "Pay in \"Orders\" within 30 minutes, securely through Stripe.",
+    "answerHtml": "<p>An order groups your bookings with the same teacher. You pay it from the \"Orders\" page.</p><ul><li>You have <strong>30 minutes</strong> to pay; each new booking added restarts this delay.</li><li>After that, the bookings are cancelled and the slots released.</li><li>Payment is made securely through Stripe.</li></ul><p>With a teacher who does not accept online payment, no payment is asked: they confirm each booking themselves.</p>",
+    "category": "Payments",
+    "audience": "Student",
+    "keywords": [
+      "pay",
+      "payment",
+      "order",
+      "stripe",
+      "card",
+      "30 minutes"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "fr",
+    "question": "Où trouver ma facture ?",
+    "summary": "La facture PDF est disponible dans le détail de la commande, une fois payée.",
+    "answerHtml": "<p>Une fois la commande payée, sa facture PDF est disponible dans le détail de la commande, depuis la page « Commandes ».</p>",
+    "category": "Payments",
+    "audience": "Student",
+    "keywords": [
+      "facture",
+      "reçu",
+      "pdf",
+      "justificatif"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "en",
+    "question": "Where can I find my invoice?",
+    "summary": "The PDF invoice is available in the order details once it is paid.",
+    "answerHtml": "<p>Once the order is paid, its PDF invoice is available in the order details, from the \"Orders\" page.</p>",
+    "category": "Payments",
+    "audience": "Student",
+    "keywords": [
+      "invoice",
+      "receipt",
+      "pdf"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "fr",
+    "question": "Que se passe-t-il avec un professeur qui n'accepte pas le paiement en ligne ?",
+    "summary": "Aucun paiement n'est demandé sur BonProf : le professeur valide lui-même chaque réservation.",
+    "answerHtml": "<p>Le paiement en ligne n'est possible qu'avec un professeur dont le compte est vérifié et Stripe connecté. Un badge l'indique dans la recherche.</p><p>Avec les autres professeurs, la réservation se fait <strong>sans paiement ni commission</strong> sur BonProf : le professeur valide lui-même chaque demande.</p>",
+    "category": "Payments",
+    "audience": "All",
+    "keywords": [
+      "sans paiement",
+      "paiement en ligne",
+      "validation",
+      "commission"
+    ],
+    "sortOrder": 3
+  },
+  {
+    "language": "en",
+    "question": "What happens with a teacher who does not accept online payment?",
+    "summary": "No payment is asked on BonProf: the teacher approves each booking themselves.",
+    "answerHtml": "<p>Online payment is only available with a teacher whose account is verified and Stripe connected. A badge shows it in search.</p><p>With other teachers, bookings are made <strong>with no payment and no commission</strong> on BonProf: the teacher approves each request themselves.</p>",
+    "category": "Payments",
+    "audience": "All",
+    "keywords": [
+      "no payment",
+      "online payment",
+      "approval",
+      "commission"
+    ],
+    "sortOrder": 3
+  },
+  {
+    "language": "fr",
+    "question": "Quand et comment suis-je payé ?",
+    "summary": "Automatiquement, une fois la réservation payable, par virements Stripe.",
+    "answerHtml": "<p>Après la séance et la période de contestation, la réservation devient <strong>payable</strong> et vous êtes versé automatiquement. Stripe regroupe les versements en virements.</p><ul><li>La connexion Stripe se fait dans Profil › Statut du compte.</li><li>Une pénalité d'annulation est déduite de vos prochains versements.</li><li>Pendant un litige, le montant de la réservation est gelé.</li></ul><p>La page « Portefeuille » liste chaque mouvement : paiement d'élève, remboursement ou versement vers vous. Cliquez sur une transaction pour voir la réservation, l'élève et le cursus concernés.</p>",
+    "category": "Payments",
+    "audience": "Teacher",
+    "keywords": [
+      "versement",
+      "virement",
+      "paiement",
+      "stripe",
+      "portefeuille",
+      "argent"
+    ],
+    "sortOrder": 4
+  },
+  {
+    "language": "en",
+    "question": "When and how do I get paid?",
+    "summary": "Automatically, once the booking is payable, through Stripe transfers.",
+    "answerHtml": "<p>After the lesson and the dispute period, the booking becomes <strong>payable</strong> and you are paid out automatically. Stripe groups payouts into transfers.</p><ul><li>Stripe is connected from Profile › Account status.</li><li>A cancellation penalty is deducted from your next payouts.</li><li>During a dispute, the booking amount is frozen.</li></ul><p>The \"Wallet\" page lists every movement: student payment, refund or payout to you. Click a transaction to see the related booking, student and course.</p>",
+    "category": "Payments",
+    "audience": "Teacher",
+    "keywords": [
+      "payout",
+      "transfer",
+      "payment",
+      "stripe",
+      "wallet",
+      "money"
+    ],
+    "sortOrder": 4
+  },
+  {
+    "language": "fr",
+    "question": "Comment lire mon bilan mensuel ?",
+    "summary": "Vos encaissements du mois, les frais, la commission et ce qu'il vous reste à percevoir.",
+    "answerHtml": "<p>Choisissez un mois : les commandes sont comptées selon leur date de paiement. Pour chaque commande, vous voyez :</p><ul><li>le montant payé ;</li><li>les frais Stripe, marqués « provisoires » tant que Stripe ne les a pas confirmés ;</li><li>la commission de la plateforme ;</li><li>les remboursements ;</li><li>le total à percevoir et ce qui a déjà été versé.</li></ul><p>« Exporter en CSV » reprend les filtres de l'écran, pour votre comptabilité.</p>",
+    "category": "Payments",
+    "audience": "Teacher",
+    "keywords": [
+      "bilan",
+      "comptabilité",
+      "commission",
+      "frais",
+      "csv",
+      "export"
+    ],
+    "sortOrder": 5
+  },
+  {
+    "language": "en",
+    "question": "How do I read my monthly report?",
+    "summary": "What you collected this month, fees, commission and what you are still owed.",
+    "answerHtml": "<p>Pick a month: orders are counted by payment date. For each order you see:</p><ul><li>the amount paid;</li><li>Stripe fees, marked \"provisional\" until Stripe confirms them;</li><li>the platform commission;</li><li>refunds;</li><li>the total owed and what has already been paid out.</li></ul><p>\"Export to CSV\" uses the on-screen filters, for your bookkeeping.</p>",
+    "category": "Payments",
+    "audience": "Teacher",
+    "keywords": [
+      "report",
+      "bookkeeping",
+      "commission",
+      "fees",
+      "csv",
+      "export"
+    ],
+    "sortOrder": 5
+  },
+  {
+    "language": "fr",
+    "question": "À quoi correspond une commande ?",
+    "summary": "Une commande regroupe une ou plusieurs réservations d'un élève avec vous.",
+    "answerHtml": "<p>Les commandes sont passées par vos élèves ; chacune regroupe une ou plusieurs réservations avec vous.</p><ul><li>Statuts : en attente de paiement, payée, partiellement ou totalement remboursée.</li><li>Le détail montre les réservations contenues (cursus, créneau, statut) et les éventuels remboursements.</li><li>Une commande non payée dans les 30 minutes est annulée et ses créneaux redeviennent libres.</li></ul>",
+    "category": "Payments",
+    "audience": "Teacher",
+    "keywords": [
+      "commande",
+      "statut",
+      "remboursée"
+    ],
+    "sortOrder": 6
+  },
+  {
+    "language": "en",
+    "question": "What is an order?",
+    "summary": "An order groups one or more bookings a student made with you.",
+    "answerHtml": "<p>Orders are placed by your students; each one groups one or more bookings with you.</p><ul><li>Statuses: awaiting payment, paid, partially or fully refunded.</li><li>The details show the bookings it contains (course, slot, status) and any refunds.</li><li>An order not paid within 30 minutes is cancelled and its slots become free again.</li></ul>",
+    "category": "Payments",
+    "audience": "Teacher",
+    "keywords": [
+      "order",
+      "status",
+      "refunded"
+    ],
+    "sortOrder": 6
+  },
+  {
+    "language": "fr",
+    "question": "Comment ouvrir mes créneaux de disponibilité ?",
+    "summary": "Sélectionnez une plage dans votre agenda : les élèves ne peuvent réserver que ces créneaux.",
+    "answerHtml": "<ul><li>Sélectionnez une plage dans l'agenda de votre planification pour créer un créneau, en présentiel, en visio ou les deux.</li><li>Un créneau futur et non réservé peut être déplacé, redimensionné ou supprimé.</li><li>La durée du cours est celle du créneau réservé.</li></ul><p>L'élève choisit l'un de vos cursus au moment de réserver. Les réservations obtenues se retrouvent dans la page « Réservations ».</p>",
+    "category": "Planning",
+    "audience": "Teacher",
+    "keywords": [
+      "créneau",
+      "disponibilité",
+      "agenda",
+      "calendrier",
+      "visio",
+      "présentiel"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "en",
+    "question": "How do I open my availability slots?",
+    "summary": "Select a range in your calendar: students can only book these slots.",
+    "answerHtml": "<ul><li>Select a range in your schedule's calendar to create a slot, in person, online or both.</li><li>A future slot that is not booked can be moved, resized or deleted.</li><li>The lesson lasts as long as the booked slot.</li></ul><p>Students pick one of your courses when booking. Bookings you receive are listed on the \"Bookings\" page.</p>",
+    "category": "Planning",
+    "audience": "Teacher",
+    "keywords": [
+      "slot",
+      "availability",
+      "calendar",
+      "online",
+      "in person"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "fr",
+    "question": "Comment échanger avec mon professeur ou mon élève ?",
+    "summary": "Chaque réservation a sa messagerie en temps réel, avec pièces jointes.",
+    "answerHtml": "<p>Ouvrez le détail d'une réservation (page « Réservations ») : il contient la messagerie avec l'autre participant, en temps réel, avec pièces jointes.</p><p>Un litige renvoie lui aussi à la réservation concernée, où vous pouvez continuer à échanger.</p>",
+    "category": "Messaging",
+    "audience": "All",
+    "keywords": [
+      "message",
+      "messagerie",
+      "chat",
+      "discuter",
+      "pièce jointe",
+      "fichier"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "en",
+    "question": "How do I talk with my teacher or student?",
+    "summary": "Each booking has its own real-time chat, with attachments.",
+    "answerHtml": "<p>Open a booking's details (\"Bookings\" page): it includes a real-time chat with the other participant, with attachments.</p><p>A dispute also links to the related booking, where you can keep talking.</p>",
+    "category": "Messaging",
+    "audience": "All",
+    "keywords": [
+      "message",
+      "chat",
+      "talk",
+      "attachment",
+      "file"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "fr",
+    "question": "Comment suivre la progression de mes élèves ?",
+    "summary": "Créez un tableau de suivi par élève : listes, cartes, pièces jointes.",
+    "answerHtml": "<ul><li>Vous pouvez créer un tableau pour tout élève ayant déjà réservé avec vous.</li><li>Un tableau est composé de listes et de cartes : importance, cours associé, séance associée, description et pièces jointes.</li><li>Déplacez les cartes d'une liste à l'autre pour suivre l'avancement ; archivez ce qui est terminé.</li><li>Filtrez par importance ou par cours pour retrouver rapidement une carte.</li></ul><p>Les cours proposés pour une carte sont vos cursus ; les séances sont vos réservations avec cet élève. L'élève consulte le tableau en lecture seule.</p>",
+    "category": "Suivi",
+    "audience": "Teacher",
+    "keywords": [
+      "suivi",
+      "tableau",
+      "progression",
+      "carte",
+      "kanban"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "en",
+    "question": "How do I track my students' progress?",
+    "summary": "Create one tracking board per student: lists, cards, attachments.",
+    "answerHtml": "<ul><li>You can create a board for any student who has already booked with you.</li><li>A board is made of lists and cards: priority, related course, related lesson, description and attachments.</li><li>Move cards between lists to track progress; archive what is finished.</li><li>Filter by priority or course to quickly find a card.</li></ul><p>Courses offered for a card are your courses; lessons are your bookings with that student. The student sees the board read-only.</p>",
+    "category": "Suivi",
+    "audience": "Teacher",
+    "keywords": [
+      "tracking",
+      "board",
+      "progress",
+      "card",
+      "kanban"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "fr",
+    "question": "Où voir ma progression ?",
+    "summary": "Dans « Suivi de cours » : les tableaux tenus par vos professeurs, en lecture seule.",
+    "answerHtml": "<p>Chaque professeur peut tenir un tableau pour suivre votre progression : objectifs, exercices, ressources. Vous le consultez en lecture seule dans « Suivi de cours ».</p><ul><li>Les cartes peuvent être liées à un cours ou à une séance et contenir des pièces jointes.</li><li>Filtrez par importance ou par cours pour retrouver une carte.</li></ul>",
+    "category": "Suivi",
+    "audience": "Student",
+    "keywords": [
+      "suivi",
+      "progression",
+      "tableau",
+      "exercices",
+      "ressources"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "en",
+    "question": "Where can I see my progress?",
+    "summary": "In \"Course tracking\": the boards kept by your teachers, read-only.",
+    "answerHtml": "<p>Each teacher can keep a board to track your progress: goals, exercises, resources. You see it read-only in \"Course tracking\".</p><ul><li>Cards can be linked to a course or a lesson and hold attachments.</li><li>Filter by priority or course to find a card.</li></ul>",
+    "category": "Suivi",
+    "audience": "Student",
+    "keywords": [
+      "tracking",
+      "progress",
+      "board",
+      "exercises",
+      "resources"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "fr",
+    "question": "Comment obtenir le badge « Certifié » ?",
+    "summary": "Envoyez les documents demandés par l'administration : une fois validés, votre compte est vérifié.",
+    "answerHtml": "<ul><li>La page « Documents » liste, dans « Demandes de l'administration », les pièces attendues ; certaines sont demandées à tous les professeurs.</li><li>Chaque document est « En attente », « Validé » ou « Refusé » avec un motif. Un document refusé peut être renvoyé.</li><li>Quand toutes les demandes sont satisfaites, votre compte passe automatiquement à « Vérifié ».</li></ul><p>Le badge « Certifié » s'affiche alors sur votre profil public et dans la recherche. Avec un compte vérifié et Stripe connecté, les élèves paient en ligne.</p>",
+    "category": "Documents",
+    "audience": "Teacher",
+    "keywords": [
+      "certifié",
+      "certification",
+      "badge",
+      "documents",
+      "justificatif",
+      "vérifié",
+      "siret"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "en",
+    "question": "How do I get the \"Certified\" badge?",
+    "summary": "Upload the documents requested by the administration: once approved, your account is verified.",
+    "answerHtml": "<ul><li>The \"Documents\" page lists, under \"Administration requests\", the expected documents; some are required from every teacher.</li><li>Each document is \"Pending\", \"Approved\" or \"Rejected\" with a reason. A rejected document can be uploaded again.</li><li>Once every request is fulfilled, your account automatically becomes \"Verified\".</li></ul><p>The \"Certified\" badge then appears on your public profile and in search results. With a verified account and Stripe connected, students pay online.</p>",
+    "category": "Documents",
+    "audience": "Teacher",
+    "keywords": [
+      "certified",
+      "certification",
+      "badge",
+      "documents",
+      "verified",
+      "siret"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "fr",
+    "question": "Que faire si un cours s'est mal passé ?",
+    "summary": "Ouvrez un litige depuis le détail de la réservation, peu après la fin de la séance.",
+    "answerHtml": "<ul><li>Un litige s'ouvre depuis le détail d'une réservation, peu après la fin de la séance, avec un motif.</li><li>Le professeur et un administrateur sont prévenus ; l'administrateur décide du montant qui vous est remboursé.</li><li>La page « Litiges » liste vos litiges, leur statut et la décision rendue.</li></ul><p>Vous pouvez aussi laisser un avis sur la séance, visible sur le profil du professeur.</p>",
+    "category": "Disputes",
+    "audience": "Student",
+    "keywords": [
+      "litige",
+      "contester",
+      "problème",
+      "réclamation",
+      "remboursement"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "en",
+    "question": "What should I do if a lesson went wrong?",
+    "summary": "Open a dispute from the booking details, shortly after the lesson ends.",
+    "answerHtml": "<ul><li>A dispute is opened from a booking's details, shortly after the lesson ends, with a reason.</li><li>The teacher and an administrator are notified; the administrator decides how much is refunded to you.</li><li>The \"Disputes\" page lists your disputes, their status and the decision.</li></ul><p>You can also leave a review of the lesson, shown on the teacher's profile.</p>",
+    "category": "Disputes",
+    "audience": "Student",
+    "keywords": [
+      "dispute",
+      "complaint",
+      "problem",
+      "claim",
+      "refund"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "fr",
+    "question": "Que se passe-t-il quand un élève ouvre un litige ?",
+    "summary": "Le montant est gelé jusqu'à la décision de l'administration.",
+    "answerHtml": "<ul><li>Un élève peut contester une séance peu après sa fin, avec un motif.</li><li>Tant que le litige est ouvert, le montant de la réservation est gelé.</li><li>Un administrateur tranche : il fixe le montant remboursé à l'élève, le reste vous revient.</li><li>La page « Litiges » est en consultation : vous y voyez le motif, la décision et la note de résolution.</li></ul><p>Chaque litige renvoie à la réservation concernée, où vous pouvez échanger avec l'élève.</p>",
+    "category": "Disputes",
+    "audience": "Teacher",
+    "keywords": [
+      "litige",
+      "contestation",
+      "gelé",
+      "décision"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "en",
+    "question": "What happens when a student opens a dispute?",
+    "summary": "The amount is frozen until the administration decides.",
+    "answerHtml": "<ul><li>A student can dispute a lesson shortly after it ends, giving a reason.</li><li>While the dispute is open, the booking amount is frozen.</li><li>An administrator decides: they set the amount refunded to the student, and the rest goes to you.</li><li>The \"Disputes\" page is read-only: you see the reason, the decision and the resolution note.</li></ul><p>Each dispute links to the related booking, where you can talk with the student.</p>",
+    "category": "Disputes",
+    "audience": "Teacher",
+    "keywords": [
+      "dispute",
+      "complaint",
+      "frozen",
+      "decision"
+    ],
+    "sortOrder": 2
+  },
+  {
+    "language": "fr",
+    "question": "Comment laisser un avis sur un professeur ?",
+    "summary": "Après la séance, depuis le détail de la réservation.",
+    "answerHtml": "<p>Après la séance, vous pouvez laisser un avis depuis le détail de la réservation. Il est visible sur le profil du professeur et aide les autres élèves à choisir.</p>",
+    "category": "Other",
+    "audience": "Student",
+    "keywords": [
+      "avis",
+      "note",
+      "évaluation",
+      "commentaire"
+    ],
+    "sortOrder": 1
+  },
+  {
+    "language": "en",
+    "question": "How do I review a teacher?",
+    "summary": "After the lesson, from the booking details.",
+    "answerHtml": "<p>After the lesson, you can leave a review from the booking details. It is shown on the teacher's profile and helps other students choose.</p>",
+    "category": "Other",
+    "audience": "Student",
+    "keywords": [
+      "review",
+      "rating",
+      "feedback",
+      "comment"
+    ],
+    "sortOrder": 1
+  }
+]

@@ -1,0 +1,20 @@
+
+*.v2
+
+*.vsidx
+
+.vs/
+
+*.bin
+
+.claude/
+
+**/Properties/launchSettings.json
+
+.env
+.env.*
+!.env.example
+
+# build outputs of the test projects
+tests/**/bin/
+tests/**/obj/

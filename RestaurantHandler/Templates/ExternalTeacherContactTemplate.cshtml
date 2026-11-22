@@ -1,0 +1,30 @@
+@using RestaurantHandler.Models
+@model ExternalTeacherContactModel
+@{
+    Layout = "_EmailLayout.cshtml";
+    ViewBag.Title = Model.Subject;
+    ViewBag.Preheader = $"Nouveau message de {Model.SenderName}, transmis par un assistant IA.";
+    ViewBag.WebsiteLink = Model.WebsiteLink;
+    var firstName = Model.Receiver.FirstName;
+}
+<h1 style="margin:0 0 16px 0; font-size:22px; line-height:1.3; font-weight:700; color:#8f2942;">Nouveau message via un assistant IA</h1>
+<p style="margin:0 0 16px 0;">@(string.IsNullOrWhiteSpace(firstName) ? "Bonjour," : $"Bonjour {firstName},")</p>
+<p style="margin:0 0 16px 0;"><strong>@Model.SenderName</strong> vous a écrit depuis un assistant IA (Claude, ChatGPT…) connecté au serveur MCP de BonProf.</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px 0;">
+    <tr>
+        <td style="padding:12px 16px; background-color:#fffbeb; border:1px solid #f59e0b; border-radius:4px; font-size:13px; line-height:1.5; color:#78350f;">
+            <strong>Expéditeur non vérifié.</strong> Cette personne n'a pas de compte BonProf : son nom et son adresse sont ceux qu'elle a indiqués. Ne communiquez aucune information sensible et ne payez jamais en dehors de la plateforme.
+        </td>
+    </tr>
+</table>
+
+<p style="margin:0 0 8px 0; font-size:13px; text-transform:uppercase; letter-spacing:0.05em; color:#6b7280;">Objet : <span style="text-transform:none; letter-spacing:0; color:#1f2937; font-weight:600;">@Model.Subject</span></p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px 0;">
+    <tr>
+        <td style="padding:20px 24px; background-color:#fdf2f3; border-left:4px solid #8f2942; border-radius:4px; font-size:15px; line-height:1.6; color:#1f2937; white-space:pre-wrap;">@Model.Message</td>
+    </tr>
+</table>
+
+<p style="margin:0 0 8px 0;">Pour lui répondre, répondez simplement à ce mail ou écrivez à :</p>
+<p style="margin:0;"><a href="mailto:@Model.SenderEmail" style="color:#8f2942; font-weight:600;">@Model.SenderEmail</a></p>
