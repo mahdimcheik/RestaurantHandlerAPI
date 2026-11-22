@@ -48,12 +48,12 @@ public class MailBroadcastService(
 
         var recipients = await AudienceUsers(audience, me).Select(u => u.Id).ToListAsync();
 
-        return await RecordAndEnqueueAsync(me, MailBroadcastSenderKind.Admin, audience, subject, body, recipients);
+        return await RecordAndEnqueueAsync(me, MailBroadcastSenderKind.Manager, audience, subject, body, recipients);
     }
 
     // ---- Historique -------------------------------------------------------------------------
 
-    /// <summary>Tous les envois pour l'administration, les siens seulement pour un professeur.</summary>
+    /// <summary>Historique de tous les envois (réservé aux Managers).</summary>
     public async Task<Response<List<MailBroadcastSummary>>> SearchHistoryAsync(
         CustomTableState query,
         CallerIdentity? caller
@@ -62,11 +62,6 @@ public class MailBroadcastService(
         var me = RequireCaller(caller);
 
         var broadcasts = context.MailBroadcasts.AsNoTracking();
-        if (!caller!.IsAdmin)
-        {
-            broadcasts = broadcasts.Where(b => b.SenderId == me);
-        }
-
         var search = query.Search?.Trim();
         if (!string.IsNullOrEmpty(search))
         {
@@ -230,15 +225,10 @@ public class MailBroadcastService(
     private IQueryable<UserApp> AudienceUsers(MailBroadcastAudience audience, Guid senderId)
     {
         var roleIds = new List<Guid>();
-        if (audience.HasFlag(MailBroadcastAudience.Teachers))
-            roleIds.Add(HardCode.ROLE_TEACHER);
-        if (audience.HasFlag(MailBroadcastAudience.Students))
-            roleIds.Add(HardCode.ROLE_STUDENT);
-        if (audience.HasFlag(MailBroadcastAudience.Admins))
-        {
-            roleIds.Add(HardCode.ROLE_ADMIN);
-            roleIds.Add(HardCode.ROLE_SUPER_ADMIN);
-        }
+        if (audience.HasFlag(MailBroadcastAudience.Clients))
+            roleIds.Add(HardCode.ROLE_CLIENT);
+        if (audience.HasFlag(MailBroadcastAudience.Managers))
+            roleIds.Add(HardCode.ROLE_MANAGER);
 
         return Reachable(senderId)
             .Where(u => context.UserRoles.Any(ur => ur.UserId == u.Id && roleIds.Contains(ur.RoleId)));
@@ -284,9 +274,8 @@ public class MailBroadcastService(
         (audiences ?? [])
             .Select(a => a switch
             {
-                MailAudience.Teachers => MailBroadcastAudience.Teachers,
-                MailAudience.Students => MailBroadcastAudience.Students,
-                MailAudience.Admins => MailBroadcastAudience.Admins,
+                MailAudience.Clients => MailBroadcastAudience.Clients,
+                MailAudience.Managers => MailBroadcastAudience.Managers,
                 _ => MailBroadcastAudience.None,
             })
             .Aggregate(MailBroadcastAudience.None, (acc, flag) => acc | flag);
@@ -294,12 +283,10 @@ public class MailBroadcastService(
     private static List<MailAudience> FromFlags(MailBroadcastAudience audience)
     {
         var result = new List<MailAudience>();
-        if (audience.HasFlag(MailBroadcastAudience.Teachers))
-            result.Add(MailAudience.Teachers);
-        if (audience.HasFlag(MailBroadcastAudience.Students))
-            result.Add(MailAudience.Students);
-        if (audience.HasFlag(MailBroadcastAudience.Admins))
-            result.Add(MailAudience.Admins);
+        if (audience.HasFlag(MailBroadcastAudience.Clients))
+            result.Add(MailAudience.Clients);
+        if (audience.HasFlag(MailBroadcastAudience.Managers))
+            result.Add(MailAudience.Managers);
         return result;
     }
 

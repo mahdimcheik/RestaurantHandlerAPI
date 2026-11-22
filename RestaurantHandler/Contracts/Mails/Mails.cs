@@ -56,32 +56,6 @@ public class ConfirmMailModel
 
 public record EmailButton(string Href, string Label);
 
-public class TeacherContactModel
-{
-    public UserApp Receiver { get; set; }
-    public string StudentName { get; set; }
-    public string StudentEmail { get; set; }
-    public string Subject { get; set; }
-    public string MessageHtml { get; set; }
-    public string WebsiteLink { get; set; }
-
-    public TeacherContactModel(
-        UserApp receiver,
-        UserApp student,
-        string subject,
-        string messageHtml,
-        string websiteLink
-    )
-    {
-        Receiver = receiver;
-        StudentName = $"{student.FirstName} {student.LastName}".Trim();
-        StudentEmail = student.Email ?? "";
-        Subject = subject;
-        MessageHtml = messageHtml;
-        WebsiteLink = websiteLink;
-    }
-}
-
 /// <summary>Modèle de BroadcastTemplate : un envoi groupé rendu pour un destinataire.</summary>
 public class BroadcastMailModel
 {

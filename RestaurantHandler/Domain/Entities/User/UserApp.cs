@@ -1,9 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
-using RestaurantHandler.Models;
 using Microsoft.AspNetCore.Identity;
-using RestaurantHandler.Models;
 using RestaurantHandler.Models.Interfaces;
 using RestaurantHandler.Utilities;
 
@@ -23,9 +21,7 @@ public class UserApp : IdentityUser<Guid>, IArchivable, IUpdateable, ICreatable
 
     [MaxLength(500)]
     public string? ImgUrl { get; set; }
-    
-    public string? Title { get; set; }
-    public string? Description { get; set; }
+
     [Required]
     public required bool DataProcessingConsent { get; set; } = false;
 
@@ -53,26 +49,11 @@ public class UserApp : IdentityUser<Guid>, IArchivable, IUpdateable, ICreatable
     // Dernier envoi du lien d'activation, pour limiter les renvois.
     public DateTimeOffset? ConfirmationEmailSentAt { get; set; }
 
-    // Null tant que l'utilisateur n'a jamais enregistré de préférences visuelles.
-    public UserLayoutSettings? LayoutSettings { get; set; }
-    
-
-
-    //gender
-    [Required]
-    [ForeignKey(nameof(Gender))]
-    public Guid GenderId { get; set; }
-    public Gender? Gender { get; set; }
-
     // notifications
     public ICollection<Notification> Notifications { get; set; }
 
-    // navigation to teacher / student
-    public Teacher? Teacher { get; set; }
-    public Student? Student { get; set; }
     // roles
     public ICollection<IdentityUserRole<Guid>> UserRoles { get; set; } = new List<IdentityUserRole<Guid>>();
-    public ICollection<Formation> Formations { get; set; } = new List<Formation>();
 
     [SetsRequiredMembers]
     public UserApp() { }
@@ -83,11 +64,8 @@ public class UserApp : IdentityUser<Guid>, IArchivable, IUpdateable, ICreatable
         UserName = newUser.Email;
         Email = newUser.Email;
         FirstName = newUser.FirstName;
-        Title = newUser.Title;
-        Description =  newUser.Description;
         LastName = newUser.LastName;
         DateOfBirth = newUser.DateOfBirth;
-        GenderId  = newUser.GenderId;
         DataProcessingConsent = true;
         PrivacyPolicyConsent = true;
         StatusId = HardCode.ACCOUNT_PENDING;

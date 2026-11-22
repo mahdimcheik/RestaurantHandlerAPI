@@ -1,5 +1,4 @@
 using RestaurantHandler.Models;
-using RestaurantHandler.Models.Files;
 using RestaurantHandler.Models.Interfaces;
 using RestaurantHandler.Utilities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -14,29 +13,10 @@ public class MainContext : IdentityDbContext<UserApp, RoleApp, Guid>
     public DbSet<UserApp> Users { get; set; }
     public DbSet<RoleApp> Roles { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
-    public DbSet<Gender> Genders { get; set; }
-
-    // Profile entities
-    public DbSet<Teacher> Teachers { get; set; }
-    public DbSet<Student> Students { get; set; }
-
-    // Related entities
-    public DbSet<Experience> Experiences { get; set; }
-    public DbSet<Formation> Formations { get; set; }
-
-    // document & type
-    public DbSet<Document> Documents { get; set; }
-    public DbSet<PrivacyDocument> PrivacyDocuments { get; set; }
-    public DbSet<PrivacyDocumentType> PrivacyDocumentTypes { get; set; }
-    public DbSet<PrivacyDocumentAccessLog> PrivacyDocumentAccessLogs { get; set; } // consultations admin des justificatifs (RGPD)
-    public DbSet<TeacherDocumentRequest> TeacherDocumentRequests { get; set; } // demande ad hoc d'un document supplémentaire à UN prof (Feature 10)
 
     // notifications
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<WebPushSubscription> WebPushSubscriptions { get; set; } // un par appareil abonné aux notifications natives
-
-    // favorites
-    public DbSet<Favorite> Favorites { get; set; }
 
     // centre d'aide
     public DbSet<HelpEntry> HelpEntries { get; set; }

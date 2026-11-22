@@ -31,7 +31,7 @@ public class MaintenanceController(MaintenanceService maintenanceService) : Cont
         );
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = "Manager")]
     [HttpPut]
     public async Task<ActionResult<Response<MaintenanceStatus>>> UpdateMaintenance(
         [FromBody] MaintenanceUpdate update

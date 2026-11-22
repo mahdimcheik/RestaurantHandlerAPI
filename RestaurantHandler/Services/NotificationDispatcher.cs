@@ -16,9 +16,6 @@ public sealed record NotificationRequest(
     string? Link = null
 );
 
-/// <summary>Destinataire d'administration, avec son rôle pour construire ses liens.</summary>
-public sealed record AdminRecipient(Guid UserId, string? Email, bool IsSuperAdmin);
-
 /// <summary>
 /// Point d'entrée unique d'une notification : ligne en base (cloche), événement SignalR
 /// <c>Notification</c> (rafraîchissement sans rechargement) et notification native (Web Push).
@@ -82,31 +79,4 @@ public class NotificationDispatcher(
             push.EnqueueNotification(notification.Id);
         }
     }
-
-    public async Task<List<AdminRecipient>> GetAdminRecipientsAsync()
-    {
-        var roles = await context
-            .UserRoles.Where(ur => ur.RoleId == HardCode.ROLE_ADMIN || ur.RoleId == HardCode.ROLE_SUPER_ADMIN)
-            .Select(ur => new { ur.UserId, ur.RoleId })
-            .ToListAsync();
-        var superAdminIds = roles.Where(r => r.RoleId == HardCode.ROLE_SUPER_ADMIN).Select(r => r.UserId).ToHashSet();
-        var adminIds = roles.Select(r => r.UserId).Distinct().ToList();
-
-        var users = await context
-            .Users.Where(u => adminIds.Contains(u.Id))
-            .Select(u => new { u.Id, u.Email })
-            .ToListAsync();
-        return users.Select(u => new AdminRecipient(u.Id, u.Email, superAdminIds.Contains(u.Id))).ToList();
-    }
-}
-
-/// <summary>Chemins front ouverts au clic sur une notification (cf. <c>app.routes.ts</c>).</summary>
-public static class NotificationLinks
-{
-    public static string AdminTeacherDocuments(Guid teacherId, bool isSuperAdmin) =>
-        $"{AdminBase(isSuperAdmin)}/teacher/{teacherId}/documents";
-
-    public const string TeacherDocuments = "/dashboard/teacher/documents";
-
-    private static string AdminBase(bool isSuperAdmin) => isSuperAdmin ? "/dashboard/superadmin" : "/dashboard/admin";
 }

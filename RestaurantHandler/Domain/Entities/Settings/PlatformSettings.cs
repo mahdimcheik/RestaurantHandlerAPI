@@ -10,7 +10,7 @@ namespace RestaurantHandler.Models;
 public class PlatformSettings : BaseModel
 {
     /// <summary>
-    /// Mode maintenance : l'API répond 503 à tout sauf à l'accès minimal du SuperAdmin
+    /// Mode maintenance : l'API répond 503 à tout sauf à l'accès minimal d'un Manager
     /// (cf. MaintenanceMiddleware), le front n'affiche que la page d'accueil.
     /// </summary>
     public bool MaintenanceEnabled { get; set; }

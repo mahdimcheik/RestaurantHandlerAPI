@@ -3,11 +3,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RestaurantHandler.Models;
 
-public class StatusAccountDetails(StatusAccount gender)
+public class StatusAccountDetails(StatusAccount status)
 {
-    public Guid Id => gender.Id;
-    public string Name => gender.Name;
-    public string Color => gender.Color;
-    public string? Icon => gender.Icon;
-    public Dictionary<string, string> Translations => gender.Translations;
+    public Guid Id => status.Id;
+    public string Name => status.Name;
+    public string Color => status.Color;
+    public string? Icon => status.Icon;
+    public Dictionary<string, string> Translations => status.Translations;
 }

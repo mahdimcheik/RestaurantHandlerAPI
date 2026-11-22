@@ -16,7 +16,7 @@ namespace RestaurantHandler.Controllers;
 public class MailBroadcastsController(MailBroadcastService broadcastService) : ControllerBase
 {
     [HttpPost("admin")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Manager")]
     public async Task<ActionResult<Response<MailBroadcastSent>>> SendAsAdmin(
         [FromBody] AdminMailBroadcastCreate dto
     )
@@ -26,7 +26,7 @@ public class MailBroadcastsController(MailBroadcastService broadcastService) : C
     }
 
     [HttpPost("admin/count")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Manager")]
     public async Task<ActionResult<Response<int>>> CountAdminAudience([FromBody] AdminMailAudienceCount dto)
     {
         var response = await broadcastService.CountAdminAudienceAsync(dto, await this.GetCallerAsync());
@@ -35,7 +35,7 @@ public class MailBroadcastsController(MailBroadcastService broadcastService) : C
 
     /// <summary>Historique : tout pour l'administration, ses propres envois pour un professeur.</summary>
     [HttpPost("search")]
-    [Authorize(Roles = "Admin,SuperAdmin,Teacher")]
+    [Authorize(Roles = "Manager")]
     public async Task<ActionResult<Response<List<MailBroadcastSummary>>>> Search([FromBody] CustomTableState query)
     {
         var response = await broadcastService.SearchHistoryAsync(query, await this.GetCallerAsync());

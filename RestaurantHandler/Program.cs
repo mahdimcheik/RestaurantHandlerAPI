@@ -82,15 +82,6 @@ app.Run();
 #region Services
 static void ConfigureServices(IServiceCollection services)
 {
-    // INSEE Sirene : vérification du SIRET à l'inscription des profs.
-    // Timeout court : l'appel est dans le chemin de POST /Auth/register, on échoue vite
-    // (fail closed) plutôt que de faire attendre l'inscription.
-    services.AddHttpClient<InseeSireneService>(client =>
-    {
-        client.BaseAddress = new Uri(EnvironmentVariables.INSEE_SIRENE_BASE_URL);
-        client.Timeout = TimeSpan.FromSeconds(5);
-    });
-
     // Connexion Google : validation de l'ID token (Google.Apis.Auth gère ses propres
     // appels réseau pour les certificats) et récupération de la photo de profil.
     services.AddHttpClient<GoogleAuthService>(client =>
@@ -105,17 +96,11 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<PasswordService>();
     services.AddTransient<AvatarService>();
     services.AddTransient<MailService>();
-    services.AddTransient<FormationsService>();
     services.AddTransient<ProfileService>();
-    services.AddTransient<TeacherProfileService>();
-    services.AddTransient<TeacherSearchService>();
-    services.AddTransient<TeacherDocumentService>();
-    services.AddTransient<TeacherContactService>();
     services.AddTransient<MailBroadcastService>();
     services.AddTransient<UserAdministrationService>();
     services.AddTransient<UserManagementService>();
     services.AddScoped<CallerResolver>();
-    services.AddTransient<GendersService>();
     services.AddTransient<MaintenanceService>();
     services.AddTransient<RolesService>();
     services.AddTransient<NotificationService>();
@@ -123,7 +108,6 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<PushNotificationService>();
     services.AddSingleton<IWebPushSender, VapidWebPushSender>();
     services.AddTransient<HelpService>();
-    services.AddTransient<RestaurantHandler.Services.Interfaces.IFavoriteService, FavoriteService>();
 
     services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client(
         new BasicAWSCredentials(

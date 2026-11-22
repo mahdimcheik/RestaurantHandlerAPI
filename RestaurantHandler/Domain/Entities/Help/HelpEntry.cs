@@ -16,17 +16,15 @@ public enum HelpCategory
     GettingStarted,
     Account,
     Profile,
-    Search,
-    Documents,
     Other,
 }
 
-/// <summary>Public visé par une fiche : <see cref="All"/> s'affiche pour les profs comme pour les élèves.</summary>
+/// <summary>Public visé par une fiche : <see cref="All"/> s'affiche pour les clients comme pour les managers.</summary>
 public enum HelpAudience
 {
     All,
-    Teacher,
-    Student,
+    Client,
+    Manager,
 }
 
 /// <summary>

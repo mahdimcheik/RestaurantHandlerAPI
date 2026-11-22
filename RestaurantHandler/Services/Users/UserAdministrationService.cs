@@ -14,17 +14,14 @@ public class UserAdministrationService
     private readonly UserManager<UserApp> _userManager;
     private readonly ProfileService _profileService;
     private readonly StorageService _storage;
-    private readonly RichTextSanitizer _sanitizer;
 
     public UserAdministrationService(
         MainContext context,
         UserManager<UserApp> userManager,
         ProfileService profileService,
-        StorageService storage,
-        RichTextSanitizer sanitizer
+        StorageService storage
     )
     {
-        _sanitizer = sanitizer;
         _context = context;
         _userManager = userManager;
         _profileService = profileService;
@@ -39,9 +36,6 @@ public class UserAdministrationService
             id,
             includeRoles: true,
             includeStatus: true,
-            includeTeacher: true,
-            includeStudent: true,
-            includeFormations: true,
             onlyActive: true
         );
 
@@ -52,9 +46,6 @@ public class UserAdministrationService
     {
         var query = _context
             .Users.Include(u => u.Status)
-            .Include(u => u.Gender)
-            .Include(u => u.Teacher)
-            .Include(u => u.Student)
             .Where(u => u.ArchivedAt == null);
 
         var roleIds = (filters.RoleIds ?? []).Concat(filters.RoleId is { } single ? [single] : []).Distinct().ToList();
@@ -114,6 +105,12 @@ public class UserAdministrationService
     /// </summary>
     public async Task<Response<UserDetails>> CreateUserAsync(UserCreate newUserDTO)
     {
+        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == newUserDTO.RoleId);
+        if (role?.Name is null)
+        {
+            return new Response<UserDetails> { Status = 400, Message = "Rôle inconnu" };
+        }
+
         await using var transaction = await _context.Database.BeginTransactionAsync();
         if (await _userManager.FindByEmailAsync(newUserDTO.Email) is not null)
         {
@@ -125,7 +122,6 @@ public class UserAdministrationService
         }
 
         var newUser = new UserApp(newUserDTO) { CreatedAt = DateTime.UtcNow };
-        newUser.Description = _sanitizer.Sanitize(newUser.Description);
 
         var result = await _userManager.CreateAsync(newUser, newUserDTO.Password);
         if (!result.Succeeded)
@@ -138,26 +134,7 @@ public class UserAdministrationService
             };
         }
 
-        // Résolution du nom du rôle à partir de son identifiant.
-        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == newUserDTO.RoleId);
-        var roleName = role?.Name ?? "Student";
-        await _userManager.AddToRoleAsync(newUser, roleName);
-
-        // Création du profil correspondant au rôle.
-        if (newUserDTO.RoleId == HardCode.ROLE_TEACHER && newUserDTO.Teacher is not null)
-        {
-            var newTeacher = new Teacher(newUserDTO.Teacher, newUser.Id);
-            await _context.Teachers.AddAsync(newTeacher);
-            await TeacherVerificationHelper.CreateDefaultDocumentRequestsAsync(_context, newTeacher.Id);
-        }
-        else
-        {
-            await _context.Students.AddAsync(
-                new Student { Id = newUser.Id, UserId = newUser.Id }
-            );
-        }
-
-        await _context.SaveChangesAsync();
+        await _userManager.AddToRoleAsync(newUser, role.Name);
         await transaction.CommitAsync();
 
         var created = await GetUserByIdAsync(newUser.Id);
@@ -175,9 +152,7 @@ public class UserAdministrationService
     public async Task<Response<UserDetails>> UpdateUserAsync(Guid id, UserUpdate update)
     {
         var user = await _context
-            .Users.Include(u => u.Teacher)
-            .Include(u => u.Student)
-            .FirstOrDefaultAsync(u => u.Id == id && u.ArchivedAt == null);
+            .Users.FirstOrDefaultAsync(u => u.Id == id && u.ArchivedAt == null);
 
         if (user is null)
         {
@@ -189,7 +164,6 @@ public class UserAdministrationService
         }
 
         update.UpdateUser(user);
-        user.Description = _sanitizer.Sanitize(user.Description);
         user.UpdatedAt = DateTimeOffset.UtcNow;
 
         await _context.SaveChangesAsync();

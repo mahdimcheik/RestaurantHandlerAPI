@@ -29,8 +29,6 @@ public static class EnvironmentVariables
         "DB_PASSWORD",
         "ADMIN_EMAIL",
         "ADMIN_PASSWORD",
-        "SUPER_ADMIN_EMAIL",
-        "SUPER_ADMIN_PASSWORD",
     ];
 
     public static void ValidateRequired() => ValidateRequired(Environment.GetEnvironmentVariable);
@@ -41,16 +39,6 @@ public static class EnvironmentVariables
             .Where(name => string.IsNullOrWhiteSpace(getVariable(name)))
             .Select(name => $"variable manquante : {name}")
             .ToList();
-
-        var adminEmail = getVariable("ADMIN_EMAIL");
-        var superAdminEmail = getVariable("SUPER_ADMIN_EMAIL");
-        if (
-            !string.IsNullOrWhiteSpace(adminEmail)
-            && string.Equals(adminEmail.Trim(), superAdminEmail?.Trim(), StringComparison.OrdinalIgnoreCase)
-        )
-        {
-            errors.Add("ADMIN_EMAIL et SUPER_ADMIN_EMAIL doivent être différentes");
-        }
 
         var addressKey = getVariable("ADDRESS_ENCRYPTION_KEY");
         if (!string.IsNullOrWhiteSpace(addressKey) && !FieldEncryption.IsValidKey(addressKey))
@@ -169,26 +157,10 @@ public static class EnvironmentVariables
 
     public static string DO_NO_REPLY_MAIL => GetEnvVar("DO_NO_REPLY_MAIL", "ne-pas-repondre@bonprof.fr");
 
-    // default admin email and password
-    public static string SUPER_ADMIN_EMAIL => GetRequiredEnvVar("SUPER_ADMIN_EMAIL");
+    // compte Manager initial (AdminAccountsSeeder)
     public static string ADMIN_EMAIL => GetRequiredEnvVar("ADMIN_EMAIL");
-    public static string SUPER_ADMIN_PASSWORD => GetRequiredEnvVar("SUPER_ADMIN_PASSWORD");
     public static string ADMIN_PASSWORD => GetRequiredEnvVar("ADMIN_PASSWORD");
    
-    // INSEE Sirene (vérification SIRET à l'inscription des profs)
-    //
-    // Le plan « Accès public » de l'API Sirene est de type API_KEY (et non OAuth2) : pas
-    // d'échange de token. La clé se récupère sur portail-api.insee.fr, dans la souscription
-    // de l'application à l'API — ce n'est PAS le clientId/clientSecret de l'application,
-    // qui ne servent qu'aux plans OAuth2 et sont rejetés en 401 par Sirene.
-    //
-    // Le nom de l'en-tête et l'URL de la passerelle sont ceux publiés par le portail
-    // (/assets/config.json → apikeyHeader). Note : ce même fichier annonce un entrypoint
-    // « apis.insee.fr » qui ne résout pas en DNS ; la passerelle réelle est api.insee.fr.
-    public const string INSEE_API_KEY_HEADER = "X-INSEE-Api-Key-Integration";
-    public static string INSEE_API_KEY => GetEnvVar("INSEE_API_KEY", "");
-    public static string INSEE_SIRENE_BASE_URL => GetEnvVar("INSEE_SIRENE_BASE_URL", "https://api.insee.fr/api-sirene/3.11/");
-
     // Stockage objet (ADR-0008) : un compartiment compatible S3 (OVH Object Storage). avatars/ est
     // envoyé en public-read et lu via S3_PUBLIC_URL ; tout le reste est servi par lien signé.
     // S3_UPLOAD_URL est l'endpoint S3 (https://s3.<région>.io.cloud.ovh.net) : la signature SigV4

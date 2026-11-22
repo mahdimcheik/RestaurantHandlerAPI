@@ -8,14 +8,6 @@ namespace RestaurantHandler.Utilities;
 /// </summary>
 public static class CacheKeys
 {
-    // Référentiels gérés par l'admin : un tag que chaque écriture invalide après son SaveChanges.
-    public const string DOCUMENT_TYPES_TAG = "ref:document-type";
-
-    // Référentiels sans CRUD (seed uniquement) : jamais invalidés, l'expiration suffit.
-    public const string GENDERS = "ref:gender";
-
-    public const string DOCUMENT_TYPES = "ref:document-type:active";
-
     // Fiches d'aide publiées (liste, détail, sitemap) : chaque écriture invalide le tag entier.
     public const string HELP_TAG = "help";
 
@@ -28,9 +20,6 @@ public static class CacheKeys
     public static string HelpBySlug(string slug) => $"{HELP_TAG}:slug:{slug}";
 
     public const string HELP_SITEMAP = HELP_TAG + ":sitemap";
-
-    // Filet de sécurité si une ligne est modifiée hors de l'API (SQL à la main, migration).
-    public static readonly HybridCacheEntryOptions Reference = Expire(TimeSpan.FromHours(1));
 
     public static readonly HybridCacheEntryOptions Help = Expire(TimeSpan.FromMinutes(10));
 

@@ -9,6 +9,5 @@ public class UserAppConfiguration : IEntityTypeConfiguration<UserApp>
     public void Configure(EntityTypeBuilder<UserApp> builder)
     {
         builder.ToTable("Users");
-        builder.OwnsOne(u => u.LayoutSettings, settings => settings.ToJson());
     }
 }

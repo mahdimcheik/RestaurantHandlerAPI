@@ -8,7 +8,7 @@ using Microsoft.Extensions.Caching.Hybrid;
 namespace RestaurantHandler.Services;
 
 /// <summary>
-/// Mode maintenance : seul le SuperAdmin garde l'accès, pour pouvoir le désactiver.
+/// Mode maintenance : seul un Manager garde l'accès, pour pouvoir le désactiver.
 /// </summary>
 public class MaintenanceService(MainContext context, HybridCache cache)
 {
@@ -67,10 +67,7 @@ public class MaintenanceService(MainContext context, HybridCache cache)
         };
     }
 
-    /// <summary>Message à afficher : celui du SuperAdmin, sinon le texte par défaut.</summary>
+    /// <summary>Message à afficher : celui du Manager, sinon le texte par défaut.</summary>
     public static string DisplayMessage(MaintenanceStatus status) =>
         status.Message ?? DefaultMessage;
-
-    public static bool IsSuperAdmin(ClaimsPrincipal user) =>
-        user.IsInRole(nameof(RoleEnum.SuperAdmin));
 }

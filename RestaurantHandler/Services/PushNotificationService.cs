@@ -154,7 +154,6 @@ public class PushNotificationService(
             ? type switch
             {
                 NotificationTypeEnum.Account => "Compte",
-                NotificationTypeEnum.Document => "Documents",
                 _ => "BonProf",
             }
             : "BonProf";

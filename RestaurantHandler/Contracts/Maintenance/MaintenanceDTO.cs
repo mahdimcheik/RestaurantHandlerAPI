@@ -7,7 +7,7 @@ public class MaintenanceStatus
     [Required]
     public bool Enabled { get; set; }
 
-    /// <summary>Message saisi par le SuperAdmin ; null : le front affiche son texte par défaut.</summary>
+    /// <summary>Message saisi par un Manager ; null : le front affiche son texte par défaut.</summary>
     public string? Message { get; set; }
 }
 

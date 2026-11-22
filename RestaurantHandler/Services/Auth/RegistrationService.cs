@@ -12,22 +12,16 @@ public class RegistrationService
     private readonly MainContext _context;
     private readonly UserManager<UserApp> _userManager;
     private readonly MailService _mailService;
-    private readonly InseeSireneService _sireneService;
-    private readonly RichTextSanitizer _sanitizer;
 
     public RegistrationService(
         MainContext context,
         UserManager<UserApp> userManager,
-        MailService mailService,
-        InseeSireneService sireneService,
-        RichTextSanitizer sanitizer
+        MailService mailService
     )
     {
         _context = context;
         _userManager = userManager;
         _mailService = mailService;
-        _sireneService = sireneService;
-        _sanitizer = sanitizer;
     }
 
     public async Task<Response<UserDetails>> Register(UserCreate newUserDTO)
@@ -47,41 +41,6 @@ public class RegistrationService
             };
         }
 
-        // Vérifier le SIRET auprès de l'INSEE (only for teachers, before any DB writes)
-        SiretVerificationResult? siretVerification = null;
-        if (newUserDTO.RoleId == HardCode.ROLE_TEACHER && newUserDTO.Teacher?.Siret is { } siret)
-        {
-            siretVerification = await _sireneService.VerifySiretAsync(siret);
-
-            if (siretVerification.Status == SiretVerificationApiStatus.NotFound)
-            {
-                return new Response<UserDetails>
-                {
-                    Status = 400,
-                    Message = "\"Le SIRET renseigné n'est pas reconnu par l'INSEE\"",
-                };
-            }
-
-            if (siretVerification.Status == SiretVerificationApiStatus.Closed)
-            {
-                return new Response<UserDetails>
-                {
-                    Status = 400,
-                    Message = "\"L'établissement associé à ce SIRET n'est plus actif\"",
-                };
-            }
-
-            if (siretVerification.Status == SiretVerificationApiStatus.ServiceUnavailable)
-            {
-                return new Response<UserDetails>
-                {
-                    Status = 503,
-                    Message = "\"Vérification du SIRET momentanément indisponible, veuillez réessayer plus tard\"",
-                };
-            }
-            // Seul Active atteint ce point → l'inscription peut continuer
-        }
-
         var transaction = _context.Database.BeginTransaction();
         try
         {
@@ -99,15 +58,8 @@ public class RegistrationService
             }
             // Créer un nouvel utilisateur en utilisant les données du modèle et la base de données contextuelle
             UserApp? newUser = new UserApp(newUserDTO);
-            newUser.Description = _sanitizer.Sanitize(newUser.Description);
             newUser.AcceptTerms();
             newUser.CreatedAt = DateTime.UtcNow;
-
-            // La dénomination INSEE fait foi pour un prof : elle écrase un titre éventuellement saisi.
-            if (newUserDTO.RoleId == HardCode.ROLE_TEACHER && siretVerification?.CompanyName is not null)
-            {
-                newUser.Title = siretVerification.CompanyName;
-            }
 
             // Obtenir la date actuelle
             DateTimeOffset date = DateTimeOffset.UtcNow;
@@ -115,16 +67,12 @@ public class RegistrationService
             // Tenter de créer un nouvel utilisateur avec le gestionnaire d'utilisateurs
             IdentityResult result = await _userManager.CreateAsync(newUser, newUserDTO.Password);
 
-            // Tenter d'ajouter l'utilisateur aux rôles spécifiés dans le modèle
-            IdentityResult roleResult = await _userManager.AddToRolesAsync(
-                user: newUser,
-                roles: newUserDTO.RoleId == HardCode.ROLE_TEACHER ? ["Teacher"] : ["Student"]
-            );
+            // L'inscription publique crée toujours un Client : seul un Manager crée un Manager.
+            IdentityResult roleResult = await _userManager.AddToRoleAsync(newUser, nameof(RoleEnum.Client));
 
             newUser = await _context
                 .Users.Where(u => u.Id == newUser.Id)
                 .Include(u => u.Status)
-                .Include(x => x.Gender)
                 .FirstOrDefaultAsync();
 
             if (newUser is null)
@@ -160,8 +108,6 @@ public class RegistrationService
             // Si tout s'est bien déroulé, enregistrer les changements dans le contexte de base de données
             await _context.SaveChangesAsync();
 
-            // creer les profiles
-            await CreateProfile(newUser, newUserDTO, siretVerification);
             await transaction.CommitAsync();
 
             try
@@ -196,32 +142,6 @@ public class RegistrationService
                 Status = 401,
                 Data = null,
             };
-        }
-    }
-
-    public async Task CreateProfile(UserApp newUser, UserCreate userCreate, SiretVerificationResult? siretVerification)
-    {
-        try
-        {
-            if (userCreate.RoleId == HardCode.ROLE_TEACHER && userCreate.Teacher is not null)
-            {
-                Teacher newTeacher = new Teacher(userCreate.Teacher, newUser.Id, siretVerification);
-                await _context.Teachers.AddAsync(newTeacher);
-                await TeacherVerificationHelper.CreateDefaultDocumentRequestsAsync(_context, newTeacher.Id);
-
-
-                await _context.SaveChangesAsync();
-            }
-            else
-            {
-                Student newStudent = new Student { Id = newUser.Id, UserId = newUser.Id };
-                await _context.Students.AddAsync(newStudent);
-                await _context.SaveChangesAsync();
-            }
-        }
-        catch
-        {
-            throw;
         }
     }
 

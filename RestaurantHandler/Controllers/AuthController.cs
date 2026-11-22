@@ -27,6 +27,7 @@ public class AuthController : ControllerBase
     private readonly PasswordService passwordService;
     private readonly TokenService tokenService;
     private readonly AvatarService avatarService;
+    private readonly ProfileService profileService;
 
     public AuthController(
         MainContext context,
@@ -35,7 +36,8 @@ public class AuthController : ControllerBase
         SignInService signInService,
         PasswordService passwordService,
         TokenService tokenService,
-        AvatarService avatarService
+        AvatarService avatarService,
+        ProfileService profileService
     )
     {
         this._context = context;
@@ -45,6 +47,7 @@ public class AuthController : ControllerBase
         this.passwordService = passwordService;
         this.tokenService = tokenService;
         this.avatarService = avatarService;
+        this.profileService = profileService;
     }
 
     #endregion
@@ -247,31 +250,12 @@ public class AuthController : ControllerBase
         );
     }
 
-    /// <summary>Enregistre les préférences visuelles de l'utilisateur connecté.</summary>
-    [HttpPut("me/layout-settings")]
-    public async Task<ActionResult<Response<LayoutSettingsDetails>>> UpdateLayoutSettings(
-        [FromBody] LayoutSettingsUpdate settings
-    )
+    /// <summary>Met à jour le profil de l'utilisateur connecté (nom, prénom, date de naissance).</summary>
+    [HttpPut("me")]
+    public async Task<ActionResult<Response<UserDetails>>> UpdateMyProfile([FromBody] UserUpdate update)
     {
-        var user = CheckUser.GetUserFromClaim(HttpContext.User, _context);
-        if (user is null)
-        {
-            return Unauthorized(
-                new Response<LayoutSettingsDetails> { Message = "Vous n'êtes pas connecté", Status = 401 }
-            );
-        }
-
-        user.LayoutSettings = settings.ToEntity();
-        await _context.SaveChangesAsync();
-
-        return Ok(
-            new Response<LayoutSettingsDetails>
-            {
-                Message = "Préférences visuelles enregistrées",
-                Status = 200,
-                Data = new LayoutSettingsDetails(user.LayoutSettings),
-            }
-        );
+        var response = await profileService.UpdateMyProfileAsync(update, await this.GetCallerAsync());
+        return StatusCode(response.Status, response);
     }
 
     #region CurrentUser informations
@@ -305,7 +289,7 @@ public class AuthController : ControllerBase
                 Data = new UserInfosWithtoken
                 {
                     Token = await tokenService.GenerateAccessTokenAsync(user),
-                    User = new UserDetails(user, rolesDetailed).WithLayoutSettings(user),
+                    User = new UserDetails(user, rolesDetailed),
                 },
             }
         );

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace RestaurantHandler.Infrastructure.Maintenance;
 
 /// <summary>
-/// Mode maintenance : 503 sur toute l'API (hub SignalR compris) sauf l'accès minimal qui permet au SuperAdmin de se connecter et de
+/// Mode maintenance : 503 sur toute l'API (hub SignalR compris) sauf l'accès minimal qui permet à un Manager de se connecter et de
 /// désactiver la maintenance. Les autres comptes ne peuvent pas se connecter
 /// (<see cref="SignInService.Login"/>) ; une session déjà ouverte se renouvelle mais n'ouvre
 /// plus rien d'autre.

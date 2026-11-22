@@ -3,22 +3,20 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RestaurantHandler.Models;
 
-/// <summary>Publics qu'un admin peut viser, combinables.</summary>
+/// <summary>Publics qu'un Manager peut viser, combinables.</summary>
 [Flags]
 public enum MailBroadcastAudience
 {
     None = 0,
-    Teachers = 1,
-    Students = 2,
-    Admins = 4,
-    Everyone = Teachers | Students | Admins,
+    Clients = 1,
+    Managers = 2,
+    Everyone = Clients | Managers,
 }
 
-/// <summary>Qui a écrit : un admin à un ou plusieurs publics, ou un prof à ses élèves.</summary>
+/// <summary>Qui a écrit : un Manager, à un ou plusieurs publics.</summary>
 public enum MailBroadcastSenderKind
 {
-    Admin,
-    Teacher,
+    Manager,
 }
 
 /// <summary>

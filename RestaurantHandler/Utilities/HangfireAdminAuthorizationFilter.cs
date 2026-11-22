@@ -19,6 +19,6 @@ public sealed class HangfireAdminAuthorizationFilter(bool allowLocalRequests = f
 
         var user = context.GetHttpContext().User;
         return user.Identity?.IsAuthenticated == true
-            && (user.IsInRole(nameof(RoleEnum.Admin)) || user.IsInRole(nameof(RoleEnum.SuperAdmin)));
+            && user.IsInRole(nameof(RoleEnum.Manager));
     }
 }

@@ -180,34 +180,6 @@ public class MailService
         }
     }
 
-    public async Task SendTeacherContact(
-        UserApp teacher,
-        UserApp student,
-        string subject,
-        string messageHtml
-    )
-    {
-        var model = new TeacherContactModel(
-            teacher,
-            student,
-            subject,
-            messageHtml,
-            EnvironmentVariables.API_FRONT_URL ?? ""
-        );
-
-        string body = await RenderAsync("TeacherContactTemplate.cshtml", model);
-
-        await SendEmail(
-            new MailApp
-            {
-                MailFrom = EnvironmentVariables.DO_NO_REPLY_MAIL,
-                MailTo = teacher.Email,
-                MailSubject = subject,
-                MailBody = body,
-            }
-        );
-    }
-
     /// <summary>Un exemplaire d'envoi groupé (ADR-0023), adressé à un seul destinataire.</summary>
     public async Task SendBroadcast(string to, BroadcastMailModel model, string? replyTo)
     {

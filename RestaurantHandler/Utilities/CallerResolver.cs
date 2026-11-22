@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace RestaurantHandler.Utilities;
 
 /// <summary>Identité de l'appelant, lue dans la session et transmise aux services.</summary>
-public sealed record CallerIdentity(Guid UserId, bool IsAdmin);
+public sealed record CallerIdentity(Guid UserId, bool IsManager);
 
 public sealed class CallerResolver(MainContext context)
 {
@@ -24,7 +24,7 @@ public sealed class CallerResolver(MainContext context)
 
         return userId is null
             ? null
-            : new CallerIdentity(userId.Value, principal.IsInRole(nameof(RoleEnum.Admin)) || principal.IsInRole(nameof(RoleEnum.SuperAdmin)));
+            : new CallerIdentity(userId.Value, principal.IsInRole(nameof(RoleEnum.Manager)));
     }
 }
 

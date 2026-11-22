@@ -6,9 +6,8 @@ namespace RestaurantHandler.Models;
 /// <summary>Public visé par un admin ; plusieurs peuvent être cochés.</summary>
 public enum MailAudience
 {
-    Teachers,
-    Students,
-    Admins,
+    Clients,
+    Managers,
 }
 
 public class AdminMailBroadcastCreate

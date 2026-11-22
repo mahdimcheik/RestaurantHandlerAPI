@@ -1,5 +1,4 @@
 using RestaurantHandler.Models;
-using RestaurantHandler.Models.Files;
 using RestaurantHandler.Utilities;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,75 +17,24 @@ public static class ReferenceDataSeed
         {
             new RoleApp
             {
-                Id = HardCode.ROLE_SUPER_ADMIN,
-                Name = nameof(RoleEnum.SuperAdmin),
-                NormalizedName = nameof(RoleEnum.SuperAdmin).ToUpper(),
+                Id = HardCode.ROLE_MANAGER,
+                Name = nameof(RoleEnum.Manager),
+                NormalizedName = nameof(RoleEnum.Manager).ToUpper(),
                 Color = "#3d82f2",
                 CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                ConcurrencyStamp = "SUPERADMIN-STAMP-2025",
+                ConcurrencyStamp = "MANAGER-STAMP-2026",
             },
             new RoleApp
             {
-                Id = HardCode.ROLE_ADMIN,
-                Name = nameof(RoleEnum.Admin),
-                Color = "#31bdd6",
-                NormalizedName = nameof(RoleEnum.Admin).ToUpper(),
-                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                ConcurrencyStamp = "ADMIN-STAMP-2025",
-            },
-            new RoleApp
-            {
-                Id = HardCode.ROLE_TEACHER,
-                Name = nameof(RoleEnum.Teacher),
+                Id = HardCode.ROLE_CLIENT,
+                Name = nameof(RoleEnum.Client),
+                NormalizedName = nameof(RoleEnum.Client).ToUpper(),
                 Color = "#31d68f",
-                NormalizedName = nameof(Teacher).ToUpper(),
                 CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                ConcurrencyStamp = "TEACHER-STAMP-2025",
-            },
-            new RoleApp
-            {
-                Id = HardCode.ROLE_STUDENT,
-                Name = nameof(RoleEnum.Student),
-                NormalizedName = nameof(RoleEnum.Student).ToUpper(),
-                Color = "#f57ad0",
-                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                ConcurrencyStamp = "STUDENT-STAMP-2025",
+                ConcurrencyStamp = "CLIENT-STAMP-2026",
             },
         };
         builder.Entity<RoleApp>().HasData(roles);
-        // Seed Genders
-        List<Gender> genders = new()
-        {
-            new Gender
-            {
-                Id = HardCode.GENDER_FEMALE,
-                Name = nameof(GenderEnum.Female),
-                Translations = new() { ["fr"] = "Femme", ["en"] = "Female" },
-                Color = "#ff69b4",
-                Icon = "",
-                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            },
-            new Gender
-            {
-                Id = HardCode.GENDER_MALE,
-                Name = nameof(GenderEnum.Male),
-                Translations = new() { ["fr"] = "Homme", ["en"] = "Male" },
-                Color = "#fa69b4",
-                Icon = "",
-                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            },
-            new Gender
-            {
-                Id = HardCode.GENDER_OTHER,
-                Name = nameof(GenderEnum.Other),
-                Translations = new() { ["fr"] = "Autre", ["en"] = "Other" },
-                Color = "#ab69b4",
-                Icon = "",
-                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            },
-        };
-
-        builder.Entity<Gender>().HasData(genders);
 
         // Seed Account status
         List<StatusAccount> accountStatuses = new()
@@ -120,58 +68,5 @@ public static class ReferenceDataSeed
             },
         };
         builder.Entity<StatusAccount>().HasData(accountStatuses);
-
-        // privacy document types
-        List<PrivacyDocumentType> documentTypes = new()
-        {
-            new PrivacyDocumentType
-            {
-                Id = HardCode.DOCUMENT_SIRET,
-                Name = nameof(DocumentTypeEnum.CompanyRegistration),
-                DisplayName = "K-Bis",
-                Translations = new() { ["fr"] = "K-Bis", ["en"] = "Company registration (K-Bis)" },
-                Color = "#ff69b4",
-                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            },
-            new PrivacyDocumentType
-            {
-                Id = HardCode.DOCUMENT_DIPLOME,
-                Name = nameof(DocumentTypeEnum.Diploma),
-                DisplayName = "Diplôme",
-                Translations = new() { ["fr"] = "Diplôme", ["en"] = "Diploma" },
-                Color = "#aa69b4",
-                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            },
-            new PrivacyDocumentType
-            {
-                Id = HardCode.DOCUMENT_ID,
-                Name = nameof(DocumentTypeEnum.Identification),
-                DisplayName = "Pièce d'identité",
-                Translations = new() { ["fr"] = "Pièce d'identité", ["en"] = "ID document" },
-                Color = "#1169b4",
-                IsRequiredByDefault = true,
-                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            },
-            new PrivacyDocumentType
-            {
-                Id = HardCode.DOCUMENT_PROOF_OF_ADDRESS,
-                Name = nameof(DocumentTypeEnum.ProofOfAddress),
-                DisplayName = "Attestation de domicile",
-                Translations = new() { ["fr"] = "Attestation de domicile", ["en"] = "Proof of address" },
-                Color = "#4a90d9",
-                IsRequiredByDefault = true,
-                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            },
-            new PrivacyDocumentType
-            {
-                Id = HardCode.DOCUMENT_OTHER,
-                Name = nameof(DocumentTypeEnum.Other),
-                DisplayName = "Autre",
-                Translations = new() { ["fr"] = "Autre", ["en"] = "Other" },
-                Color = "#1169b4",
-                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            },
-        };
-        builder.Entity<PrivacyDocumentType>().HasData(documentTypes);
     }
 }

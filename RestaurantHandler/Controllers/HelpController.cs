@@ -54,7 +54,7 @@ public class HelpController(HelpService helpService) : ControllerBase
     // ── Administration ──────────────────────────────────────────────────────────────────
 
     [HttpPost("admin/all")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Manager")]
     public async Task<ActionResult<Response<List<HelpSummary>>>> GetAdminList([FromBody] HelpAdminQuery query)
     {
         var response = await helpService.GetAdminListAsync(query);
@@ -62,7 +62,7 @@ public class HelpController(HelpService helpService) : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Manager")]
     public async Task<ActionResult<Response<HelpDetails>>> GetById([FromRoute] Guid id)
     {
         var response = await helpService.GetByIdAsync(id);
@@ -70,7 +70,7 @@ public class HelpController(HelpService helpService) : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Manager")]
     public async Task<ActionResult<Response<HelpDetails>>> Create([FromBody] HelpUpsert dto)
     {
         if (!ModelState.IsValid)
@@ -81,7 +81,7 @@ public class HelpController(HelpService helpService) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Manager")]
     public async Task<ActionResult<Response<HelpDetails>>> Update([FromRoute] Guid id, [FromBody] HelpUpsert dto)
     {
         if (!ModelState.IsValid)
@@ -92,7 +92,7 @@ public class HelpController(HelpService helpService) : ControllerBase
     }
 
     [HttpPatch("{id:guid}/publish")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Manager")]
     public async Task<ActionResult<Response<HelpDetails>>> Publish([FromRoute] Guid id)
     {
         var response = await helpService.SetPublishedAsync(id, true);
@@ -100,7 +100,7 @@ public class HelpController(HelpService helpService) : ControllerBase
     }
 
     [HttpPatch("{id:guid}/unpublish")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Manager")]
     public async Task<ActionResult<Response<HelpDetails>>> Unpublish([FromRoute] Guid id)
     {
         var response = await helpService.SetPublishedAsync(id, false);
@@ -108,7 +108,7 @@ public class HelpController(HelpService helpService) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Manager")]
     public async Task<ActionResult<Response<object>>> Archive([FromRoute] Guid id)
     {
         var response = await helpService.ArchiveAsync(id);

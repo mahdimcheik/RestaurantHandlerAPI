@@ -5,21 +5,11 @@
     ViewBag.Title = Model.Subject;
     ViewBag.WebsiteLink = Model.WebsiteLink;
     ViewBag.AllowReply = Model.AllowReply;
-    var isTeacher = Model.SenderKind == MailBroadcastSenderKind.Teacher;
-    ViewBag.Preheader = isTeacher
-        ? $"Message de votre professeur {Model.SenderName} sur BonProf."
-        : "Message de l'équipe BonProf.";
+    ViewBag.Preheader = "Message de l'équipe BonProf.";
     var firstName = Model.RecipientFirstName;
 }
 <p style="margin:0 0 16px 0;">@(string.IsNullOrWhiteSpace(firstName) ? "Bonjour," : $"Bonjour {firstName},")</p>
-@if (isTeacher)
-{
-    <p style="margin:0 0 24px 0;">Votre professeur <strong>@Model.SenderName</strong> vous a écrit via BonProf.</p>
-}
-else
-{
-    <p style="margin:0 0 24px 0;"><strong>@Model.SenderName</strong>, de l'équipe BonProf, vous a écrit.</p>
-}
+<p style="margin:0 0 24px 0;"><strong>@Model.SenderName</strong>, de l'équipe BonProf, vous a écrit.</p>
 
 <p style="margin:0 0 8px 0; font-size:13px; text-transform:uppercase; letter-spacing:0.05em; color:#6b7280;">Objet : <span style="text-transform:none; letter-spacing:0; color:#1f2937; font-weight:600;">@Model.Subject</span></p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px 0;">
@@ -32,8 +22,6 @@ else
 
 @if (Model.AllowReply)
 {
-    <p style="margin:0 0 8px 0;">Vous pouvez répondre directement à cet e-mail : votre réponse arrivera à @(isTeacher ? "votre professeur" : "l'équipe BonProf").</p>
+    <p style="margin:0 0 8px 0;">Vous pouvez répondre directement à cet e-mail : votre réponse arrivera à l'équipe BonProf.</p>
 }
-<p style="margin:0; font-size:13px; color:#6b7280;">@(isTeacher
-    ? "Vous recevez ce message car vous avez réservé au moins un cours avec ce professeur sur BonProf."
-    : "Vous recevez ce message car vous disposez d'un compte BonProf.")</p>
+<p style="margin:0; font-size:13px; color:#6b7280;">Vous recevez ce message car vous disposez d'un compte BonProf.</p>

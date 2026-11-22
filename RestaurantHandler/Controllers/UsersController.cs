@@ -15,7 +15,7 @@ namespace RestaurantHandler.Controllers;
 [Route("[controller]")]
 [ApiController]
 [EnableCors]
-[Authorize(Roles = "Admin,SuperAdmin")]
+[Authorize(Roles = "Manager")]
 public class UsersController : ControllerBase
 {
     private readonly UserAdministrationService _usersService;

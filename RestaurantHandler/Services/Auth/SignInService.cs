@@ -54,9 +54,6 @@ public class SignInService
 
         var user = await _context
             .Users.Where(u => u.Id == refreshTokenDB.UserId)
-            .Include(p => p.Gender)
-            .Include(u => u.Teacher)
-            .Include(u => u.Student)
             .FirstOrDefaultAsync();
 
         // Un compte banni ou désactivé depuis la connexion perd sa session au renouvellement.
@@ -85,7 +82,7 @@ public class SignInService
             Message = "Autorisation renouvelée",
             Data = new Login
             {
-                User = new UserDetails(user, rolesDetailed).WithLayoutSettings(user),
+                User = new UserDetails(user, rolesDetailed),
                 Token = await _tokenService.GenerateAccessTokenAsync(user),
                 RefreshToken = refreshToken,
             },
@@ -133,11 +130,11 @@ public class SignInService
             return refusal;
         }
 
-        // Pendant la maintenance, seul le SuperAdmin se connecte (pour la désactiver).
+        // Pendant la maintenance, seul un Manager se connecte (pour la désactiver).
         var maintenance = await _maintenanceService.GetStatusAsync();
         if (
             maintenance.Enabled
-            && !await _userManager.IsInRoleAsync(user, nameof(RoleEnum.SuperAdmin))
+            && !await _userManager.IsInRoleAsync(user, nameof(RoleEnum.Manager))
         )
         {
             return new Response<Login>
@@ -149,9 +146,6 @@ public class SignInService
 
         var fullUser = await _context
             .Users.Where(u => u.Id == user.Id)
-            .Include(p => p.Gender)
-            .Include(u => u.Teacher)
-            .Include(u => u.Student)
             .FirstAsync();
 
         return await _tokenService.IssueSessionAsync(fullUser);
@@ -186,24 +180,13 @@ public class SignInService
     /// (<see cref="GoogleAuthService.ValidateAsync"/>) puis on résout le compte dans cet
     /// ordre : login externe déjà enregistré → compte existant portant le même email
     /// (rattachement automatique, l'email étant attesté vérifié par Google) → création d'un
-    /// nouveau compte élève ou professeur selon <see cref="GoogleLoginRequest.RoleId"/>.
+    /// nouveau compte Client.
     ///
     /// La réponse est le même <see cref="Login"/> que <see cref="Login"/> : le front réutilise
     /// son handler de connexion tel quel.
     /// </summary>
     public async Task<Response<Login>> GoogleLogin(GoogleLoginRequest model)
     {
-        // Seuls les rôles publics de l'inscription sont acceptés : le paramètre ne doit pas
-        // permettre de créer un compte d'administration.
-        if (
-            model.RoleId is { } roleId
-            && roleId != HardCode.ROLE_STUDENT
-            && roleId != HardCode.ROLE_TEACHER
-        )
-        {
-            return new Response<Login> { Message = "Rôle non autorisé", Status = 400 };
-        }
-
         var payload = await _googleAuthService.ValidateAsync(model.IdToken);
         if (payload is null)
         {
@@ -298,10 +281,7 @@ public class SignInService
                 };
             }
 
-            var creation = await CreateGoogleUserAsync(
-                payload,
-                asTeacher: model.RoleId == HardCode.ROLE_TEACHER
-            );
+            var creation = await CreateGoogleUserAsync(payload);
             if (creation.user is null)
             {
                 return new Response<Login> { Message = creation.error, Status = 400 };
@@ -314,9 +294,6 @@ public class SignInService
         var fullUser = await _context
             .Users.Where(u => u.Id == user.Id)
             .Include(u => u.Status)
-            .Include(u => u.Gender)
-            .Include(u => u.Teacher)
-            .Include(u => u.Student)
             .FirstOrDefaultAsync();
 
         if (fullUser is null)
@@ -335,20 +312,17 @@ public class SignInService
 
     /// <summary>
     /// Crée un compte à partir d'un payload Google validé : utilisateur sans mot de passe,
-    /// email déjà confirmé, login externe, et rôle + profil élève (<see cref="Student"/>) ou
-    /// professeur (<see cref="Teacher"/> sans SIRET, avec ses demandes de documents) — le
-    /// pendant de <see cref="RegistrationService.Register"/> +
-    /// <see cref="RegistrationService.CreateProfile"/> pour cette voie.
+    /// email déjà confirmé, login externe et rôle Client — le pendant de
+    /// <see cref="RegistrationService.Register"/> pour cette voie.
     ///
     /// <para>
-    /// Google ne fournit ni date de naissance ni genre, tous deux non-nullables sur
-    /// <see cref="UserApp"/> : on pose des valeurs par défaut et la connexion renvoie
-    /// <c>ProfileIncomplete</c> pour que le front propose de compléter le profil.
+    /// Google ne fournit pas de date de naissance, non-nullable sur <see cref="UserApp"/> : on
+    /// pose une valeur par défaut et la connexion renvoie <c>ProfileIncomplete</c> pour que le
+    /// front propose de compléter le profil.
     /// </para>
     /// </summary>
     private async Task<(UserApp? user, string error)> CreateGoogleUserAsync(
-        GoogleJsonWebSignature.Payload payload,
-        bool asTeacher
+        GoogleJsonWebSignature.Payload payload
     )
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -362,7 +336,6 @@ public class SignInService
                 FirstName = payload.GivenName ?? string.Empty,
                 LastName = payload.FamilyName ?? string.Empty,
                 DateOfBirth = default,
-                GenderId = HardCode.GENDER_OTHER,
                 DataProcessingConsent = true, // vérifiés par GoogleLogin avant la création
                 PrivacyPolicyConsent = true,
                 TermsAcceptedAt = DateTimeOffset.UtcNow,
@@ -381,10 +354,7 @@ public class SignInService
                 return (null, "Création échouée");
             }
 
-            var roleResult = await _userManager.AddToRolesAsync(
-                newUser,
-                [asTeacher ? "Teacher" : "Student"]
-            );
+            var roleResult = await _userManager.AddToRoleAsync(newUser, nameof(RoleEnum.Client));
             if (!roleResult.Succeeded)
             {
                 await transaction.RollbackAsync();
@@ -404,23 +374,6 @@ public class SignInService
                 await transaction.RollbackAsync();
                 return (null, "Création échouée");
             }
-
-            if (asTeacher)
-            {
-                var teacher = new Teacher(new TeacherCreate(), newUser.Id, null);
-                await _context.Teachers.AddAsync(teacher);
-                await TeacherVerificationHelper.CreateDefaultDocumentRequestsAsync(
-                    _context,
-                    teacher.Id
-                );
-            }
-            else
-            {
-                await _context.Students.AddAsync(
-                    new Student { Id = newUser.Id, UserId = newUser.Id }
-                );
-            }
-            await _context.SaveChangesAsync();
 
             await transaction.CommitAsync();
 
