@@ -136,6 +136,50 @@ namespace RestaurantHandler.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("RestaurantHandler.Models.Category", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("Position");
+
+                    b.ToTable("Categories");
+                });
+
             modelBuilder.Entity("RestaurantHandler.Models.HelpEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -216,6 +260,79 @@ namespace RestaurantHandler.Migrations
                     b.ToTable("HelpEntries");
                 });
 
+            modelBuilder.Entity("RestaurantHandler.Models.Ingredient", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Ingredients");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.IngredientSubstitution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ExtraPriceCents")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("IngredientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SubstituteIngredientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubstituteIngredientId");
+
+                    b.HasIndex("ProductId", "IngredientId", "SubstituteIngredientId")
+                        .IsUnique();
+
+                    b.ToTable("IngredientSubstitutions", t =>
+                        {
+                            t.HasCheckConstraint("CK_IngredientSubstitutions_DifferentIngredient", "\"SubstituteIngredientId\" <> \"IngredientId\"");
+
+                            t.HasCheckConstraint("CK_IngredientSubstitutions_ExtraPriceCents", "\"ExtraPriceCents\" >= 0");
+                        });
+                });
+
             modelBuilder.Entity("RestaurantHandler.Models.MailBroadcast", b =>
                 {
                     b.Property<Guid>("Id")
@@ -272,6 +389,114 @@ namespace RestaurantHandler.Migrations
                     b.ToTable("MailBroadcastRecipients");
                 });
 
+            modelBuilder.Entity("RestaurantHandler.Models.Menu", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<int>("PriceCents")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("VatRate")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Menus", t =>
+                        {
+                            t.HasCheckConstraint("CK_Menus_PriceCents", "\"PriceCents\" >= 0");
+
+                            t.HasCheckConstraint("CK_Menus_VatRate", "\"VatRate\" >= 0 AND \"VatRate\" <= 100");
+                        });
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.MenuSlot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("MaxChoices")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("MenuId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("MinChoices")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuId", "Position")
+                        .IsUnique();
+
+                    b.ToTable("MenuSlots", t =>
+                        {
+                            t.HasCheckConstraint("CK_MenuSlots_Choices", "\"MinChoices\" >= 0 AND \"MaxChoices\" >= 1 AND \"MinChoices\" <= \"MaxChoices\"");
+                        });
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.MenuSlotOption", b =>
+                {
+                    b.Property<Guid>("SlotId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ExtraPriceCents")
+                        .HasColumnType("integer");
+
+                    b.HasKey("SlotId", "ProductId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("MenuSlotOptions", t =>
+                        {
+                            t.HasCheckConstraint("CK_MenuSlotOptions_ExtraPriceCents", "\"ExtraPriceCents\" >= 0");
+                        });
+                });
+
             modelBuilder.Entity("RestaurantHandler.Models.Notification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -326,6 +551,297 @@ namespace RestaurantHandler.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("RestaurantHandler.Models.Order", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CustomerNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("OrderNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("OrderNumber"));
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ReadyAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("TotalCents")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("OrderNumber")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "CreatedAt");
+
+                    b.ToTable("Orders", t =>
+                        {
+                            t.HasCheckConstraint("CK_Orders_TotalCents", "\"TotalCents\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.OrderItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("MenuId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("MenuSlotId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ParentItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UnitPriceCents")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("VatRate")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuId");
+
+                    b.HasIndex("MenuSlotId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ParentItemId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("OrderItems", t =>
+                        {
+                            t.HasCheckConstraint("CK_OrderItems_ComponentIsProduct", "\"ParentItemId\" IS NULL OR \"ProductId\" IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_OrderItems_ProductXorMenu", "(\"ProductId\" IS NULL) <> (\"MenuId\" IS NULL)");
+
+                            t.HasCheckConstraint("CK_OrderItems_Quantity", "\"Quantity\" > 0");
+
+                            t.HasCheckConstraint("CK_OrderItems_UnitPriceCents", "\"UnitPriceCents\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.OrderItemModification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("IngredientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LabelSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<Guid>("OrderItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("SubstituteIngredientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<int>("UnitPriceCents")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IngredientId");
+
+                    b.HasIndex("OrderItemId");
+
+                    b.HasIndex("SubstituteIngredientId");
+
+                    b.ToTable("OrderItemModifications", t =>
+                        {
+                            t.HasCheckConstraint("CK_OrderItemModifications_Quantity", "\"Quantity\" > 0");
+
+                            t.HasCheckConstraint("CK_OrderItemModifications_SubstituteIffReplace", "(\"Type\" = 'Replace') = (\"SubstituteIngredientId\" IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_OrderItemModifications_UnitPriceCents", "\"UnitPriceCents\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.OrderStatusHistory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ChangedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChangedByUserId");
+
+                    b.HasIndex("OrderId", "ChangedAt");
+
+                    b.ToTable("OrderStatusHistory", (string)null);
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.Payment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AmountCents")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasDefaultValue("EUR")
+                        .IsFixedLength();
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("SumupCheckoutId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("SumupTransactionCode")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("SumupCheckoutId")
+                        .IsUnique();
+
+                    b.ToTable("Payments", t =>
+                        {
+                            t.HasCheckConstraint("CK_Payments_AmountCents", "\"AmountCents\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("RestaurantHandler.Models.PlatformSettings", b =>
                 {
                     b.Property<Guid>("Id")
@@ -361,6 +877,111 @@ namespace RestaurantHandler.Migrations
                             Id = new Guid("5f0c6a52-7d0e-4b8f-9a39-2a1f7c3e9d10"),
                             CreatedAt = new DateTime(2026, 10, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                             MaintenanceEnabled = false
+                        });
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.Product", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PriceCents")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("VatRate")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId", "Position");
+
+                    b.ToTable("Products", t =>
+                        {
+                            t.HasCheckConstraint("CK_Products_PriceCents", "\"PriceCents\" >= 0");
+
+                            t.HasCheckConstraint("CK_Products_VatRate", "\"VatRate\" >= 0 AND \"VatRate\" <= 100");
+                        });
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.ProductIngredient", b =>
+                {
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("IngredientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsRemovable")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("ProductId", "IngredientId");
+
+                    b.HasIndex("IngredientId");
+
+                    b.ToTable("ProductIngredients");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.ProductSupplement", b =>
+                {
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("IngredientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("MaxQuantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PriceCents")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ProductId", "IngredientId");
+
+                    b.HasIndex("IngredientId");
+
+                    b.ToTable("ProductSupplements", t =>
+                        {
+                            t.HasCheckConstraint("CK_ProductSupplements_MaxQuantity", "\"MaxQuantity\" >= 1");
+
+                            t.HasCheckConstraint("CK_ProductSupplements_PriceCents", "\"PriceCents\" >= 0");
                         });
                 });
 
@@ -737,6 +1358,25 @@ namespace RestaurantHandler.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("RestaurantHandler.Models.IngredientSubstitution", b =>
+                {
+                    b.HasOne("RestaurantHandler.Models.Ingredient", "SubstituteIngredient")
+                        .WithMany()
+                        .HasForeignKey("SubstituteIngredientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RestaurantHandler.Models.ProductIngredient", "ProductIngredient")
+                        .WithMany("Substitutions")
+                        .HasForeignKey("ProductId", "IngredientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProductIngredient");
+
+                    b.Navigation("SubstituteIngredient");
+                });
+
             modelBuilder.Entity("RestaurantHandler.Models.MailBroadcast", b =>
                 {
                     b.HasOne("RestaurantHandler.Models.UserApp", "Sender")
@@ -767,6 +1407,36 @@ namespace RestaurantHandler.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("RestaurantHandler.Models.MenuSlot", b =>
+                {
+                    b.HasOne("RestaurantHandler.Models.Menu", "Menu")
+                        .WithMany("Slots")
+                        .HasForeignKey("MenuId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Menu");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.MenuSlotOption", b =>
+                {
+                    b.HasOne("RestaurantHandler.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RestaurantHandler.Models.MenuSlot", "Slot")
+                        .WithMany("Options")
+                        .HasForeignKey("SlotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Slot");
+                });
+
             modelBuilder.Entity("RestaurantHandler.Models.Notification", b =>
                 {
                     b.HasOne("RestaurantHandler.Models.UserApp", "User")
@@ -776,6 +1446,167 @@ namespace RestaurantHandler.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.Order", b =>
+                {
+                    b.HasOne("RestaurantHandler.Models.UserApp", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RestaurantHandler.Models.UserApp", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.OrderItem", b =>
+                {
+                    b.HasOne("RestaurantHandler.Models.Menu", "Menu")
+                        .WithMany()
+                        .HasForeignKey("MenuId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("RestaurantHandler.Models.MenuSlot", "MenuSlot")
+                        .WithMany()
+                        .HasForeignKey("MenuSlotId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("RestaurantHandler.Models.Order", "Order")
+                        .WithMany("Items")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RestaurantHandler.Models.OrderItem", "ParentItem")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentItemId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("RestaurantHandler.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Menu");
+
+                    b.Navigation("MenuSlot");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("ParentItem");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.OrderItemModification", b =>
+                {
+                    b.HasOne("RestaurantHandler.Models.Ingredient", "Ingredient")
+                        .WithMany()
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RestaurantHandler.Models.OrderItem", "OrderItem")
+                        .WithMany("Modifications")
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RestaurantHandler.Models.Ingredient", "SubstituteIngredient")
+                        .WithMany()
+                        .HasForeignKey("SubstituteIngredientId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("OrderItem");
+
+                    b.Navigation("SubstituteIngredient");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.OrderStatusHistory", b =>
+                {
+                    b.HasOne("RestaurantHandler.Models.UserApp", "ChangedByUser")
+                        .WithMany()
+                        .HasForeignKey("ChangedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("RestaurantHandler.Models.Order", "Order")
+                        .WithMany("StatusHistory")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChangedByUser");
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.Payment", b =>
+                {
+                    b.HasOne("RestaurantHandler.Models.Order", "Order")
+                        .WithMany("Payments")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.Product", b =>
+                {
+                    b.HasOne("RestaurantHandler.Models.Category", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.ProductIngredient", b =>
+                {
+                    b.HasOne("RestaurantHandler.Models.Ingredient", "Ingredient")
+                        .WithMany()
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RestaurantHandler.Models.Product", "Product")
+                        .WithMany("Ingredients")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.ProductSupplement", b =>
+                {
+                    b.HasOne("RestaurantHandler.Models.Ingredient", "Ingredient")
+                        .WithMany()
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RestaurantHandler.Models.Product", "Product")
+                        .WithMany("Supplements")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("RestaurantHandler.Models.RefreshToken", b =>
@@ -809,9 +1640,52 @@ namespace RestaurantHandler.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("RestaurantHandler.Models.Category", b =>
+                {
+                    b.Navigation("Products");
+                });
+
             modelBuilder.Entity("RestaurantHandler.Models.MailBroadcast", b =>
                 {
                     b.Navigation("Recipients");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.Menu", b =>
+                {
+                    b.Navigation("Slots");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.MenuSlot", b =>
+                {
+                    b.Navigation("Options");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.Order", b =>
+                {
+                    b.Navigation("Items");
+
+                    b.Navigation("Payments");
+
+                    b.Navigation("StatusHistory");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.OrderItem", b =>
+                {
+                    b.Navigation("Children");
+
+                    b.Navigation("Modifications");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.Product", b =>
+                {
+                    b.Navigation("Ingredients");
+
+                    b.Navigation("Supplements");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.ProductIngredient", b =>
+                {
+                    b.Navigation("Substitutions");
                 });
 
             modelBuilder.Entity("RestaurantHandler.Models.RoleApp", b =>

@@ -28,6 +28,24 @@ public class MainContext : IdentityDbContext<UserApp, RoleApp, Guid>
     // paramètres de la plateforme (ligne unique)
     public DbSet<PlatformSettings> PlatformSettings { get; set; }
 
+    // carte
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<Product> Products { get; set; }
+    public DbSet<Ingredient> Ingredients { get; set; }
+    public DbSet<ProductIngredient> ProductIngredients { get; set; }
+    public DbSet<IngredientSubstitution> IngredientSubstitutions { get; set; }
+    public DbSet<ProductSupplement> ProductSupplements { get; set; }
+    public DbSet<Menu> Menus { get; set; }
+    public DbSet<MenuSlot> MenuSlots { get; set; }
+    public DbSet<MenuSlotOption> MenuSlotOptions { get; set; }
+
+    // commandes et paiements
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<OrderItemModification> OrderItemModifications { get; set; }
+    public DbSet<Payment> Payments { get; set; }
+    public DbSet<OrderStatusHistory> OrderStatusHistory { get; set; }
+
     public MainContext(DbContextOptions options)
         : base(options) { }
 
