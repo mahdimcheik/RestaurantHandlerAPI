@@ -1,3 +1,4 @@
+using RestaurantHandler.Contexts;
 using RestaurantHandler.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -11,6 +12,7 @@ public class CategoryCursusConfiguration : IEntityTypeConfiguration<CategoryCurs
         builder
             .Property(c => c.DescriptionTranslations)
             .HasColumnType("jsonb")
-            .HasDefaultValueSql("'{}'::jsonb");
+            .HasDefaultValueSql("'{}'::jsonb")
+            .Metadata.SetValueComparer(MainContext.TranslationsComparer);
     }
 }

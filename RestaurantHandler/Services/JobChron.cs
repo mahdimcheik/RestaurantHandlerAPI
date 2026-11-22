@@ -4,7 +4,6 @@ using RestaurantHandler.Models;
 using RestaurantHandler.Services;
 using RestaurantHandler.Utilities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Stripe;
 
 namespace TerminalApi.Services
@@ -59,7 +58,7 @@ namespace TerminalApi.Services
 
             foreach (var order in staleOrders)
             {
-                if (!order.CheckoutID.IsNullOrEmpty())
+                if (!string.IsNullOrEmpty(order.CheckoutID))
                 {
                     // Best effort: the session may already be expired or completed.
                     await ExpireCheckout(order.CheckoutID!);
@@ -306,7 +305,7 @@ namespace TerminalApi.Services
                 // Sa dette reste ouverte elle aussi : rien à compenser tant que rien ne sort.
                 if (
                     !teachers.TryGetValue(teacherId, out var teacher)
-                    || teacher.StripeAccount.IsNullOrEmpty()
+                    || string.IsNullOrEmpty(teacher.StripeAccount)
                 )
                     continue;
 
@@ -597,7 +596,7 @@ namespace TerminalApi.Services
             foreach (var payout in pending)
             {
                 var stripeAccount = payout.Teacher?.StripeAccount;
-                if (stripeAccount.IsNullOrEmpty())
+                if (string.IsNullOrEmpty(stripeAccount))
                     continue;
 
                 if (payout.PaidAt < stale)
@@ -741,7 +740,7 @@ namespace TerminalApi.Services
         {
             try
             {
-                if (checkoutId.IsNullOrEmpty())
+                if (string.IsNullOrEmpty(checkoutId))
                 {
                     return null;
                 }

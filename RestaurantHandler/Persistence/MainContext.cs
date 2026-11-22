@@ -5,6 +5,7 @@ using RestaurantHandler.Utilities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using RestaurantHandler.Persistence.Seed;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace RestaurantHandler.Contexts;
 
@@ -93,6 +94,20 @@ public class MainContext : IdentityDbContext<UserApp, RoleApp, Guid>
     public MainContext(DbContextOptions options)
         : base(options) { }
 
+    /// <summary>
+    /// Compare les dictionnaires jsonb par contenu. Sans lui, EF Core 10 les compare par
+    /// référence : le seed <c>HasData</c> paraît modifié à chaque build, et
+    /// <c>Database.Migrate()</c> refuse de démarrer (PendingModelChangesWarning).
+    /// </summary>
+    internal static readonly ValueComparer<Dictionary<string, string>> TranslationsComparer =
+        new(
+            (a, b) =>
+                a == b
+                || (a != null && b != null && a.Count == b.Count && !a.Except(b).Any()),
+            d => d.Aggregate(0, (h, kv) => h ^ HashCode.Combine(kv.Key, kv.Value)),
+            d => new Dictionary<string, string>(d)
+        );
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -107,7 +122,8 @@ public class MainContext : IdentityDbContext<UserApp, RoleApp, Guid>
                 builder
                     .Entity(entityType.ClrType)
                     .Property<Dictionary<string, string>>(nameof(TranslatableModelOption.Translations))
-                    .HasColumnType("jsonb");
+                    .HasColumnType("jsonb")
+                    .Metadata.SetValueComparer(TranslationsComparer);
             }
         }
 

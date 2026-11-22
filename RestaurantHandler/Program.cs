@@ -56,12 +56,12 @@ var forwardedHeaders = new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
 };
-forwardedHeaders.KnownNetworks.Clear();
+forwardedHeaders.KnownIPNetworks.Clear();
 forwardedHeaders.KnownProxies.Clear();
 foreach (var (prefix, length) in new[] { ("10.0.0.0", 8), ("172.16.0.0", 12), ("192.168.0.0", 16), ("127.0.0.0", 8) })
 {
-    forwardedHeaders.KnownNetworks.Add(
-        new Microsoft.AspNetCore.HttpOverrides.IPNetwork(System.Net.IPAddress.Parse(prefix), length)
+    forwardedHeaders.KnownIPNetworks.Add(
+        new System.Net.IPNetwork(System.Net.IPAddress.Parse(prefix), length)
     );
 }
 forwardedHeaders.KnownProxies.Add(System.Net.IPAddress.IPv6Loopback);
