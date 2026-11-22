@@ -195,7 +195,8 @@ public class SupplementDetails
 
 /// <summary>
 /// Groupes dans l'ordre d'affichage. Un groupe ou un choix sans <c>Id</c> est créé ; un existant
-/// absent de la liste est archivé (les commandes passées y pointent).
+/// absent de la liste est archivé (les commandes passées y pointent). Les images s'envoient à
+/// part et sont conservées par ce remplacement.
 /// </summary>
 public class OptionGroupsUpdate : IValidatableObject
 {
@@ -269,6 +270,7 @@ public class OptionGroupDetails
 {
     [Required] public Guid Id { get; set; }
     [Required] public string Label { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
     [Required] public int Position { get; set; }
     [Required] public int MinChoices { get; set; }
     [Required] public int MaxChoices { get; set; }
@@ -281,6 +283,7 @@ public class OptionChoiceDetails
 {
     [Required] public Guid Id { get; set; }
     [Required] public string Name { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
     public Guid? IngredientId { get; set; }
     [Required] public int ExtraPriceCents { get; set; }
     [Required] public int Position { get; set; }

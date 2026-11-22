@@ -13,7 +13,7 @@ using RestaurantHandler.Contexts;
 namespace RestaurantHandler.Migrations
 {
     [DbContext(typeof(MainContext))]
-    [Migration("20261122191211_InitialCreate")]
+    [Migration("20261122195556_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -1010,6 +1010,10 @@ namespace RestaurantHandler.Migrations
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<Guid?>("IngredientId")
                         .HasColumnType("uuid");
 
@@ -1055,6 +1059,10 @@ namespace RestaurantHandler.Migrations
 
                     b.Property<int>("FreeChoices")
                         .HasColumnType("integer");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Label")
                         .IsRequired()

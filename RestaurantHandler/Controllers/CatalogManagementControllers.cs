@@ -90,6 +90,25 @@ public class ProductsController(ProductService products) : ControllerBase
     public async Task<ActionResult<Response<ProductDetails>>> UpdateOptionGroups(Guid id, [FromBody] OptionGroupsUpdate dto) =>
         Success(await products.UpdateOptionGroupsAsync(id, dto));
 
+    [HttpPost("{id:guid}/option-groups/{groupId:guid}/image")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<Response<ProductDetails>>> SetOptionGroupImage(
+        Guid id,
+        Guid groupId,
+        IFormFile file,
+        CancellationToken ct
+    ) => Success(await products.SetOptionGroupImageAsync(id, groupId, file, ct));
+
+    [HttpPost("{id:guid}/option-groups/{groupId:guid}/choices/{choiceId:guid}/image")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<Response<ProductDetails>>> SetOptionChoiceImage(
+        Guid id,
+        Guid groupId,
+        Guid choiceId,
+        IFormFile file,
+        CancellationToken ct
+    ) => Success(await products.SetOptionChoiceImageAsync(id, groupId, choiceId, file, ct));
+
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<Response<object>>> Archive(Guid id)
     {

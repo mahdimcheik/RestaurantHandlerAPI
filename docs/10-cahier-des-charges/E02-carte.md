@@ -138,5 +138,8 @@ commande) ; écran à faire.
 - Un choix a un nom unique dans son groupe, un surcoût ≥ 0 (ex. +3 € pour la grande taille) et
   peut être lié à un ingrédient : la rupture de l'ingrédient grise le choix.
 - Un ingrédient lié à un choix ne peut pas être archivé.
+- Groupes et choix peuvent avoir une photo (même contrôle et format que les produits),
+  envoyée à part (`POST …/option-groups/{groupId}/image`, `…/choices/{choiceId}/image`) et
+  conservée quand les groupes sont remplacés.
 - Exemples : « Pain » 1 parmi baguette / pita ; « Sauces » 0 à 3, 2 offertes puis +0,50 € ;
   « Taille » 1 parmi 29 cm / 33 cm (+3 €).

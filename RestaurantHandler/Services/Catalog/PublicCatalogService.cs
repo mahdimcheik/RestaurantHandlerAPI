@@ -125,6 +125,7 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
                 {
                     Id = g.Id,
                     Label = g.Label,
+                    ImageUrl = images.Url(g.ImageUrl),
                     MinChoices = g.MinChoices,
                     MaxChoices = g.MaxChoices,
                     FreeChoices = g.FreeChoices,
@@ -136,6 +137,7 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
                         {
                             Id = c.Id,
                             Name = c.Name,
+                            ImageUrl = images.Url(c.ImageUrl),
                             ExtraPriceCents = c.ExtraPriceCents,
                             IsAvailable = AvailabilityPolicy.IsOptionChoiceOffered(c),
                         })

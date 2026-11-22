@@ -1007,6 +1007,10 @@ namespace RestaurantHandler.Migrations
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<Guid?>("IngredientId")
                         .HasColumnType("uuid");
 
@@ -1052,6 +1056,10 @@ namespace RestaurantHandler.Migrations
 
                     b.Property<int>("FreeChoices")
                         .HasColumnType("integer");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Label")
                         .IsRequired()

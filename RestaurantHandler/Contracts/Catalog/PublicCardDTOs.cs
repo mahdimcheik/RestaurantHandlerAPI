@@ -42,6 +42,7 @@ public class PublicOptionGroup
 {
     [Required] public Guid Id { get; set; }
     [Required] public string Label { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
     [Required] public int MinChoices { get; set; }
     [Required] public int MaxChoices { get; set; }
 
@@ -56,6 +57,7 @@ public class PublicOptionChoice
 {
     [Required] public Guid Id { get; set; }
     [Required] public string Name { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
     [Required] public int ExtraPriceCents { get; set; }
 
     /// <summary>Faux = grisé (ingrédient en rupture).</summary>
