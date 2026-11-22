@@ -110,12 +110,21 @@ public class OrderItemModificationConfiguration : IEntityTypeConfiguration<Order
                 "CK_OrderItemModifications_SubstituteIffReplace",
                 "(\"Type\" = 'Replace') = (\"SubstituteIngredientId\" IS NOT NULL)"
             );
+            t.HasCheckConstraint(
+                "CK_OrderItemModifications_OptionChoiceIffChoice",
+                "(\"Type\" = 'Choice') = (\"OptionChoiceId\" IS NOT NULL)"
+            );
+            t.HasCheckConstraint(
+                "CK_OrderItemModifications_IngredientUnlessChoice",
+                "\"Type\" = 'Choice' OR \"IngredientId\" IS NOT NULL"
+            );
         });
 
         builder.Property(m => m.Type).HasConversion<string>().HasMaxLength(16);
         builder.HasIndex(m => m.OrderItemId);
         builder.HasIndex(m => m.IngredientId);
         builder.HasIndex(m => m.SubstituteIngredientId);
+        builder.HasIndex(m => m.OptionChoiceId);
 
         builder
             .HasOne(m => m.OrderItem)
@@ -131,6 +140,11 @@ public class OrderItemModificationConfiguration : IEntityTypeConfiguration<Order
             .HasOne(m => m.SubstituteIngredient)
             .WithMany()
             .HasForeignKey(m => m.SubstituteIngredientId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder
+            .HasOne(m => m.OptionChoice)
+            .WithMany()
+            .HasForeignKey(m => m.OptionChoiceId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

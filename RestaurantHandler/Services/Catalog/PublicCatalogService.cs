@@ -44,6 +44,9 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
             .Include(p => p.Ingredients).ThenInclude(pi => pi.Ingredient)
             .Include(p => p.Ingredients).ThenInclude(pi => pi.Substitutions).ThenInclude(s => s.SubstituteIngredient)
             .Include(p => p.Supplements).ThenInclude(s => s.Ingredient)
+            .Include(p => p.OptionGroups.Where(g => g.ArchivedAt == null))
+            .ThenInclude(g => g.Choices.Where(c => c.ArchivedAt == null)).ThenInclude(c => c.Ingredient)
+            .AsSplitQuery()
             .OrderBy(p => p.Position).ThenBy(p => p.Name)
             .ToListAsync(ct);
 
@@ -115,6 +118,28 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
                     Name = s.Ingredient!.Name,
                     PriceCents = s.PriceCents,
                     MaxQuantity = s.MaxQuantity,
+                })
+                .ToList(),
+            OptionGroups = AvailabilityPolicy.ActiveOptionGroups(p)
+                .Select(g => new PublicOptionGroup
+                {
+                    Id = g.Id,
+                    Label = g.Label,
+                    MinChoices = g.MinChoices,
+                    MaxChoices = g.MaxChoices,
+                    FreeChoices = g.FreeChoices,
+                    ExtraChoicePriceCents = g.ExtraChoicePriceCents,
+                    Choices = g.Choices
+                        .Where(c => c.ArchivedAt is null)
+                        .OrderBy(c => c.Position).ThenBy(c => c.Name)
+                        .Select(c => new PublicOptionChoice
+                        {
+                            Id = c.Id,
+                            Name = c.Name,
+                            ExtraPriceCents = c.ExtraPriceCents,
+                            IsAvailable = AvailabilityPolicy.IsOptionChoiceOffered(c),
+                        })
+                        .ToList(),
                 })
                 .ToList(),
         };

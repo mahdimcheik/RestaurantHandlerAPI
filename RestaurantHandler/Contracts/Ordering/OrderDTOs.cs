@@ -22,6 +22,9 @@ public class CartMenuChoiceDto
     [Required] public Guid SlotId { get; set; }
     [Required] public Guid ProductId { get; set; }
     public List<CartModificationDto> Modifications { get; set; } = [];
+
+    /// <summary>Choix dans les groupes d'options du produit (pain, sauces…).</summary>
+    public List<Guid> OptionChoiceIds { get; set; } = [];
 }
 
 public class CartLineDto
@@ -35,13 +38,19 @@ public class CartLineDto
     public List<CartModificationDto> Modifications { get; set; } = [];
     public List<CartMenuChoiceDto> Choices { get; set; } = [];
 
+    /// <summary>Choix dans les groupes d'options d'un produit (pain, sauces, taille) ; vide pour un menu.</summary>
+    public List<Guid> OptionChoiceIds { get; set; } = [];
+
     public CartLine ToCartLine() =>
         new(
             ProductId,
             MenuId,
             Quantity,
             Modifications.Select(ToCart).ToList(),
-            Choices.Select(c => new CartMenuChoice(c.SlotId, c.ProductId, c.Modifications.Select(ToCart).ToList())).ToList()
+            Choices
+                .Select(c => new CartMenuChoice(c.SlotId, c.ProductId, c.Modifications.Select(ToCart).ToList(), c.OptionChoiceIds))
+                .ToList(),
+            OptionChoiceIds
         );
 
     private static CartModification ToCart(CartModificationDto m) =>

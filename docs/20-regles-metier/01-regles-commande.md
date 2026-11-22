@@ -21,7 +21,10 @@ jamais un prix. Le serveur calcule :
 ```
 prix d'une ligne produit  = (prix produit
                              + Σ surcoûts de substitution
-                             + Σ prix supplément × quantité) × quantité
+                             + Σ prix supplément × quantité
+                             + Σ prix des groupes d'options) × quantité
+prix d'un groupe d'options = Σ surcoûts des choix
+                             + max(0, nombre de choix − choix offerts) × prix d'un choix en plus
 prix d'une ligne menu     = (prix menu
                              + Σ surcoûts d'option d'emplacement
                              + Σ personnalisations des produits choisis) × quantité
@@ -44,7 +47,14 @@ historique, reçu, statistiques) utilise ces copies, jamais la carte courante.
 | Remplacement | une `IngredientSubstitution` existe pour (produit, ingrédient, remplaçant) **et** le remplaçant est disponible | `ExtraPriceCents` |
 | Supplément | un `ProductSupplement` existe pour (produit, ingrédient), quantité ≤ `MaxQuantity`, ingrédient disponible | `PriceCents × quantité` |
 
+| Choix d'option | le choix appartient à un groupe actif du produit, n'est pas archivé et son ingrédient éventuel est disponible | surcoût du choix (+ prix d'un choix en plus s'il dépasse les offerts) |
+
 Un même ingrédient ne peut pas être à la fois retiré et remplacé dans une ligne.
+
+Pour chaque groupe d'options actif du produit : `MinChoices ≤ nombre de choix ≤ MaxChoices`,
+choix distincts. Les choix au-delà des offerts sont facturés en suivant l'ordre de la carte : le
+total ne dépend pas de l'ordre de la requête. Chaque choix est une personnalisation `Choice`
+de libellé « Groupe : Choix » (« Sauces : Algérienne »).
 
 ## R5 — Validité d'un menu
 
@@ -58,7 +68,8 @@ Un même ingrédient ne peut pas être à la fois retiré et remplacé dans une 
 ## R6 — Disponibilité
 
 Un produit est commandable si : actif, non archivé, catégorie active, non marqué
-indisponible, et tous ses ingrédients **non retirables** disponibles. Un menu est commandable si
+indisponible, tous ses ingrédients **non retirables** disponibles et, pour chaque groupe
+d'options, au moins `MinChoices` choix disponibles (plus aucun pain → sandwich indisponible). Un menu est commandable si
 actif et si chaque emplacement à minimum > 0 a au moins une option commandable.
 
 ## R7 — Ouverture et retrait

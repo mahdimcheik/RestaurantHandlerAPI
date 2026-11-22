@@ -45,6 +45,9 @@ public enum ModificationType
     Remove,
     Replace,
     Supplement,
+
+    /// <summary>Choix dans un groupe d'options du produit (pain, sauce, taille).</summary>
+    Choice,
 }
 
 public enum PaymentMethod
@@ -166,7 +169,7 @@ public class OrderItem : BaseModel
         new List<OrderItemModification>();
 }
 
-/// <summary>Personnalisation d'une ligne produit (retrait, remplacement, supplément).</summary>
+/// <summary>Personnalisation d'une ligne produit (retrait, remplacement, supplément, choix d'option).</summary>
 public class OrderItemModification : BaseModel
 {
     public Guid OrderItemId { get; set; }
@@ -174,20 +177,28 @@ public class OrderItemModification : BaseModel
 
     public ModificationType Type { get; set; }
 
-    public Guid IngredientId { get; set; }
+    /// <summary>Obligatoire sauf pour un choix d'option sans ingrédient (une taille).</summary>
+    public Guid? IngredientId { get; set; }
     public Ingredient? Ingredient { get; set; }
+
+    /// <summary>Renseigné si et seulement si <see cref="Type"/> vaut Choice.</summary>
+    public Guid? OptionChoiceId { get; set; }
+    public ProductOptionChoice? OptionChoice { get; set; }
 
     /// <summary>Renseigné si et seulement si <see cref="Type"/> vaut Replace.</summary>
     public Guid? SubstituteIngredientId { get; set; }
     public Ingredient? SubstituteIngredient { get; set; }
 
-    /// <summary>« Sans oignons », « Cheddar → Chèvre », « + Bacon ».</summary>
+    /// <summary>« Sans oignons », « Cheddar → Chèvre », « + Bacon », « Sauces : Algérienne ».</summary>
     [Required]
     [MaxLength(128)]
     public string LabelSnapshot { get; set; } = string.Empty;
 
     public int Quantity { get; set; } = 1;
     public int UnitPriceCents { get; set; }
+
+    /// <summary>Ordre d'affichage dans la ligne (choix dans l'ordre de la carte).</summary>
+    public int Position { get; set; }
 }
 
 /// <summary>Tentative de paiement SumUp ; une commande peut en avoir plusieurs.</summary>

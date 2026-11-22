@@ -85,6 +85,7 @@ public class ProductDetails
     [Required] public bool IsAvailable { get; set; }
     [Required] public bool IsArchived { get; set; }
     [Required] public CompositionDetails Composition { get; set; } = new();
+    [Required] public List<OptionGroupDetails> OptionGroups { get; set; } = [];
 }
 
 // ---------- Ingrédients ----------
@@ -187,6 +188,104 @@ public class SupplementDetails
     [Required] public string Name { get; set; } = string.Empty;
     [Required] public int PriceCents { get; set; }
     [Required] public int MaxQuantity { get; set; }
+    [Required] public bool IsAvailable { get; set; }
+}
+
+// ---------- Groupes d'options (remplacés en un seul appel) ----------
+
+/// <summary>
+/// Groupes dans l'ordre d'affichage. Un groupe ou un choix sans <c>Id</c> est créé ; un existant
+/// absent de la liste est archivé (les commandes passées y pointent).
+/// </summary>
+public class OptionGroupsUpdate : IValidatableObject
+{
+    [Required]
+    public List<OptionGroupWrite> Groups { get; set; } = [];
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        var groupIds = Groups.Where(g => g.Id is not null).Select(g => g.Id).ToList();
+        if (groupIds.Distinct().Count() != groupIds.Count)
+            yield return new("Un groupe ne figure qu'une fois.", [nameof(Groups)]);
+
+        var choiceIds = Groups.SelectMany(g => g.Choices).Where(c => c.Id is not null).Select(c => c.Id).ToList();
+        if (choiceIds.Distinct().Count() != choiceIds.Count)
+            yield return new("Un choix ne figure qu'une fois.", [nameof(Groups)]);
+    }
+}
+
+public class OptionGroupWrite : IValidatableObject
+{
+    public Guid? Id { get; set; }
+
+    [Required(ErrorMessage = "Le libellé est obligatoire.")]
+    [MaxLength(64)]
+    public string Label { get; set; } = string.Empty;
+
+    [Range(0, 20)]
+    public int MinChoices { get; set; }
+
+    [Range(1, 20)]
+    public int MaxChoices { get; set; } = 1;
+
+    /// <summary>Choix inclus avant de facturer <see cref="ExtraChoicePriceCents"/> ; tous si absent.</summary>
+    [Range(0, 20)]
+    public int? FreeChoices { get; set; }
+
+    [Range(0, 100_000)]
+    public int ExtraChoicePriceCents { get; set; }
+
+    [Required]
+    [MinLength(1, ErrorMessage = "Un groupe propose au moins un choix.")]
+    public List<OptionChoiceWrite> Choices { get; set; } = [];
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (MinChoices > MaxChoices)
+            yield return new("Le minimum de choix dépasse le maximum.", [nameof(MinChoices)]);
+        if (MinChoices > Choices.Count)
+            yield return new($"« {Label} » propose moins de choix que le minimum.", [nameof(Choices)]);
+        if (Choices.Select(c => c.Name.Trim().ToLowerInvariant()).Distinct().Count() != Choices.Count)
+            yield return new($"« {Label} » : un nom de choix ne figure qu'une fois.", [nameof(Choices)]);
+    }
+}
+
+public class OptionChoiceWrite
+{
+    public Guid? Id { get; set; }
+
+    [Required(ErrorMessage = "Le nom est obligatoire.")]
+    [MaxLength(64)]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Lie la disponibilité du choix à celle d'un ingrédient (sauce, pain) ; nul pour une taille.</summary>
+    public Guid? IngredientId { get; set; }
+
+    [Range(0, 100_000)]
+    public int ExtraPriceCents { get; set; }
+}
+
+public class OptionGroupDetails
+{
+    [Required] public Guid Id { get; set; }
+    [Required] public string Label { get; set; } = string.Empty;
+    [Required] public int Position { get; set; }
+    [Required] public int MinChoices { get; set; }
+    [Required] public int MaxChoices { get; set; }
+    [Required] public int FreeChoices { get; set; }
+    [Required] public int ExtraChoicePriceCents { get; set; }
+    [Required] public List<OptionChoiceDetails> Choices { get; set; } = [];
+}
+
+public class OptionChoiceDetails
+{
+    [Required] public Guid Id { get; set; }
+    [Required] public string Name { get; set; } = string.Empty;
+    public Guid? IngredientId { get; set; }
+    [Required] public int ExtraPriceCents { get; set; }
+    [Required] public int Position { get; set; }
+
+    /// <summary>Faux si l'ingrédient lié est en rupture.</summary>
     [Required] public bool IsAvailable { get; set; }
 }
 

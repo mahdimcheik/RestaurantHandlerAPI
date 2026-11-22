@@ -6,7 +6,8 @@ et [machine à états](../20-regles-metier/02-machine-etats-commande.md).
 ### US-E04-1 — Ajouter un produit personnalisé au panier
 
 En tant que client, je veux ajouter un produit en retirant, remplaçant ou ajoutant des
-ingrédients afin de commander exactement ce que je veux.
+ingrédients et en faisant mes choix (pain, sauces, taille) afin de commander exactement ce que
+je veux.
 
 **Priorité :** V1
 **État :** Partielle
@@ -16,6 +17,8 @@ ingrédients afin de commander exactement ce que je veux.
 - Seuls les ingrédients retirables peuvent être retirés ; seules les substitutions et suppléments
   définis pour ce produit sont proposés.
 - La quantité d'un supplément ne dépasse pas son maximum.
+- Chaque groupe d'options (pain, sauces, taille) reçoit entre son minimum et son maximum de
+  choix distincts et disponibles ([US-E02-9](E02-carte.md#us-e02-9--définir-les-groupes-doptions-dun-produit)).
 - Le prix de la ligne se met à jour à chaque choix (prix de base + surcoûts).
 - Le panier est conservé sur l'appareil (rechargement, fermeture de l'onglet).
 

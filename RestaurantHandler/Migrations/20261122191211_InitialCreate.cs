@@ -340,6 +340,36 @@ namespace RestaurantHandler.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ProductOptionGroups",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProductId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Label = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Position = table.Column<int>(type: "integer", nullable: false),
+                    MinChoices = table.Column<int>(type: "integer", nullable: false),
+                    MaxChoices = table.Column<int>(type: "integer", nullable: false),
+                    FreeChoices = table.Column<int>(type: "integer", nullable: false),
+                    ExtraChoicePriceCents = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductOptionGroups", x => x.Id);
+                    table.CheckConstraint("CK_ProductOptionGroups_Choices", "\"MinChoices\" >= 0 AND \"MaxChoices\" >= 1 AND \"MinChoices\" <= \"MaxChoices\"");
+                    table.CheckConstraint("CK_ProductOptionGroups_ExtraChoicePriceCents", "\"ExtraChoicePriceCents\" >= 0");
+                    table.CheckConstraint("CK_ProductOptionGroups_FreeChoices", "\"FreeChoices\" >= 0");
+                    table.ForeignKey(
+                        name: "FK_ProductOptionGroups_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProductSupplements",
                 columns: table => new
                 {
@@ -672,6 +702,38 @@ namespace RestaurantHandler.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ProductOptionChoices",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    GroupId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    IngredientId = table.Column<Guid>(type: "uuid", nullable: true),
+                    ExtraPriceCents = table.Column<int>(type: "integer", nullable: false),
+                    Position = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductOptionChoices", x => x.Id);
+                    table.CheckConstraint("CK_ProductOptionChoices_ExtraPriceCents", "\"ExtraPriceCents\" >= 0");
+                    table.ForeignKey(
+                        name: "FK_ProductOptionChoices_Ingredients_IngredientId",
+                        column: x => x.IngredientId,
+                        principalTable: "Ingredients",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ProductOptionChoices_ProductOptionGroups_GroupId",
+                        column: x => x.GroupId,
+                        principalTable: "ProductOptionGroups",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OrderItems",
                 columns: table => new
                 {
@@ -797,11 +859,13 @@ namespace RestaurantHandler.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     OrderItemId = table.Column<Guid>(type: "uuid", nullable: false),
                     Type = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
-                    IngredientId = table.Column<Guid>(type: "uuid", nullable: false),
+                    IngredientId = table.Column<Guid>(type: "uuid", nullable: true),
+                    OptionChoiceId = table.Column<Guid>(type: "uuid", nullable: true),
                     SubstituteIngredientId = table.Column<Guid>(type: "uuid", nullable: true),
                     LabelSnapshot = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     Quantity = table.Column<int>(type: "integer", nullable: false),
                     UnitPriceCents = table.Column<int>(type: "integer", nullable: false),
+                    Position = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -809,6 +873,8 @@ namespace RestaurantHandler.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_OrderItemModifications", x => x.Id);
+                    table.CheckConstraint("CK_OrderItemModifications_IngredientUnlessChoice", "\"Type\" = 'Choice' OR \"IngredientId\" IS NOT NULL");
+                    table.CheckConstraint("CK_OrderItemModifications_OptionChoiceIffChoice", "(\"Type\" = 'Choice') = (\"OptionChoiceId\" IS NOT NULL)");
                     table.CheckConstraint("CK_OrderItemModifications_Quantity", "\"Quantity\" > 0");
                     table.CheckConstraint("CK_OrderItemModifications_SubstituteIffReplace", "(\"Type\" = 'Replace') = (\"SubstituteIngredientId\" IS NOT NULL)");
                     table.CheckConstraint("CK_OrderItemModifications_UnitPriceCents", "\"UnitPriceCents\" >= 0");
@@ -830,6 +896,12 @@ namespace RestaurantHandler.Migrations
                         principalTable: "OrderItems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OrderItemModifications_ProductOptionChoices_OptionChoiceId",
+                        column: x => x.OptionChoiceId,
+                        principalTable: "ProductOptionChoices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.InsertData(
@@ -959,6 +1031,11 @@ namespace RestaurantHandler.Migrations
                 column: "IngredientId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrderItemModifications_OptionChoiceId",
+                table: "OrderItemModifications",
+                column: "OptionChoiceId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OrderItemModifications_OrderItemId",
                 table: "OrderItemModifications",
                 column: "OrderItemId");
@@ -1083,6 +1160,23 @@ namespace RestaurantHandler.Migrations
                 name: "IX_ProductIngredients_IngredientId",
                 table: "ProductIngredients",
                 column: "IngredientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductOptionChoices_GroupId_Name",
+                table: "ProductOptionChoices",
+                columns: new[] { "GroupId", "Name" },
+                unique: true,
+                filter: "\"ArchivedAt\" IS NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductOptionChoices_IngredientId",
+                table: "ProductOptionChoices",
+                column: "IngredientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductOptionGroups_ProductId_Position",
+                table: "ProductOptionGroups",
+                columns: new[] { "ProductId", "Position" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_CategoryId_Position",
@@ -1214,7 +1308,7 @@ namespace RestaurantHandler.Migrations
                 name: "OrderItems");
 
             migrationBuilder.DropTable(
-                name: "Ingredients");
+                name: "ProductOptionChoices");
 
             migrationBuilder.DropTable(
                 name: "MenuSlots");
@@ -1223,7 +1317,10 @@ namespace RestaurantHandler.Migrations
                 name: "Orders");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "Ingredients");
+
+            migrationBuilder.DropTable(
+                name: "ProductOptionGroups");
 
             migrationBuilder.DropTable(
                 name: "Menus");
@@ -1232,10 +1329,13 @@ namespace RestaurantHandler.Migrations
                 name: "Users");
 
             migrationBuilder.DropTable(
-                name: "Categories");
+                name: "Products");
 
             migrationBuilder.DropTable(
                 name: "StatusAccount");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
         }
     }
 }
