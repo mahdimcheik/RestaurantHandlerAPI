@@ -131,6 +131,9 @@ public class ProductOptionGroup : BaseModel
     [MaxLength(64)]
     public string Label { get; set; } = string.Empty;
 
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
+
     public int Position { get; set; }
     public int MinChoices { get; set; }
     public int MaxChoices { get; set; } = 1;
@@ -151,6 +154,9 @@ public class ProductOptionChoice : BaseModel
     [Required]
     [MaxLength(64)]
     public string Name { get; set; } = string.Empty;
+
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
 
     /// <summary>Si renseigné, la rupture de l'ingrédient rend le choix indisponible ; nul pour une taille.</summary>
     public Guid? IngredientId { get; set; }

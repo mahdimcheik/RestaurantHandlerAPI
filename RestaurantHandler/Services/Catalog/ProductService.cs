@@ -273,6 +273,38 @@ public class ProductService(MainContext db, CatalogImageService images, CatalogC
         return await GetAsync(id);
     }
 
+    public async Task<ProductDetails> SetOptionGroupImageAsync(Guid id, Guid groupId, IFormFile file, CancellationToken ct)
+    {
+        var group = await db.ProductOptionGroups
+            .FirstOrDefaultAsync(g => g.Id == groupId && g.ProductId == id && g.ArchivedAt == null
+                && g.Product!.ArchivedAt == null, ct)
+            ?? throw new ResourceNotFoundException("Groupe d'options introuvable.");
+
+        await ReplaceImageAsync(group.ImageUrl, key => group.ImageUrl = key, () => group.UpdatedAt = DateTimeOffset.UtcNow, file, ct);
+        return await GetAsync(id);
+    }
+
+    public async Task<ProductDetails> SetOptionChoiceImageAsync(Guid id, Guid groupId, Guid choiceId, IFormFile file, CancellationToken ct)
+    {
+        var choice = await db.ProductOptionChoices
+            .FirstOrDefaultAsync(c => c.Id == choiceId && c.GroupId == groupId && c.ArchivedAt == null
+                && c.Group!.ProductId == id && c.Group.ArchivedAt == null && c.Group.Product!.ArchivedAt == null, ct)
+            ?? throw new ResourceNotFoundException("Choix introuvable.");
+
+        await ReplaceImageAsync(choice.ImageUrl, key => choice.ImageUrl = key, () => choice.UpdatedAt = DateTimeOffset.UtcNow, file, ct);
+        return await GetAsync(id);
+    }
+
+    private async Task ReplaceImageAsync(string? previous, Action<string> set, Action touch, IFormFile file, CancellationToken ct)
+    {
+        var key = await images.StoreAsync(file, ct);
+        set(key);
+        touch();
+        await db.SaveChangesAsync(ct);
+        await images.DeleteAsync(previous);
+        await changes.CatalogChangedAsync();
+    }
+
     private static IQueryable<Product> WithComposition(IQueryable<Product> query) =>
         query
             .Include(p => p.Ingredients).ThenInclude(pi => pi.Ingredient)
@@ -361,6 +393,7 @@ public class ProductService(MainContext db, CatalogImageService images, CatalogC
                 {
                     Id = g.Id,
                     Label = g.Label,
+                    ImageUrl = images.Url(g.ImageUrl),
                     Position = g.Position,
                     MinChoices = g.MinChoices,
                     MaxChoices = g.MaxChoices,
@@ -373,6 +406,7 @@ public class ProductService(MainContext db, CatalogImageService images, CatalogC
                         {
                             Id = c.Id,
                             Name = c.Name,
+                            ImageUrl = images.Url(c.ImageUrl),
                             IngredientId = c.IngredientId,
                             ExtraPriceCents = c.ExtraPriceCents,
                             Position = c.Position,

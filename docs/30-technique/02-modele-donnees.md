@@ -31,8 +31,8 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 | `ProductIngredient` | Composition | PK (produit, ingrédient), `IsRemovable` |
 | `IngredientSubstitution` | Remplacement autorisé | FK composite vers la composition, `ExtraPriceCents` |
 | `ProductSupplement` | Supplément payant | PK (produit, ingrédient), `PriceCents`, `MaxQuantity` |
-| `ProductOptionGroup` | Groupe d'options d'un produit (pain, sauces, taille) | `Label`, `Position`, `Min/MaxChoices`, `FreeChoices`, `ExtraChoicePriceCents` ; archivé |
-| `ProductOptionChoice` | Choix d'un groupe | nom unique par groupe (non archivé), `IngredientId?` (rupture), `ExtraPriceCents`, `Position` ; archivé |
+| `ProductOptionGroup` | Groupe d'options d'un produit (pain, sauces, taille) | `Label`, `ImageUrl`, `Position`, `Min/MaxChoices`, `FreeChoices`, `ExtraChoicePriceCents` ; archivé |
+| `ProductOptionChoice` | Choix d'un groupe | nom unique par groupe (non archivé), `ImageUrl`, `IngredientId?` (rupture), `ExtraPriceCents`, `Position` ; archivé |
 | `Menu` | Formule | `PriceCents`, `VatRate`, `Position`, `ImageUrl`, `IsActive` |
 | `MenuSlot` | Emplacement | `Label`, position unique par menu, `Min/MaxChoices` |
 | `MenuSlotOption` | Produit proposé | PK (emplacement, produit), `ExtraPriceCents` |
