@@ -15,7 +15,6 @@ public class TeacherDetails
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset? UpdatedAt { get; set; }
-    public List<CursusDetails> Cursuses { get; set; }
     public string? LinkedIn { get; set; }
     public string? FaceBook { get; set; }
     public string? GitHub { get; set; }
@@ -37,10 +36,6 @@ public class TeacherDetails
     public decimal PriceIndicative { get; set; }
     //public long? Siret { get; set; }
     public bool IsProfessional { get; set; } = false;
-    public bool IsStripeConfirmed { get; set; } = false;
-    //public string? StripeAccount { get; set; }
-    public double AverageRating { get; set; }
-    public int ReviewsCount { get; set; }
 
     /// <summary>Résultat de la vérification du SIRET auprès de l'INSEE à l'inscription.</summary>
     public SiretVerificationStatusEnum SiretVerificationStatus { get; set; }
@@ -51,15 +46,15 @@ public class TeacherDetails
     public DateTimeOffset? VerifiedAt { get; set; }
 
     // La dénomination et l'adresse renvoyées par l'INSEE ne sont volontairement PAS ici :
-    // ce DTO est servi par des endpoints [AllowAnonymous] (cf. SlotsController), et l'adresse
+    // ce DTO est servi par des endpoints [AllowAnonymous] (profil public), et l'adresse
     // de l'établissement est souvent le domicile du prof. Elles vivent dans TeacherAdminDetails.
 
     public UserMinimalDetails? User { get; set; }
 
     public TeacherDetails() { }
 
-    /// <param name="includeEmail">Vrai seulement pour un appelant authentifié lié au prof
-    /// (réservation, commande, portefeuille) : ce DTO est aussi servi en anonyme.</param>
+    /// <param name="includeEmail">Vrai seulement pour un appelant authentifié habilité :
+    /// ce DTO est aussi servi en anonyme.</param>
     [SetsRequiredMembers]
     public TeacherDetails(Teacher teacher, bool includeEmail = false)
     {
@@ -79,15 +74,10 @@ public class TeacherDetails
         PriceIndicative = teacher.PriceIndicative;
         //Siret = teacher.Siret;
         IsProfessional = teacher.IsProfessional;
-        IsStripeConfirmed = teacher.IsStripeConfirmed;
-        //StripeAccount = teacher.StripeAccount;
-        AverageRating = teacher.AverageRating;
-        ReviewsCount = teacher.ReviewsCount;
         SiretVerificationStatus = teacher.SiretVerificationStatus;
         SiretVerifiedAt = teacher.SiretVerifiedAt;
         IsVerified = teacher.IsVerified;
         VerifiedAt = teacher.VerifiedAt;
-        Cursuses = teacher.Cursuses.Select(p => new CursusDetails(p)).ToList();
         User =
             teacher.User != null
                 ? new UserMinimalDetails
@@ -106,17 +96,14 @@ public class TeacherDetails
 /// Vue enseignant réservée à l'administration (cf. Feature 10 — certification) : surensemble de
 /// <see cref="TeacherDetails"/> enrichi des champs sensibles.
 ///
-/// Le SIRET, la dénomination et l'adresse renvoyées par l'INSEE ainsi que le compte Stripe Connect
-/// n'ont pas leur place dans <see cref="TeacherDetails"/> : ce dernier est sérialisé par des
-/// endpoints [AllowAnonymous] (listing des créneaux), et l'adresse de l'établissement est
+/// Le SIRET, la dénomination et l'adresse renvoyées par l'INSEE n'ont
+/// pas leur place dans <see cref="TeacherDetails"/> : ce dernier est sérialisé par des
+/// endpoints [AllowAnonymous] (profil public), et l'adresse de l'établissement est
 /// fréquemment le domicile du prof.
 /// </summary>
 public class TeacherAdminDetails : TeacherDetails
 {
     public long? Siret { get; set; }
-
-    /// <summary>Identifiant du compte Stripe Connect Express, <c>null</c> tant que non onboardé.</summary>
-    public string? StripeAccount { get; set; }
 
     /// <summary>Dénomination INSEE, ou « prénom nom » pour un entrepreneur individuel.</summary>
     public string? SiretCompanyName { get; set; }
@@ -133,7 +120,6 @@ public class TeacherAdminDetails : TeacherDetails
         : base(teacher)
     {
         Siret = teacher.Siret;
-        StripeAccount = teacher.StripeAccount;
         SiretCompanyName = teacher.SiretCompanyName;
         SiretCompanyAddress = teacher.SiretCompanyAddress;
         SiretActivityCode = teacher.SiretActivityCode;

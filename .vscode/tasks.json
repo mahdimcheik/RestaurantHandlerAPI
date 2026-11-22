@@ -7,7 +7,7 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/BonProf/BonProf.csproj",
+        "${workspaceFolder}/RestaurantHandler/RestaurantHandler.csproj",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary;ForceNoAlign"
       ],
@@ -23,7 +23,7 @@
       "type": "process",
       "args": [
         "publish",
-        "${workspaceFolder}/BonProf/BonProf.csproj",
+        "${workspaceFolder}/RestaurantHandler/RestaurantHandler.csproj",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary;ForceNoAlign"
       ],
@@ -37,7 +37,7 @@
         "watch",
         "run",
         "--project",
-        "${workspaceFolder}/BonProf/BonProf.csproj"
+        "${workspaceFolder}/RestaurantHandler/RestaurantHandler.csproj"
       ],
       "problemMatcher": "$msCompile"
     },
@@ -47,7 +47,7 @@
       "type": "process",
       "args": [
         "clean",
-        "${workspaceFolder}/BonProf/BonProf.csproj",
+        "${workspaceFolder}/RestaurantHandler/RestaurantHandler.csproj",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary;ForceNoAlign"
       ],

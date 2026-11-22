@@ -8,7 +8,7 @@ namespace RestaurantHandler.Persistence.Configurations;
 /// TeacherDocumentRequest : document attendu d'UN prof (ad hoc par un admin, ou généré
 /// automatiquement à la création du compte pour un type requis par défaut — RequestedBy
 /// est alors null). Teacher/Type restent Restrict — dossier de conformité, jamais emporté
-/// par un hard-delete accidentel (même esprit que Dispute/Refund ci-dessus). RequestedBy
+/// par un hard-delete accidentel. RequestedBy
 /// est SetNull (comme PrivacyDocuments.ReviewedById) : la requête reste valide même si
 /// l'admin qui l'a faite est supprimé, et elle est déjà nullable pour le cas automatique.
 /// </summary>

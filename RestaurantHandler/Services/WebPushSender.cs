@@ -24,7 +24,7 @@ public interface IWebPushSender
 
 public sealed class VapidWebPushSender(ILogger<VapidWebPushSender> logger) : IWebPushSender, IDisposable
 {
-    // Un message non distribué au bout d'un jour n'a plus d'intérêt (créneau passé, etc.).
+    // Un message non distribué au bout d'un jour n'a plus d'intérêt.
     private const int TimeToLiveSeconds = 24 * 60 * 60;
 
     private readonly WebPushClient _client = new();

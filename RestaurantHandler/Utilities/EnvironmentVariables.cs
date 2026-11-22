@@ -31,7 +31,6 @@ public static class EnvironmentVariables
         "ADMIN_PASSWORD",
         "SUPER_ADMIN_EMAIL",
         "SUPER_ADMIN_PASSWORD",
-        "ADDRESS_ENCRYPTION_KEY",
     ];
 
     public static void ValidateRequired() => ValidateRequired(Environment.GetEnvironmentVariable);
@@ -87,8 +86,8 @@ public static class EnvironmentVariables
 
     public static string JWT_KEY => GetRequiredEnvVar("JWT_KEY");
 
-    // Clé AES-256 (base64, 32 octets) du chiffrement au repos de la rue et du complément
-    // d'adresse. La perdre rend ces champs illisibles : la sauvegarder hors de la base.
+    // Clé AES-256 (base64, 32 octets) du chiffrement au repos (FieldEncryption). Lue seulement
+    // au premier chiffrement ; la perdre rend les champs chiffrés illisibles.
     public static string ADDRESS_ENCRYPTION_KEY => GetRequiredEnvVar("ADDRESS_ENCRYPTION_KEY");
     public static string? API_BACK_URL => GetEnvVar("API_BACK_URL", "");
     public static string? API_FRONT_URL => GetEnvVar("API_FRONT_URL", "");
@@ -176,20 +175,6 @@ public static class EnvironmentVariables
     public static string SUPER_ADMIN_PASSWORD => GetRequiredEnvVar("SUPER_ADMIN_PASSWORD");
     public static string ADMIN_PASSWORD => GetRequiredEnvVar("ADMIN_PASSWORD");
    
-    // stripe
-    // Interrupteur V1 : à false, toute nouvelle réservation suit le flux sans paiement
-    // (Order.PaymentRequired = false), même chez un prof Stripe + vérifié. Doit rester
-    // aligné avec PAYMENTS_ENABLED des fichiers environment*.ts du front.
-    public static bool PAYMENTS_ENABLED => GetEnvVarBool("PAYMENTS_ENABLED", true);
-    public static string STRIPE_PK => GetEnvVar("STRIPE_PK", "");
-    public static string STRIPE_SK => GetEnvVar("STRIPE_SK", "");
-    public static string STRIPE_WEBHOOK_SECRET => GetEnvVar("STRIPE_WEBHOOK_SECRET", "");
-
-    // Signing secret for the Connect webhook endpoint (events on connected accounts,
-    // e.g. account.updated). This is a separate Stripe endpoint registration with its
-    // own whsec_, distinct from STRIPE_WEBHOOK_SECRET used for platform/checkout events.
-    public static string STRIPE_CONNECT_WEBHOOK_SECRET => GetEnvVar("STRIPE_CONNECT_WEBHOOK_SECRET", "");
-
     // INSEE Sirene (vérification SIRET à l'inscription des profs)
     //
     // Le plan « Accès public » de l'API Sirene est de type API_KEY (et non OAuth2) : pas
@@ -203,11 +188,6 @@ public static class EnvironmentVariables
     public const string INSEE_API_KEY_HEADER = "X-INSEE-Api-Key-Integration";
     public static string INSEE_API_KEY => GetEnvVar("INSEE_API_KEY", "");
     public static string INSEE_SIRENE_BASE_URL => GetEnvVar("INSEE_SIRENE_BASE_URL", "https://api.insee.fr/api-sirene/3.11/");
-
-    // Géocodage géopf.fr (BAN/IGN) : géolocalisation des adresses (inscription prof via SIRET,
-    // création/modification d'adresse). API publique, aucune clé requise.
-    public static string GEOPF_GEOCODING_BASE_URL => GetEnvVar("GEOPF_GEOCODING_BASE_URL", "https://data.geopf.fr/geocodage/");
-
 
     // Stockage objet (ADR-0008) : un compartiment compatible S3 (OVH Object Storage). avatars/ est
     // envoyé en public-read et lu via S3_PUBLIC_URL ; tout le reste est servi par lien signé.

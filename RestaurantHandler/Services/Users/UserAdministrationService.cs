@@ -41,7 +41,6 @@ public class UserAdministrationService
             includeStatus: true,
             includeTeacher: true,
             includeStudent: true,
-            includeAddresses: true,
             includeFormations: true,
             onlyActive: true
         );
@@ -178,7 +177,6 @@ public class UserAdministrationService
         var user = await _context
             .Users.Include(u => u.Teacher)
             .Include(u => u.Student)
-            .Include(u => u.Languages)
             .FirstOrDefaultAsync(u => u.Id == id && u.ArchivedAt == null);
 
         if (user is null)
@@ -190,11 +188,7 @@ public class UserAdministrationService
             };
         }
 
-        var languages = await _context
-            .Languages.Where(l => update.LanguagesIds.Contains(l.Id))
-            .ToListAsync();
-
-        update.UpdateUser(user, languages);
+        update.UpdateUser(user);
         user.Description = _sanitizer.Sanitize(user.Description);
         user.UpdatedAt = DateTimeOffset.UtcNow;
 

@@ -32,8 +32,6 @@ public class Teacher : BaseModel
     [Required]
     public required decimal PriceIndicative { get; set; }
     public long? Siret { get; set; }
-    public bool IsStripeConfirmed { get; set; } = false;
-    public string? StripeAccount { get; set; }
 
     /// <summary>Vrai une fois un SIRET vérifié auprès de l'INSEE (à l'inscription ou via
     /// « passer en mode professionnel »). Toujours gater la logique métier/l'affichage
@@ -41,7 +39,7 @@ public class Teacher : BaseModel
     /// garde sa valeur par défaut pour un prof non-pro qui n'a jamais été vérifié.</summary>
     public bool IsProfessional { get; set; } = false;
 
-    // SIRET verification status (distinct from IsConfirmed, which tracks Stripe Connect onboarding)
+    // SIRET verification status
     [Required]
     public required SiretVerificationStatusEnum SiretVerificationStatus { get; set; } = SiretVerificationStatusEnum.Verified;
     public DateTimeOffset? SiretVerifiedAt { get; set; }
@@ -57,24 +55,7 @@ public class Teacher : BaseModel
     public bool IsVerified { get; set; } = false;
     public DateTimeOffset? VerifiedAt { get; set; }
 
-    /// <summary>
-    /// Note moyenne dénormalisée, recalculée depuis les avis à chaque mutation
-    /// (création / archivage / suppression). Évite un N+1 sur le listing des profs.
-    /// Vaut 0 tant qu'aucun avis n'existe.
-    /// </summary>
-    public double AverageRating { get; set; }
-
-    /// <summary>
-    /// Nombre d'avis (non archivés) pris en compte dans <see cref="AverageRating"/>.
-    /// </summary>
-    public int ReviewsCount { get; set; }
-    /// <summary>
-    /// Ce que le prof annonce sur son profil (cf. Feature 1) et vend, réservable par un
-    /// élève (cf. Feature 4) : une seule et même liste depuis la suppression de Cursus.
-    /// </summary>
-    public ICollection<Cursus> Cursuses { get; set; } = new List<Cursus>();
     public ICollection<Experience> Experiences { get; set; } = new List<Experience>();
-    public ICollection<Slot> Slots { get; set; } = new List<Slot>();
     public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 
     [SetsRequiredMembers]

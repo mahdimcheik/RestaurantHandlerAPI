@@ -14,7 +14,7 @@ namespace RestaurantHandler.Infrastructure.RateLimiting;
 /// que <c>UseForwardedHeaders</c> fait confiance au proxy inverse (Program.cs).
 /// Ne sont jamais limités : les adresses privées et de bouclage (appels internes, ou proxy qui ne
 /// transmet pas X-Forwarded-For), <see cref="EnvironmentVariables.RATE_LIMIT_EXEMPT_IPS"/>, et les
-/// routes qui ont leur propre rythme (webhooks Stripe, hub SignalR, MCP).
+/// routes qui ont leur propre rythme (hub SignalR, Hangfire).
 /// </summary>
 public static class RateLimitingSetup
 {
@@ -22,11 +22,9 @@ public static class RateLimitingSetup
 
     private static readonly string[] ExemptPathPrefixes =
     [
-        "/payment/webhook",
         "/chathub",
         "/hangfire",
         "/version",
-        "/mcp",
     ];
 
     public static IServiceCollection AddBonProfRateLimiting(this IServiceCollection services)

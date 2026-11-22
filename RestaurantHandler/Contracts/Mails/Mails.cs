@@ -82,30 +82,6 @@ public class TeacherContactModel
     }
 }
 
-/// <summary>
-/// Message d'un expéditeur sans compte, transmis par un assistant IA via le serveur MCP
-/// (ADR-0024). Nom et adresse sont déclaratifs : rien ne les vérifie.
-/// </summary>
-public class ExternalTeacherContactModel(
-    UserApp receiver,
-    string senderName,
-    string senderEmail,
-    string subject,
-    string message,
-    string websiteLink
-)
-{
-    public UserApp Receiver { get; } = receiver;
-    public string SenderName { get; } = senderName;
-    public string SenderEmail { get; } = senderEmail;
-    public string Subject { get; } = subject;
-
-    /// <summary>Texte brut : le template l'encode, aucune balise n'est interprétée.</summary>
-    public string Message { get; } = message;
-
-    public string WebsiteLink { get; } = websiteLink;
-}
-
 /// <summary>Modèle de BroadcastTemplate : un envoi groupé rendu pour un destinataire.</summary>
 public class BroadcastMailModel
 {

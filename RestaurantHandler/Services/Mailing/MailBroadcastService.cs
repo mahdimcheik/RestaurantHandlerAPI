@@ -8,10 +8,9 @@ using Microsoft.EntityFrameworkCore;
 namespace RestaurantHandler.Services;
 
 /// <summary>
-/// Envois groupés par e-mail (ADR-0023, US-E17-08 et US-E13-08). Un admin écrit à un ou plusieurs
-/// publics ; un professeur écrit à ses élèves, c'est-à-dire ceux qui ont au moins une réservation
-/// non rejetée et non annulée sur l'un de ses créneaux. L'envoi est historisé puis éclaté en un
-/// mail par destinataire dans Hangfire : la requête ne paie pas le rendu ni le SMTP.
+/// Envois groupés par e-mail (ADR-0023). Un admin écrit à un ou plusieurs publics. L'envoi est
+/// historisé puis éclaté en un mail par destinataire dans Hangfire : la requête ne paie pas le
+/// rendu ni le SMTP.
 /// </summary>
 public class MailBroadcastService(
     MainContext context,
@@ -22,80 +21,6 @@ public class MailBroadcastService(
 {
     private const int DefaultRows = 20;
     private const int MaxRows = 100;
-
-    private static readonly Guid[] EligibleReservationStatuses =
-    [
-        HardCode.RESERVATION_PENDING,
-        HardCode.RESERVATION_ACCEPTED,
-        HardCode.RESERVATION_DELIVERED,
-        HardCode.RESERVATION_DONE,
-        HardCode.RESERVATION_PAYABLE,
-        HardCode.RESERVATION_DISPUTED,
-    ];
-
-    // ---- Professeur -------------------------------------------------------------------------
-
-    public async Task<Response<List<MailingStudent>>> GetEligibleStudentsAsync(CallerIdentity? caller)
-    {
-        var me = RequireCaller(caller);
-
-        var students = await EligibleStudentUsers(me)
-            .OrderBy(u => u.LastName)
-            .ThenBy(u => u.FirstName)
-            .ThenBy(u => u.Id)
-            .Select(u => new MailingStudent
-            {
-                Id = u.Id,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-            })
-            .ToListAsync();
-
-        return new Response<List<MailingStudent>>
-        {
-            Status = 200,
-            Message = "Élèves récupérés avec succès",
-            Data = students,
-            Count = students.Count,
-        };
-    }
-
-    public async Task<Response<MailBroadcastSent>> SendAsTeacherAsync(
-        TeacherMailBroadcastCreate dto,
-        CallerIdentity? caller
-    )
-    {
-        var me = RequireCaller(caller);
-        var (subject, body) = Clean(dto.Subject, dto.Message);
-        await EnsureQuotaAsync(me);
-
-        var eligible = await EligibleStudentUsers(me).Select(u => u.Id).ToListAsync();
-        List<Guid> recipients;
-        if (dto.StudentIds is { Count: > 0 })
-        {
-            var requested = dto.StudentIds.Distinct().ToList();
-            if (requested.Except(eligible).Any())
-            {
-                throw new BusinessForbiddenException(
-                    "Vous ne pouvez écrire qu'à des élèves ayant réservé au moins un cours avec vous"
-                );
-            }
-            recipients = requested;
-        }
-        else
-        {
-            recipients = eligible;
-        }
-
-        return await RecordAndEnqueueAsync(
-            me,
-            MailBroadcastSenderKind.Teacher,
-            MailBroadcastAudience.None,
-            subject,
-            body,
-            recipients
-        );
-    }
 
     // ---- Administration ---------------------------------------------------------------------
 
@@ -301,16 +226,6 @@ public class MailBroadcastService(
             && u.Email != null
             && u.Email != ""
         );
-
-    private IQueryable<UserApp> EligibleStudentUsers(Guid teacherId) =>
-        Reachable(teacherId)
-            .Where(u =>
-                context.Reservations.Any(r =>
-                    r.StudentId == u.Id
-                    && r.Slot!.TeacherId == teacherId
-                    && EligibleReservationStatuses.Contains(r.StatusId)
-                )
-            );
 
     private IQueryable<UserApp> AudienceUsers(MailBroadcastAudience audience, Guid senderId)
     {

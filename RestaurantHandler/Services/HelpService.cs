@@ -20,7 +20,7 @@ public partial class HelpService(MainContext context, RichTextSanitizer sanitize
     /// <summary>Toutes les fiches publiées d'une langue, par rubrique puis par ordre.</summary>
     public async Task<Response<List<HelpSummary>>> GetPublishedAsync(string? language)
     {
-        var lang = NormalizeLanguage(language) ?? HardCode.ARTICLE_LANGUAGES[0];
+        var lang = NormalizeLanguage(language) ?? HardCode.HELP_LANGUAGES[0];
         var items = await cache.GetOrCreateAsync(
             CacheKeys.HelpList(lang),
             async ct =>
@@ -33,7 +33,7 @@ public partial class HelpService(MainContext context, RichTextSanitizer sanitize
                 )
                     .Select(h => new HelpSummary(h))
                     .ToList(),
-            CacheKeys.Articles,
+            CacheKeys.Help,
             [CacheKeys.HELP_TAG]
         );
 
@@ -50,7 +50,7 @@ public partial class HelpService(MainContext context, RichTextSanitizer sanitize
         if (terms.Count == 0)
             return new Response<List<HelpSummary>> { Status = 200, Message = "Aucun terme recherché", Data = [], Count = 0 };
 
-        var lang = NormalizeLanguage(query.Language) ?? HardCode.ARTICLE_LANGUAGES[0];
+        var lang = NormalizeLanguage(query.Language) ?? HardCode.HELP_LANGUAGES[0];
         var entries = Published().Where(h => h.Language == lang);
         if (query.Audience is { } audience && audience != HelpAudience.All)
             entries = entries.Where(h => h.Audience == HelpAudience.All || h.Audience == audience);
@@ -94,7 +94,7 @@ public partial class HelpService(MainContext context, RichTextSanitizer sanitize
 
                 return new HelpDetails(entry) { Related = related.Select(h => new HelpSummary(h)).ToList() };
             },
-            CacheKeys.Articles,
+            CacheKeys.Help,
             [CacheKeys.HELP_TAG]
         );
 
@@ -112,7 +112,7 @@ public partial class HelpService(MainContext context, RichTextSanitizer sanitize
                     .OrderBy(h => h.Slug)
                     .Select(h => new HelpSitemapEntry { Slug = h.Slug, LastModified = h.UpdatedAt ?? h.PublishedAt ?? h.CreatedAt })
                     .ToListAsync(ct),
-            CacheKeys.Articles,
+            CacheKeys.Help,
             [CacheKeys.HELP_TAG]
         );
 
@@ -450,7 +450,7 @@ public partial class HelpService(MainContext context, RichTextSanitizer sanitize
     private static string? NormalizeLanguage(string? language)
     {
         var lang = language?.Trim().ToLowerInvariant();
-        return lang is not null && HardCode.ARTICLE_LANGUAGES.Contains(lang) ? lang : null;
+        return lang is not null && HardCode.HELP_LANGUAGES.Contains(lang) ? lang : null;
     }
 
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

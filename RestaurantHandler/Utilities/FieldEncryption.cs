@@ -7,7 +7,7 @@ namespace RestaurantHandler.Utilities;
 /// Chiffrement au repos d'un champ texte (AES-256-GCM). Valeur stockée :
 /// <c>enc:v1:</c> + base64(nonce ‖ chiffré ‖ tag). Le préfixe versionné laisse la place à une
 /// rotation de clé ; une valeur sans préfixe est une donnée antérieure au chiffrement et se lit
-/// telle quelle, jusqu'à ce que <c>AddressEncryptionBackfill</c> l'ait réécrite.
+/// telle quelle.
 /// </summary>
 public static class FieldEncryption
 {

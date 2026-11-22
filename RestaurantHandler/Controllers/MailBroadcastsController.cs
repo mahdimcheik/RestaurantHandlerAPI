@@ -33,24 +33,6 @@ public class MailBroadcastsController(MailBroadcastService broadcastService) : C
         return StatusCode(response.Status, response);
     }
 
-    [HttpGet("teacher/students")]
-    [Authorize(Roles = "Teacher")]
-    public async Task<ActionResult<Response<List<MailingStudent>>>> GetEligibleStudents()
-    {
-        var response = await broadcastService.GetEligibleStudentsAsync(await this.GetCallerAsync());
-        return StatusCode(response.Status, response);
-    }
-
-    [HttpPost("teacher")]
-    [Authorize(Roles = "Teacher")]
-    public async Task<ActionResult<Response<MailBroadcastSent>>> SendAsTeacher(
-        [FromBody] TeacherMailBroadcastCreate dto
-    )
-    {
-        var response = await broadcastService.SendAsTeacherAsync(dto, await this.GetCallerAsync());
-        return StatusCode(response.Status, response);
-    }
-
     /// <summary>Historique : tout pour l'administration, ses propres envois pour un professeur.</summary>
     [HttpPost("search")]
     [Authorize(Roles = "Admin,SuperAdmin,Teacher")]

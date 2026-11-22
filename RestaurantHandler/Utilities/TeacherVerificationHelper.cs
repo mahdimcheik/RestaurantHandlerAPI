@@ -11,8 +11,7 @@ namespace RestaurantHandler.Utilities;
 /// faire varier (upload, revue admin, nouvelle demande ad hoc) plutôt que dérivée
 /// paresseusement à la lecture, pour que <see cref="Teacher.IsVerified"/> reste toujours exact.
 ///
-/// Ne sauvegarde volontairement pas : l'appelant garde la main sur <c>SaveChangesAsync</c>,
-/// même esprit que <see cref="ReservationStatusExtensions.TransitionStatusTo"/>.
+/// Ne sauvegarde volontairement pas : l'appelant garde la main sur <c>SaveChangesAsync</c>.
 /// </summary>
 public static class TeacherVerificationHelper
 {

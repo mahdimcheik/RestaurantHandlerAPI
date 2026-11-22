@@ -24,7 +24,6 @@ public sealed class BusinessExceptionHandler(
         var (status, detail) = exception switch
         {
             BusinessException business => (business.StatusCode, business.Message),
-            InvalidReservationTransitionException => (StatusCodes.Status409Conflict, exception.Message),
             _ => (StatusCodes.Status500InternalServerError, null),
         };
 

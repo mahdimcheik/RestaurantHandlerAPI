@@ -40,20 +40,6 @@ public class UserManagementController : ControllerBase
     }
 
     /// <summary>
-    /// Modifie le statut de confirmation d'un enseignant.
-    /// </summary>
-    [HttpPatch("teachers/{userId:guid}/confirmation")]
-    public async Task<ActionResult<Response<TeacherDetails>>> SetTeacherConfirmation(
-        [FromRoute] Guid userId,
-        [FromQuery] bool isConfirmed,
-        [FromQuery] string? stripeAccount = null
-    )
-    {
-        var response = await _userManagementService.SetTeacherConfirmationAsync(userId, isConfirmed, stripeAccount);
-        return StatusCode(response.Status, response);
-    }
-
-    /// <summary>
     /// Détail de la vérification SIRET d'un enseignant (dénomination et adresse INSEE).
     /// Réservé à l'administration : ces données ne sont pas exposées dans TeacherDetails.
     /// </summary>
@@ -76,19 +62,6 @@ public class UserManagementController : ControllerBase
     )
     {
         var response = await _userManagementService.SetUserAccountStatusAsync(userId, statusId);
-        return StatusCode(response.Status, response);
-    }
-
-    /// <summary>
-    /// Accorde (<paramref name="enabled"/> = true) ou retire le rôle Éditeur à un prof.
-    /// </summary>
-    [HttpPatch("users/{userId:guid}/editor")]
-    public async Task<ActionResult<Response<List<RoleDetails>>>> SetEditorRole(
-        [FromRoute] Guid userId,
-        [FromQuery] bool enabled
-    )
-    {
-        var response = await _userManagementService.SetEditorRoleAsync(userId, enabled);
         return StatusCode(response.Status, response);
     }
 

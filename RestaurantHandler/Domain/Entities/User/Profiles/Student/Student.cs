@@ -11,9 +11,5 @@ public class Student: BaseModel
     
     public UserApp? User { get; set; }
     
-    public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
-    
-    public ICollection<Order> Orders { get; set; } = new List<Order>();
-
     public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 }

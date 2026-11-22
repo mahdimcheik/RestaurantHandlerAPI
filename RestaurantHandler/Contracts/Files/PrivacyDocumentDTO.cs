@@ -33,8 +33,7 @@ namespace RestaurantHandler.Models.Files
     }
     /// <summary>Corps de <c>PATCH /UserManagement/documents/{id}/review</c>. <see cref="Status"/>
     /// ne doit valoir que Validated ou Refused (Pending refusé par le service) ;
-    /// <see cref="RefusalReason"/> est obligatoire quand Refused (vérifié en service, comme
-    /// <c>Dispute.ResolutionNote</c>).</summary>
+    /// <see cref="RefusalReason"/> est obligatoire quand Refused (vérifié en service).</summary>
     public class DocumentReviewDecision
     {
         [Required]

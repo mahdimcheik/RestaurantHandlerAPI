@@ -103,19 +103,10 @@ public class NotificationDispatcher(
 /// <summary>Chemins front ouverts au clic sur une notification (cf. <c>app.routes.ts</c>).</summary>
 public static class NotificationLinks
 {
-    public static string Reservation(Guid reservationId, bool forTeacher) =>
-        $"/dashboard/{(forTeacher ? "teacher" : "student")}/reservations/{reservationId}";
-
-    public static string Dispute(Guid disputeId, bool forTeacher) =>
-        $"/dashboard/{(forTeacher ? "teacher" : "student")}/disputes/{disputeId}";
-
-    public static string AdminDispute(Guid disputeId, bool isSuperAdmin) => $"{AdminBase(isSuperAdmin)}/disputes/{disputeId}";
-
     public static string AdminTeacherDocuments(Guid teacherId, bool isSuperAdmin) =>
         $"{AdminBase(isSuperAdmin)}/teacher/{teacherId}/documents";
 
     public const string TeacherDocuments = "/dashboard/teacher/documents";
-    public const string TeacherCursuses = "/dashboard/teacher/cursus";
 
     private static string AdminBase(bool isSuperAdmin) => isSuperAdmin ? "/dashboard/superadmin" : "/dashboard/admin";
 }

@@ -51,7 +51,7 @@ public class TokenService
             .Select(r => new RoleDetails(r))
             .ToList();
 
-        var userDetails = new UserDetails(user, rolesDetailed, includeFullAddress: true).WithLayoutSettings(user);
+        var userDetails = new UserDetails(user, rolesDetailed).WithLayoutSettings(user);
 
         // L'URL signée est posée sur le DTO, pas sur l'entité : GenerateAccessTokenAsync
         // marque l'utilisateur Modified, un SaveChanges ultérieur écrirait sinon l'URL

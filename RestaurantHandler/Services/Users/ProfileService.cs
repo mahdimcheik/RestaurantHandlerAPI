@@ -44,7 +44,6 @@ public class ProfileService
         bool includeStatus = false,
         bool includeTeacher = false,
         bool includeStudent = false,
-        bool includeAddresses = false,
         bool includeFormations = false,
         bool onlyActive = false,
         string notFoundMessage = "Utilisateur non trouvé",
@@ -53,7 +52,6 @@ public class ProfileService
     {
         var query = _context
             .Users.Include(u => u.Gender)
-            .Include(u => u.Languages)
             .AsQueryable();
 
         if (includeStatus)
@@ -62,23 +60,11 @@ public class ProfileService
         }
         if (includeTeacher)
         {
-            // Les cursus sont ce que le prof annonce sur son profil : la page les
-            // liste et en tire ses mots-clés SEO, d'où le chargement de la taxonomie.
-            query = query
-                .Include(u => u.Teacher)
-                .ThenInclude(t => t.Cursuses)
-                .ThenInclude(p => p.Level)
-                .Include(u => u.Teacher)
-                .ThenInclude(t => t.Cursuses)
-                .ThenInclude(p => p.Categories);
+            query = query.Include(u => u.Teacher);
         }
         if (includeStudent)
         {
             query = query.Include(u => u.Student);
-        }
-        if (includeAddresses)
-        {
-            query = query.Include(u => u.Addresses);
         }
         if (includeFormations)
         {
@@ -121,7 +107,6 @@ public class ProfileService
             userId,
             includeRoles: true,
             includeTeacher: true,
-            includeAddresses: true,
             notFoundMessage: "Profil enseignant non trouvé",
             successMessage: "Profil enseignant récupéré avec succès"
         );
@@ -183,7 +168,7 @@ public class ProfileService
         CallerIdentity caller
     )
     {
-        if (!await CanReadStudentProfileAsync(userId, caller))
+        if (!CanReadStudentProfile(userId, caller))
             return StudentProfileNotFound();
 
         return await GetProfileByIdAsync(
@@ -201,13 +186,11 @@ public class ProfileService
         new() { Status = 404, Message = StudentProfileNotFoundMessage };
 
     /// <summary>
-    /// Le profil d'un élève est lisible par lui-même, par l'administration et par un professeur
-    /// qui a une réservation avec lui. Pour tout autre appelant, il n'existe pas.
+    /// Le profil d'un élève est lisible par lui-même et par l'administration. Pour tout autre
+    /// appelant, il n'existe pas.
     /// </summary>
-    private async Task<bool> CanReadStudentProfileAsync(Guid studentUserId, CallerIdentity caller) =>
-        caller.IsAdmin
-        || caller.UserId == studentUserId
-        || await ReservationAccess.SharesReservationAsync(_context, studentUserId, caller.UserId);
+    private static bool CanReadStudentProfile(Guid studentUserId, CallerIdentity caller) =>
+        caller.IsAdmin || caller.UserId == studentUserId;
 
 
     // ----------------------------------------------------------------------
@@ -228,7 +211,6 @@ public class ProfileService
         var student = await _context
             .Users.Where(p => p.Id == user.Id)
             .Include(p => p.Gender)
-            .Include(p => p.Languages)
             .Include(p => p.Student)
             .Include(p => p.UserRoles)
             .FirstOrDefaultAsync();
@@ -262,7 +244,7 @@ public class ProfileService
         CallerIdentity caller
     )
     {
-        if (!await CanReadStudentProfileAsync(userId, caller))
+        if (!CanReadStudentProfile(userId, caller))
             return StudentProfileNotFound();
 
         var user = await _context.Users.FirstOrDefaultAsync(u =>
@@ -279,7 +261,6 @@ public class ProfileService
         var student = await _context
             .Users.Where(p => p.Id == user.Id)
             .Include(p => p.Gender)
-            .Include(p => p.Languages)
             .Include(p => p.Student)
             .Include(p => p.UserRoles)
             .FirstOrDefaultAsync();
@@ -327,7 +308,6 @@ public class ProfileService
 
         var student = await _context
             .Users.Include(t => t.Student)
-            .Include(p => p.Languages)
             .FirstOrDefaultAsync(t => t.Id == user.Id);
 
         if (student == null)
@@ -340,9 +320,8 @@ public class ProfileService
             };
         }
 
-        var languages = await _context.Languages.ToListAsync();
 
-        userUpdate.UpdateUser(user, languages);
+        userUpdate.UpdateUser(user);
         // Texte enrichi affiché sur le profil public et sous les articles : nettoyé comme les autres (ADR-0014).
         user.Description = _sanitizer.Sanitize(user.Description);
 
@@ -351,9 +330,7 @@ public class ProfileService
 
         var updatedUser = await _context
             .Users.Include(p => p.Gender)
-            .Include(p => p.Languages)
             .Include(p => p.Formations)
-            .Include(p => p.Addresses)
             .Include(u => u.Student)
             .FirstOrDefaultAsync(u => u.Id == user.Id);
 
@@ -366,7 +343,7 @@ public class ProfileService
         {
             Status = 200,
             Message = "Profil enseignant mis à jour avec succès",
-            Data = new UserDetails(updatedUser!, null, includeFullAddress: true),
+            Data = new UserDetails(updatedUser!, null),
         };
     }
 }

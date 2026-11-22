@@ -305,7 +305,7 @@ public class AuthController : ControllerBase
                 Data = new UserInfosWithtoken
                 {
                     Token = await tokenService.GenerateAccessTokenAsync(user),
-                    User = new UserDetails(user, rolesDetailed, includeFullAddress: true).WithLayoutSettings(user),
+                    User = new UserDetails(user, rolesDetailed).WithLayoutSettings(user),
                 },
             }
         );

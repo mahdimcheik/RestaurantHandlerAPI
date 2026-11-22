@@ -48,11 +48,6 @@ public class UserManagementService
             query = query.Where(u => _context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == filters.RoleId));
         }
 
-        if (filters.IsConfirmed is not null)
-        {
-            query = query.Where(u => u.Teacher.IsStripeConfirmed == filters.IsConfirmed);
-        }
-
         if (!string.IsNullOrWhiteSpace(filters.Name))
         {
             var name = filters.Name.ToLower();
@@ -81,42 +76,6 @@ public class UserManagementService
             Message = "Enseignants récupérés avec succès",
             Data = teachers.Select(p => new UserDetails(p, null)).ToList(),
             Count = count,
-        };
-    }
-
-    /// <summary>
-    /// Modifie le statut de confirmation d'un enseignant.
-    /// </summary>
-    public async Task<Response<TeacherDetails>> SetTeacherConfirmationAsync(
-        Guid userId,
-        bool isConfirmed,
-        string? stripeAccount = null
-    )
-    {
-        var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == userId);
-        if (teacher is null)
-        {
-            return new Response<TeacherDetails>
-            {
-                Status = 404,
-                Message = "Enseignant non trouvé",
-            };
-        }
-
-        teacher.IsStripeConfirmed = isConfirmed;
-        if (!string.IsNullOrEmpty(stripeAccount))
-        {
-            teacher.StripeAccount = stripeAccount;
-        }
-        await _context.SaveChangesAsync();
-
-        return new Response<TeacherDetails>
-        {
-            Status = 200,
-            Message = isConfirmed
-                ? "Enseignant confirmé avec succès"
-                : "Confirmation de l'enseignant retirée avec succès",
-            Data = new TeacherDetails(teacher, includeEmail: true),
         };
     }
 
@@ -200,46 +159,6 @@ public class UserManagementService
             Status = 200,
             Message = "Statut du compte mis à jour avec succès",
             Data = new UserDetails(user, null),
-        };
-    }
-
-    /// <summary>
-    /// Accorde ou retire le rôle Éditeur à un prof. Renvoie ses rôles après modification. Les
-    /// articles déjà rédigés restent en place ; la nouvelle liste de rôles n'entre dans le jeton
-    /// qu'au prochain renouvellement, mais <see cref="ArticleService"/> relit le rôle en base.
-    /// </summary>
-    public async Task<Response<List<RoleDetails>>> SetEditorRoleAsync(Guid userId, bool enabled)
-    {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId && u.ArchivedAt == null);
-        if (user is null)
-            return new Response<List<RoleDetails>> { Status = 404, Message = "Utilisateur non trouvé" };
-
-        var userRoles = _context.UserRoles.Where(ur => ur.UserId == userId);
-        if (!await userRoles.AnyAsync(ur => ur.RoleId == HardCode.ROLE_TEACHER))
-            return new Response<List<RoleDetails>>
-            {
-                Status = 400,
-                Message = "Seul un professeur peut recevoir le rôle éditeur",
-            };
-
-        var current = await userRoles.FirstOrDefaultAsync(ur => ur.RoleId == HardCode.ROLE_EDITOR);
-        if (enabled && current is null)
-            _context.UserRoles.Add(new IdentityUserRole<Guid> { UserId = userId, RoleId = HardCode.ROLE_EDITOR });
-        else if (!enabled && current is not null)
-            _context.UserRoles.Remove(current);
-
-        user.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-
-        var roles = await _context
-            .Roles.Where(r => _context.UserRoles.Any(ur => ur.UserId == userId && ur.RoleId == r.Id))
-            .ToListAsync();
-
-        return new Response<List<RoleDetails>>
-        {
-            Status = 200,
-            Message = enabled ? "Rôle éditeur accordé" : "Rôle éditeur retiré",
-            Data = roles.Select(r => new RoleDetails(r)).ToList(),
         };
     }
 

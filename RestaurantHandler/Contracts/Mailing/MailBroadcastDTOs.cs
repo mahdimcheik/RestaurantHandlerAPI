@@ -32,27 +32,6 @@ public class AdminMailAudienceCount
     public required List<MailAudience> Audiences { get; set; }
 }
 
-public class TeacherMailBroadcastCreate
-{
-    /// <summary>Vide ou absent : tous les élèves éligibles du professeur.</summary>
-    public List<Guid>? StudentIds { get; set; }
-
-    [Required]
-    [StringLength(HardCode.MAIL_BROADCAST_SUBJECT_MAX_LENGTH)]
-    public required string Subject { get; set; }
-
-    [Required]
-    public required string Message { get; set; }
-}
-
-/// <summary>Élève qu'un professeur peut contacter par e-mail.</summary>
-public class MailingStudent
-{
-    public Guid Id { get; set; }
-    public string FirstName { get; set; } = "";
-    public string LastName { get; set; } = "";
-}
-
 public class MailBroadcastSent
 {
     public Guid Id { get; set; }

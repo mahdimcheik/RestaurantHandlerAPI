@@ -85,7 +85,7 @@ public class SignInService
             Message = "Autorisation renouvelée",
             Data = new Login
             {
-                User = new UserDetails(user, rolesDetailed, includeFullAddress: true).WithLayoutSettings(user),
+                User = new UserDetails(user, rolesDetailed).WithLayoutSettings(user),
                 Token = await _tokenService.GenerateAccessTokenAsync(user),
                 RefreshToken = refreshToken,
             },
@@ -174,8 +174,8 @@ public class SignInService
             return new Response<Login> { Message = "Ce compte est suspendu", Status = 403 };
         }
 
-        // Un compte non activé peut se connecter : l'activation ne conditionne que la réservation
-        // et le paiement (BookingService, CheckoutService) et la visibilité d'un professeur.
+        // Un compte non activé peut se connecter : l'activation ne conditionne que la visibilité
+        // d'un professeur.
         return null;
     }
 

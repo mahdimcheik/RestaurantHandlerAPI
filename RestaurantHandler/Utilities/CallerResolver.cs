@@ -24,7 +24,7 @@ public sealed class CallerResolver(MainContext context)
 
         return userId is null
             ? null
-            : new CallerIdentity(userId.Value, ReservationAccess.IsAdmin(principal));
+            : new CallerIdentity(userId.Value, principal.IsInRole(nameof(RoleEnum.Admin)) || principal.IsInRole(nameof(RoleEnum.SuperAdmin)));
     }
 }
 

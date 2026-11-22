@@ -12,7 +12,6 @@ public class TeacherProfileService
     private readonly MainContext _context;
     private readonly UserManager<UserApp> _userManager;
     private readonly InseeSireneService _sireneService;
-    private readonly GeocodingService _geocodingService;
     private readonly StorageService _storage;
     private readonly RichTextSanitizer _sanitizer;
 
@@ -20,7 +19,6 @@ public class TeacherProfileService
         MainContext context,
         UserManager<UserApp> userManager,
         InseeSireneService sireneService,
-        GeocodingService geocodingService,
         StorageService storage,
         RichTextSanitizer sanitizer
     )
@@ -29,7 +27,6 @@ public class TeacherProfileService
         _context = context;
         _userManager = userManager;
         _sireneService = sireneService;
-        _geocodingService = geocodingService;
         _storage = storage;
     }
 
@@ -47,14 +44,8 @@ public class TeacherProfileService
         var teacher = await _context
             .Users.Where(p => p.Id == user.Id)
             .Include(p => p.Gender)
-            .Include(p => p.Languages)
             .Include(p => p.Teacher)
-            .ThenInclude(t => t.Cursuses)
-            .ThenInclude(c => c.Level)
             .Include(p => p.Teacher)
-            .ThenInclude(t => t.Cursuses)
-            .ThenInclude(c => c.Categories)
-            .Include(p => p.Addresses)
             .FirstOrDefaultAsync();
 
         if (teacher == null)
@@ -77,7 +68,7 @@ public class TeacherProfileService
         {
             Status = 200,
             Message = "Profil enseignant récupéré avec succès",
-            Data = WithOwnPhoneNumber(new UserDetails(teacher, rolesDetailed, includeFullAddress: true), teacher.Teacher),
+            Data = WithOwnPhoneNumber(new UserDetails(teacher, rolesDetailed), teacher.Teacher),
         };
     }
 
@@ -100,7 +91,6 @@ public class TeacherProfileService
 
         var teacher = await _context
             .Users.Include(t => t.Teacher)
-            .Include(p => p.Languages)
             .FirstOrDefaultAsync(t => t.Id == user.Id);
 
         if (teacher == null)
@@ -113,9 +103,8 @@ public class TeacherProfileService
             };
         }
 
-        var languages = await _context.Languages.ToListAsync();
 
-        userUpdate.UpdateUser(user, languages);
+        userUpdate.UpdateUser(user);
         // Texte enrichi affiché sur le profil public et sous les articles : nettoyé comme les autres (ADR-0014).
         user.Description = _sanitizer.Sanitize(user.Description);
 
@@ -124,11 +113,8 @@ public class TeacherProfileService
 
         var updatedUser = await _context
             .Users.Include(p => p.Gender)
-            .Include(p => p.Languages)
             .Include(p => p.Formations)
-            .Include(p => p.Addresses)
             .Include(u => u.Teacher)
-            .ThenInclude(t => t.Cursuses)
             .FirstOrDefaultAsync(u => u.Id == user.Id);
 
         if (updatedUser.ImgUrl is not null)
@@ -140,7 +126,7 @@ public class TeacherProfileService
         {
             Status = 200,
             Message = "Profil enseignant mis à jour avec succès",
-            Data = WithOwnPhoneNumber(new UserDetails(updatedUser!, null, includeFullAddress: true), updatedUser!.Teacher),
+            Data = WithOwnPhoneNumber(new UserDetails(updatedUser!, null), updatedUser!.Teacher),
         };
     }
 
@@ -175,7 +161,6 @@ public class TeacherProfileService
 
         var userWithTeacher = await _context
             .Users.Include(u => u.Teacher)
-            .Include(u => u.Addresses)
             .FirstOrDefaultAsync(u => u.Id == user.Id);
 
         if (userWithTeacher?.Teacher == null)
@@ -238,46 +223,14 @@ public class TeacherProfileService
             userWithTeacher.Title = siretVerification.CompanyName;
         }
 
-        // Utiliser l'adresse INSEE comme adresse principale, seulement si le prof n'en a pas déjà une.
-        if (
-            !userWithTeacher.Addresses.Any(a => a.TypeId == HardCode.TYPE_ADDRESS_MAIN)
-            && !string.IsNullOrWhiteSpace(siretVerification.Street)
-            && !string.IsNullOrWhiteSpace(siretVerification.City)
-            && !string.IsNullOrWhiteSpace(siretVerification.ZipCode)
-        )
-        {
-            var mainAddress = new Address
-            {
-                Id = Guid.NewGuid(),
-                UserId = userWithTeacher.Id,
-                TypeId = HardCode.TYPE_ADDRESS_MAIN,
-                Street = siretVerification.Street,
-                City = siretVerification.City,
-                ZipCode = siretVerification.ZipCode,
-                Country = "France",
-                CreatedAt = DateTimeOffset.UtcNow,
-            };
-
-            var geocoding = await _geocodingService.GeocodeAsync(mainAddress.City, mainAddress.ZipCode);
-            if (geocoding.Success)
-            {
-                mainAddress.Latitude = geocoding.Latitude;
-                mainAddress.Longitude = geocoding.Longitude;
-            }
-
-            await _context.Addresses.AddAsync(mainAddress);
-        }
 
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
 
         var updatedUser = await _context
             .Users.Include(p => p.Gender)
-            .Include(p => p.Languages)
             .Include(p => p.Formations)
-            .Include(p => p.Addresses)
             .Include(u => u.Teacher)
-            .ThenInclude(t => t.Cursuses)
             .FirstOrDefaultAsync(u => u.Id == user.Id);
 
         if (updatedUser.ImgUrl is not null)
@@ -289,7 +242,7 @@ public class TeacherProfileService
         {
             Status = 200,
             Message = "Mode professionnel activé",
-            Data = new UserDetails(updatedUser!, null, includeFullAddress: true),
+            Data = new UserDetails(updatedUser!, null),
         };
     }
 }

@@ -7,15 +7,13 @@ namespace RestaurantHandler.Integrations.Storage;
 
 /// <summary>
 /// Seule porte vers le stockage objet (ADR-0008) : un compartiment S3 unique (OVH, MinIO en local). Les avatars
-/// et les images d'articles (préfixes <see cref="AvatarFolder"/> et <see cref="ArticleFolder"/>, en lecture
-/// anonyme) sont servis par URL publique stable,
-/// tout le reste par lien signé. Seule la clé d'objet est persistée ; l'URL est calculée à la lecture.
+/// (préfixe <see cref="AvatarFolder"/>, en lecture anonyme) sont servis par URL publique stable, tout le reste
+/// par lien signé. Seule la clé d'objet est persistée ; l'URL est calculée à la lecture.
 /// </summary>
 public class StorageService(IAmazonS3 s3, ILogger<StorageService> logger)
 {
     /// <summary>Dossiers publics : seuls leurs objets sont envoyés avec l'ACL public-read.</summary>
     public const string AvatarFolder = "avatars";
-    public const string ArticleFolder = "articles";
 
     private static readonly Dictionary<string, string> ContentTypes =
         new(StringComparer.OrdinalIgnoreCase)
@@ -129,8 +127,7 @@ public class StorageService(IAmazonS3 s3, ILogger<StorageService> logger)
     }
 
     private static bool IsPublic(string key) =>
-        key.StartsWith(AvatarFolder + "/", StringComparison.Ordinal)
-        || key.StartsWith(ArticleFolder + "/", StringComparison.Ordinal);
+        key.StartsWith(AvatarFolder + "/", StringComparison.Ordinal);
 
     public static string ContentTypeFor(string keyOrFileName) =>
         ContentTypes.GetValueOrDefault(Path.GetExtension(keyOrFileName), "application/octet-stream");

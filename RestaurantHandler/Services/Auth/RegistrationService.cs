@@ -13,7 +13,6 @@ public class RegistrationService
     private readonly UserManager<UserApp> _userManager;
     private readonly MailService _mailService;
     private readonly InseeSireneService _sireneService;
-    private readonly GeocodingService _geocodingService;
     private readonly RichTextSanitizer _sanitizer;
 
     public RegistrationService(
@@ -21,7 +20,6 @@ public class RegistrationService
         UserManager<UserApp> userManager,
         MailService mailService,
         InseeSireneService sireneService,
-        GeocodingService geocodingService,
         RichTextSanitizer sanitizer
     )
     {
@@ -29,7 +27,6 @@ public class RegistrationService
         _userManager = userManager;
         _mailService = mailService;
         _sireneService = sireneService;
-        _geocodingService = geocodingService;
         _sanitizer = sanitizer;
     }
 
@@ -176,7 +173,7 @@ public class RegistrationService
                 {
                     Message = "Profil créé",
                     Status = 201,
-                    Data = new UserDetails(newUser, null, includeFullAddress: true),
+                    Data = new UserDetails(newUser, null),
                 };
             }
             catch (Exception e)
@@ -212,34 +209,6 @@ public class RegistrationService
                 await _context.Teachers.AddAsync(newTeacher);
                 await TeacherVerificationHelper.CreateDefaultDocumentRequestsAsync(_context, newTeacher.Id);
 
-                if (
-                    siretVerification is not null
-                    && !string.IsNullOrWhiteSpace(siretVerification.Street)
-                    && !string.IsNullOrWhiteSpace(siretVerification.City)
-                    && !string.IsNullOrWhiteSpace(siretVerification.ZipCode)
-                )
-                {
-                    var mainAddress = new Address
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = newUser.Id,
-                        TypeId = HardCode.TYPE_ADDRESS_MAIN,
-                        Street = siretVerification.Street,
-                        City = siretVerification.City,
-                        ZipCode = siretVerification.ZipCode,
-                        Country = "France",
-                        CreatedAt = DateTimeOffset.UtcNow,
-                    };
-
-                    var geocoding = await _geocodingService.GeocodeAsync(mainAddress.City, mainAddress.ZipCode);
-                    if (geocoding.Success)
-                    {
-                        mainAddress.Latitude = geocoding.Latitude;
-                        mainAddress.Longitude = geocoding.Longitude;
-                    }
-
-                    await _context.Addresses.AddAsync(mainAddress);
-                }
 
                 await _context.SaveChangesAsync();
             }

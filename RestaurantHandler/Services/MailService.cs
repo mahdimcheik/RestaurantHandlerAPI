@@ -208,26 +208,6 @@ public class MailService
         );
     }
 
-    /// <summary>
-    /// Message transmis par un assistant IA via le serveur MCP (ADR-0024). Le prof répond
-    /// directement à l'expéditeur grâce au Reply-To ; l'adresse n'est pas vérifiée.
-    /// </summary>
-    public async Task SendExternalTeacherContact(ExternalTeacherContactModel model)
-    {
-        string body = await RenderAsync("ExternalTeacherContactTemplate.cshtml", model);
-
-        await SendEmail(
-            new MailApp
-            {
-                MailFrom = EnvironmentVariables.DO_NO_REPLY_MAIL,
-                MailTo = model.Receiver.Email,
-                MailSubject = $"[BonProf] {model.Subject}",
-                MailBody = body,
-                ReplyTo = model.SenderEmail,
-            }
-        );
-    }
-
     /// <summary>Un exemplaire d'envoi groupé (ADR-0023), adressé à un seul destinataire.</summary>
     public async Task SendBroadcast(string to, BroadcastMailModel model, string? replyTo)
     {

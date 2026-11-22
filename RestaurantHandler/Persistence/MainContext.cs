@@ -21,40 +21,8 @@ public class MainContext : IdentityDbContext<UserApp, RoleApp, Guid>
     public DbSet<Student> Students { get; set; }
 
     // Related entities
-    public DbSet<Address> Addresses { get; set; }
-    public DbSet<TypeAddress> TypeAddresses { get; set; }
     public DbSet<Experience> Experiences { get; set; }
     public DbSet<Formation> Formations { get; set; }
-    public DbSet<Language> Languages { get; set; }
-    public DbSet<CategoryCursus> CategoryCursuses { get; set; }
-    public DbSet<LevelCursus> LevelCursuses { get; set; }
-
-    // reservations
-    public DbSet<Slot> Slots { get; set; }
-    public DbSet<TypeSlot> TypeSlots { get; set; }
-    public DbSet<Reservation> Reservations { get; set; }
-    public DbSet<ReservationStatusHistory> ReservationStatusHistories { get; set; }
-    public DbSet<Dispute> Disputes { get; set; } // litige ouvert par l'élève sur une réservation
-    public DbSet<DisputeStatus> DisputeStatuses { get; set; }
-    public DbSet<DisputeOutcome> DisputeOutcomes { get; set; }
-    public DbSet<Review> Reviews { get; set; }
-    public DbSet<Order> Orders { get; set; }
-    public DbSet<Cursus> Cursuses { get; set; }
-    public DbSet<StatusOrder> StatusOrders { get; set; }
-    public DbSet<StatusReservation> StatusReservations { get; set; }
-    
-    // conversations
-    public DbSet<Conversation> Conversations { get; set; }
-    public DbSet<ConversationAttachment> ConversationAttachments { get; set; }
-
-    // payments and transactions
-    public DbSet<Payment> Payments { get; set; } // paiement d'une commande
-    public DbSet<Refund> Refunds { get; set; } // remboursement d'une réservation annulée (côté acheteur)
-    public DbSet<TeacherPayout> TeacherPayouts { get; set; } // une ligne par professeur (les comptes des profs)
-    public DbSet<TeacherWalletTransaction> TeacherWalletTransactions { get; set; } // historique des transactions du portefeuille, acomptes, retraits, remboursements
-    public DbSet<TypeTeacherTransaction> TypeTransactions { get; set; } // types de transactions (acompte, retrait, remboursement)
-    public DbSet<StatusTransaction> StatusTransactions { get; set; } // statuts des transactions (en attente, complété, échoué)
-    public DbSet<PaymentMethod> PaymentMethods { get; set; } // méthodes de paiement (carte bancaire, PayPal, etc.)
 
     // document & type
     public DbSet<Document> Documents { get; set; }
@@ -69,17 +37,6 @@ public class MainContext : IdentityDbContext<UserApp, RoleApp, Guid>
 
     // favorites
     public DbSet<Favorite> Favorites { get; set; }
-
-    // suivi de cours
-    public DbSet<Board> Boards { get; set; }
-    public DbSet<BoardList> BoardLists { get; set; }
-    public DbSet<BoardCard> BoardCards { get; set; }
-    public DbSet<BoardCardAttachment> BoardCardAttachments { get; set; }
-
-    // articles scientifiques
-    public DbSet<Article> Articles { get; set; }
-    public DbSet<ArticleComment> ArticleComments { get; set; }
-    public DbSet<ArticleViewDay> ArticleViewDays { get; set; } // compteur d'affichages par jour
 
     // centre d'aide
     public DbSet<HelpEntry> HelpEntries { get; set; }

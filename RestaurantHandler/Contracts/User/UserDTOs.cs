@@ -29,19 +29,11 @@ public class UserDetails
 
     [Required]
     public required ICollection<RoleDetails>? Roles { get; set; }
-    public required ICollection<AddressDetails> Addresses { get; set; }
     public required ICollection<FormationDetails> Formations { get; set; }
-    public required ICollection<LanguageDetails> Languages { get; set; }
 
     public TeacherDetails? Teacher { get; set; }
     public StudentDetails? Student { get; set; }
 
-    /// <summary>
-    /// Nombre de créneaux disponibles (sans réservation active) dans la fenêtre
-    /// de recherche demandée. <c>null</c> quand aucune fenêtre (DateFrom/DateTo)
-    /// n'est fournie — la valeur n'est alors pas calculée.
-    /// </summary>
-    public int? AvailableSlotsCount { get; set; }
 
     /// <summary>Faux tant que l'utilisateur n'a pas accepté la version courante des CGU.</summary>
     public bool TermsUpToDate { get; set; }
@@ -53,19 +45,6 @@ public class UserDetails
     /// </summary>
     public LayoutSettingsDetails? LayoutSettings { get; set; }
 
-    /// <summary>
-    /// Date du prochain créneau disponible : <b>la clé de tri du listing</b> (les profs
-    /// dispo le plus tôt en tête).
-    ///
-    /// <para>
-    /// Valeur <b>relative à la requête</b> : dans une recherche fenêtrée c'est le plus tôt
-    /// <i>dans la fenêtre</i> demandée — et il est alors toujours renseigné, puisque la
-    /// recherche ne renvoie que des profs ayant une dispo dedans. Sans fenêtre, c'est la
-    /// prochaine disponibilité future tout court, et <c>null</c> signifie « aucune
-    /// disponibilité à venir » (ces profs sont classés en dernier).
-    /// </para>
-    /// </summary>
-    public DateTimeOffset? NextAvailableSlotAt { get; set; }
 
     public UserDetails() { }
 
@@ -76,7 +55,7 @@ public class UserDetails
     }
 
     [SetsRequiredMembers]
-    public UserDetails(UserApp user, List<RoleDetails>? roles, bool includeFullAddress = false)
+    public UserDetails(UserApp user, List<RoleDetails>? roles)
     {
         Id = user.Id;
         Email = user.Email ?? user.UserName ?? "";
@@ -96,9 +75,6 @@ public class UserDetails
         TermsUpToDate = user.TermsVersion == HardCode.TERMS_VERSION;
 
         Formations = user.Formations?.Select(f => new FormationDetails(f)).ToList() ?? [];
-        Addresses =
-            user.Addresses?.Select(f => new AddressDetails(f, minimal: !includeFullAddress)).ToList() ?? [];
-        Languages = user.Languages?.Select(f => new LanguageDetails(f)).ToList() ?? [];
     }
 
     [SetsRequiredMembers]
@@ -121,7 +97,7 @@ public class UserDetails
 
 /// <summary>
 /// Utilisateur vu par l'administration : identique à <see cref="UserDetails"/>, mais le profil
-/// enseignant est un <see cref="TeacherAdminDetails"/> (SIRET, dénomination INSEE, compte Stripe).
+/// enseignant est un <see cref="TeacherAdminDetails"/> (SIRET, dénomination INSEE).
 /// Réservé aux endpoints [Authorize(Roles = "Admin,SuperAdmin")].
 /// </summary>
 public class UserAdminDetails
@@ -147,19 +123,11 @@ public class UserAdminDetails
 
     [Required]
     public required ICollection<RoleDetails>? Roles { get; set; }
-    public required ICollection<AddressDetails> Addresses { get; set; }
     public required ICollection<FormationDetails> Formations { get; set; }
-    public required ICollection<LanguageDetails> Languages { get; set; }
 
     public TeacherAdminDetails? Teacher { get; set; }
     public StudentDetails? Student { get; set; }
 
-    /// <summary>
-    /// Nombre de créneaux disponibles (sans réservation active) dans la fenêtre
-    /// de recherche demandée. <c>null</c> quand aucune fenêtre (DateFrom/DateTo)
-    /// n'est fournie — la valeur n'est alors pas calculée.
-    /// </summary>
-    public int? AvailableSlotsCount { get; set; }
 
     /// <summary>Date d'inscription du compte.</summary>
     public DateTimeOffset CreatedAt { get; set; }
@@ -167,7 +135,7 @@ public class UserAdminDetails
     public UserAdminDetails() { }
 
     [SetsRequiredMembers]
-    public UserAdminDetails(UserApp user, List<RoleDetails>? roles, bool includeFullAddress = false)
+    public UserAdminDetails(UserApp user, List<RoleDetails>? roles)
     {
         Id = user.Id;
         Email = user.Email ?? user.UserName ?? "";
@@ -186,9 +154,6 @@ public class UserAdminDetails
         Student = user.Student is not null ? new StudentDetails(user.Student) : null;
 
         Formations = user.Formations?.Select(f => new FormationDetails(f)).ToList() ?? [];
-        Addresses =
-            user.Addresses?.Select(f => new AddressDetails(f, minimal: !includeFullAddress)).ToList() ?? [];
-        Languages = user.Languages?.Select(f => new LanguageDetails(f)).ToList() ?? [];
     }
 }
 
@@ -397,11 +362,10 @@ public class UserUpdate
 
     [Required]
     public Guid GenderId { get; set; }
-    public List<Guid> LanguagesIds { get; set; }
     public TeacherUpdate? Teacher { get; set; }
     public StudentUpdate? Student { get; set; }
 
-    public void UpdateUser(UserApp user, List<Language> languages)
+    public void UpdateUser(UserApp user)
     {
         user.FirstName = FirstName;
         user.LastName = LastName;
@@ -409,8 +373,6 @@ public class UserUpdate
         user.Description = Description;
         user.DateOfBirth = DateOfBirth;
         user.GenderId = GenderId;
-        user.Languages.Clear();
-        user.Languages = languages.Where(l => LanguagesIds.Any(lid => l.Id == lid)).ToList();
         if (user.Teacher is not null && Teacher is not null)
         {
             Teacher.UpdateTeacher(user.Teacher);

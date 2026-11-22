@@ -71,13 +71,6 @@ public class PushNotificationService(
             jobs.Enqueue<PushNotificationService>(s => s.DeliverNotificationAsync(notificationId, CancellationToken.None));
     }
 
-    /// <summary>Met en file l'annonce d'un message de réservation à l'autre participant.</summary>
-    public void EnqueueChatMessage(Guid conversationId)
-    {
-        if (IsEnabled)
-            jobs.Enqueue<PushNotificationService>(s => s.DeliverChatMessageAsync(conversationId, CancellationToken.None));
-    }
-
     [AutomaticRetry(Attempts = 0)]
     public async Task DeliverNotificationAsync(Guid notificationId, CancellationToken ct)
     {
@@ -92,45 +85,6 @@ public class PushNotificationService(
         await DeliverAsync(
             notification.UserId,
             new PushMessage(TitleFor(notification.Name), notification.Message, notification.Link),
-            ct
-        );
-    }
-
-    /// <summary>
-    /// Seul le destinataire est notifié : l'expéditeur a déjà son message sous les yeux. Le
-    /// <c>tag</c> regroupe les messages d'une même réservation en une seule notification.
-    /// </summary>
-    [AutomaticRetry(Attempts = 0)]
-    public async Task DeliverChatMessageAsync(Guid conversationId, CancellationToken ct)
-    {
-        var message = await context
-            .Conversations.AsNoTracking()
-            .Where(c => c.Id == conversationId)
-            .Select(c => new
-            {
-                c.ReservationId,
-                c.SenderId,
-                c.Content,
-                AttachmentName = c.Attachment == null ? null : c.Attachment.FileName,
-                SenderFirstName = c.Sender!.FirstName,
-                StudentUserId = c.Reservation!.Student!.UserId,
-                TeacherUserId = c.Reservation!.Slot!.Teacher!.UserId,
-            })
-            .FirstOrDefaultAsync(ct);
-        if (message is null)
-            return;
-
-        var senderIsTeacher = message.SenderId == message.TeacherUserId;
-        var body = string.IsNullOrWhiteSpace(message.Content) ? $"📎 {message.AttachmentName}" : message.Content;
-
-        await DeliverAsync(
-            senderIsTeacher ? message.StudentUserId : message.TeacherUserId,
-            new PushMessage(
-                $"Nouveau message de {message.SenderFirstName}",
-                body,
-                NotificationLinks.Reservation(message.ReservationId, forTeacher: !senderIsTeacher),
-                $"chat-{message.ReservationId}"
-            ),
             ct
         );
     }
@@ -200,10 +154,6 @@ public class PushNotificationService(
             ? type switch
             {
                 NotificationTypeEnum.Account => "Compte",
-                NotificationTypeEnum.Reservation => "Réservation",
-                NotificationTypeEnum.Payment => "Paiement",
-                NotificationTypeEnum.Chat => "Messagerie",
-                NotificationTypeEnum.Cursus => "Cursus",
                 NotificationTypeEnum.Document => "Documents",
                 _ => "BonProf",
             }

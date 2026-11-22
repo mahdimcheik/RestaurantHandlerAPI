@@ -17,17 +17,8 @@ public enum HelpCategory
     Account,
     Profile,
     Search,
-    Booking,
-    Payments,
-    Planning,
-    Messaging,
-    Suivi,
     Documents,
-    Disputes,
     Other,
-
-    /// <summary>Assistants IA et serveur MCP (ADR-0024). Stocké en texte : l'ordre n'importe pas.</summary>
-    Assistants,
 }
 
 /// <summary>Public visé par une fiche : <see cref="All"/> s'affiche pour les profs comme pour les élèves.</summary>

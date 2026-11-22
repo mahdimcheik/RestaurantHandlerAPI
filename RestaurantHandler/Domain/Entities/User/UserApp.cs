@@ -72,9 +72,7 @@ public class UserApp : IdentityUser<Guid>, IArchivable, IUpdateable, ICreatable
     public Student? Student { get; set; }
     // roles
     public ICollection<IdentityUserRole<Guid>> UserRoles { get; set; } = new List<IdentityUserRole<Guid>>();
-    public ICollection<Address> Addresses { get; set; } = new List<Address>();
     public ICollection<Formation> Formations { get; set; } = new List<Formation>();
-    public ICollection<Language> Languages { get; set; } = new List<Language>();
 
     [SetsRequiredMembers]
     public UserApp() { }

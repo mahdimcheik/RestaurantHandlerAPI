@@ -6,9 +6,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/BonProf/bin/Debug/net8.0/BonProf.dll",
+      "program": "${workspaceFolder}/RestaurantHandler/bin/Debug/net10.0/RestaurantHandler.dll",
       "args": [],
-      "cwd": "${workspaceFolder}/BonProf",
+      "cwd": "${workspaceFolder}/RestaurantHandler",
       "stopAtEntry": false,
       "launchSettingsProfile": "https",
       "serverReadyAction": {
@@ -17,7 +17,7 @@
         "uriFormat": "%s/index.html"
       },
       "sourceFileMap": {
-        "/Views": "${workspaceFolder}/BonProf/Views"
+        "/Views": "${workspaceFolder}/RestaurantHandler/Views"
       }
     },
     {
@@ -25,9 +25,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/BonProf/bin/Debug/net8.0/BonProf.dll",
+      "program": "${workspaceFolder}/RestaurantHandler/bin/Debug/net10.0/RestaurantHandler.dll",
       "args": [],
-      "cwd": "${workspaceFolder}/BonProf",
+      "cwd": "${workspaceFolder}/RestaurantHandler",
       "stopAtEntry": false,
       "launchSettingsProfile": "http",
       "serverReadyAction": {
@@ -36,7 +36,7 @@
         "uriFormat": "%s/swagger"
       },
       "sourceFileMap": {
-        "/Views": "${workspaceFolder}/BonProf/Views"
+        "/Views": "${workspaceFolder}/RestaurantHandler/Views"
       }
     },
     {

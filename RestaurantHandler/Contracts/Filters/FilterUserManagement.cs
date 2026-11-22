@@ -8,9 +8,6 @@ public class FilterUserManagement
     /// <summary>Recherche sur le prénom et/ou le nom de l'enseignant.</summary>
     public string? Name { get; set; }
 
-    /// <summary>Filtre sur le statut de confirmation de l'enseignant.</summary>
-    public bool? IsConfirmed { get; set; }
-
     /// <summary>Filtre sur le rôle de l'utilisateur.</summary>
     public Guid? RoleId { get; set; }
 

@@ -32,16 +32,6 @@ public class Document : BaseModel
     public Guid? StudentId { get; set; }
     public Student? Student { get; set; }
 
-    [ForeignKey(nameof(Reservation))]
-    public Guid? ReservationId { get; set; }
-    public Reservation? Reservation { get; set; }
-
-    // Set only on invoice documents (the generated bill for a paid order).
-    // Used as the idempotency key: at most one Document per Order.
-    [ForeignKey(nameof(Order))]
-    public Guid? OrderId { get; set; }
-    public Order? Order { get; set; }
-
     // Parameterless constructor for EF Core
     public Document()
     {

@@ -7,7 +7,6 @@ using RestaurantHandler.Controllers;
 using RestaurantHandler.Infrastructure.Errors;
 using RestaurantHandler.Infrastructure.Maintenance;
 using RestaurantHandler.Infrastructure.RateLimiting;
-using RestaurantHandler.Mcp;
 using RestaurantHandler.Integrations.Storage;
 using RestaurantHandler.Models;
 using RestaurantHandler.Persistence.Seed;
@@ -23,7 +22,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
-using TerminalApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,11 +36,6 @@ if (File.Exists(envPath))
 
 EnvironmentVariables.ValidateRequired();
 
-// Server-side Stripe calls authenticate with the secret key, whichever service makes them.
-Stripe.StripeConfiguration.ApiKey = EnvironmentVariables.STRIPE_SK;
-
-// QuestPDF is used to render order invoices (Community license, free under $1M revenue).
-QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 // Configurer les services
 var services = builder.Services;
@@ -73,8 +66,6 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<MainContext>();
     context.Database.Migrate();
 
-    AddressEncryptionBackfill.RunAsync(context).GetAwaiter().GetResult();
-
     // Seed default users
     AdminAccountsSeeder.Seed(scope.ServiceProvider);
 
@@ -100,14 +91,6 @@ static void ConfigureServices(IServiceCollection services)
         client.Timeout = TimeSpan.FromSeconds(5);
     });
 
-    // Géocodage géopf.fr : fail-open (voir GeocodingService), timeout court pour ne pas
-    // ralentir l'inscription ni la création/modification d'adresse.
-    services.AddHttpClient<GeocodingService>(client =>
-    {
-        client.BaseAddress = new Uri(EnvironmentVariables.GEOPF_GEOCODING_BASE_URL);
-        client.Timeout = TimeSpan.FromSeconds(5);
-    });
-
     // Connexion Google : validation de l'ID token (Google.Apis.Auth gère ses propres
     // appels réseau pour les certificats) et récupération de la photo de profil.
     services.AddHttpClient<GoogleAuthService>(client =>
@@ -122,8 +105,6 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<PasswordService>();
     services.AddTransient<AvatarService>();
     services.AddTransient<MailService>();
-    services.AddTransient<AddressesService>();
-    services.AddTransient<TypeAddressService>();
     services.AddTransient<FormationsService>();
     services.AddTransient<ProfileService>();
     services.AddTransient<TeacherProfileService>();
@@ -133,51 +114,16 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<MailBroadcastService>();
     services.AddTransient<UserAdministrationService>();
     services.AddTransient<UserManagementService>();
-    services.AddTransient<LanguagesService>();
-    services.AddTransient<LevelCursusService>();
-    services.AddTransient<CategoryCursusService>();
-    services.AddTransient<CursusService>();
-    services.AddTransient<TypeSlotsService>();
-    services.AddTransient<SlotsService>();
-    services.AddTransient<ReservationQueryService>();
-    services.AddTransient<ReservationCartService>();
-    services.AddTransient<BookingService>();
-    services.AddTransient<PresenceService>();
-    services.AddTransient<ReservationCancellationService>();
-    services.AddTransient<OrderService>();
-    services.AddTransient<OrderAccountingService>();
-    services.AddTransient<MonthlyReportService>();
-    services.AddTransient<FacturationService>();
-    services.AddTransient<PaymentService>();
-    services.AddTransient<CheckoutService>();
-    services.AddTransient<CheckoutWebhookService>();
-    services.AddTransient<StripeConnectService>();
-    services.AddTransient<StripeRefundService>();
-    services.AddTransient<StripeWebhookService>();
-    services.AddTransient<TeacherWalletService>();
     services.AddScoped<CallerResolver>();
     services.AddTransient<GendersService>();
     services.AddTransient<MaintenanceService>();
     services.AddTransient<RolesService>();
-    services.AddTransient<StatusReservationService>();
     services.AddTransient<NotificationService>();
     services.AddTransient<NotificationDispatcher>();
     services.AddTransient<PushNotificationService>();
     services.AddSingleton<IWebPushSender, VapidWebPushSender>();
-    services.AddTransient<ConversationService>();
-    services.AddTransient<DisputeService>();
-    services.AddTransient<BoardService>();
-    services.AddTransient<ArticleService>();
-    services.AddTransient<ArticleImageService>();
-    services.AddTransient<ArticleCommentService>();
-    services.AddTransient<ArticleStatsService>();
     services.AddTransient<HelpService>();
     services.AddTransient<RestaurantHandler.Services.Interfaces.IFavoriteService, FavoriteService>();
-    services.AddTransient<RestaurantHandler.Services.Interfaces.IReviewService, ReviewService>();
-    services.AddTransient<DemoSeedService>();
-    services.AddTransient<SlotCleaningJob>();
-    services.AddHostedService<HangfireJobsBootstrapper>();
-    services.AddScoped<JobChron>();
 
     services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client(
         new BasicAWSCredentials(
@@ -262,7 +208,6 @@ static void ConfigureServices(IServiceCollection services)
     ConfigureAuthentication(services);
     ConfigureAuthorization(services);
     ConfigureHangFire(services);
-    services.AddBonProfMcp();
     services.AddBonProfRateLimiting();
 }
 
@@ -533,7 +478,6 @@ static void ConfigureMiddlewarePipeline(WebApplication app)
 
     app.MapControllers();
     app.MapHub<ChatHub>("/chathub");
-    app.MapBonProfMcp();
 
     // Version gravée dans l'image au build (ARG/ENV APP_VERSION du Dockerfile).
     // Le client peut comparer sa version à celle-ci.
