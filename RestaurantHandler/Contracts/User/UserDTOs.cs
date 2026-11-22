@@ -11,11 +11,11 @@ public class UserDetails
 
     public required string Email { get; set; }
 
-    public required DateTimeOffset DateOfBirth { get; set; }
-
     public required string FirstName { get; set; }
 
     public required string LastName { get; set; }
+
+    public string? PhoneNumber { get; set; }
 
     public string? ImgUrl { get; set; }
 
@@ -37,7 +37,7 @@ public class UserDetails
         Email = user.Email ?? user.UserName ?? "";
         FirstName = user.FirstName;
         LastName = user.LastName;
-        DateOfBirth = user.DateOfBirth;
+        PhoneNumber = user.PhoneNumber;
         ImgUrl = user.ImgUrl;
 
         Roles = roles;
@@ -162,9 +162,6 @@ public class UserCreate
     /// <summary>Pris en compte seulement à la création par un Manager ; l'inscription
     /// publique crée toujours un Client.</summary>
     public Guid RoleId { get; set; } = HardCode.ROLE_CLIENT;
-
-    [Required]
-    public required DateTimeOffset DateOfBirth { get; set; }
 }
 
 public class PasswordReset
@@ -225,9 +222,8 @@ public class Login
     public required UserDetails User { get; set; } = null!;
 
     /// <summary>
-    /// Vrai quand le compte a été créé par une connexion Google : Google ne fournit pas de date
-    /// de naissance, le champ porte donc une valeur par défaut et le front peut proposer de
-    /// compléter le profil. Toujours faux après une inscription classique, qui l'exige.
+    /// Vrai tant que le compte n'a pas de numéro de téléphone (cas d'un compte créé par Google) :
+    /// le front le demande, au plus tard à la première commande (US-E01-3).
     /// </summary>
     public bool ProfileIncomplete { get; set; }
 }
@@ -242,14 +238,16 @@ public class UserUpdate
     [MaxLength(64)]
     public string LastName { get; set; } = string.Empty;
 
-    [Required]
-    public required DateTimeOffset DateOfBirth { get; set; }
+    /// <summary>Facultatif ; <c>null</c> ou vide efface le numéro.</summary>
+    [Phone]
+    [MaxLength(20)]
+    public string? PhoneNumber { get; set; }
 
     public void UpdateUser(UserApp user)
     {
         user.FirstName = FirstName;
         user.LastName = LastName;
-        user.DateOfBirth = DateOfBirth;
+        user.PhoneNumber = string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber.Trim();
     }
 }
 

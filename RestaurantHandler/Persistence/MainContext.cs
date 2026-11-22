@@ -18,16 +18,6 @@ public class MainContext : IdentityDbContext<UserApp, RoleApp, Guid>
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<WebPushSubscription> WebPushSubscriptions { get; set; } // un par appareil abonné aux notifications natives
 
-    // centre d'aide
-    public DbSet<HelpEntry> HelpEntries { get; set; }
-
-    // Envois groupés par e-mail (ADR-0023)
-    public DbSet<MailBroadcast> MailBroadcasts { get; set; }
-    public DbSet<MailBroadcastRecipient> MailBroadcastRecipients { get; set; }
-
-    // paramètres de la plateforme (ligne unique)
-    public DbSet<PlatformSettings> PlatformSettings { get; set; }
-
     // carte
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }

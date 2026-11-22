@@ -25,7 +25,7 @@ d'API stable.
 questions 1–3 et 8 ([questions ouvertes](02-questions-ouvertes.md)). Un « non » sur la
 caisse tierce ou les allergènes en ligne remet en cause le périmètre V1.
 
-## J0 — Socle propre (S1)
+## J0 — Socle propre (S1) — ✅ terminé le 2026-11-22
 
 - Retirer du socle : centre d'aide (`HelpEntry`, `HelpController`, seed), envois groupés
   (`MailBroadcast*`), mode maintenance (middleware, contrôleur, paramètres) ; décider du sort
@@ -37,6 +37,15 @@ caisse tierce ou les allergènes en ligne remet en cause le périmètre V1.
 - Recréer un projet de tests (xUnit) vide branché en CI.
 - Mettre à jour `.claude/CLAUDE.md` (fait avec cette doc).
 - **Sortie :** build vert, migration à jour, CI exécutant les tests.
+
+**Bilan J0 :** centre d'aide, envois groupés, maintenance (et `PlatformSettings`) retirés ;
+Web Push gardé dormant ; date de naissance supprimée, téléphone exposé dans le profil
+(`ProfileIncomplete` = téléphone manquant) ; `ChatHub` → `RealtimeHub` (`/hubs/realtime`,
+groupe `restaurant`, envoi par utilisateur, jeton accepté en `access_token` sur `/hubs`) ;
+image `mahdimcheik/restauranthandler` ; workflow `tests.yml` conditionnant les déploiements ;
+projet `tests/RestaurantHandler.Tests` (7 tests) ; `InitialCreate` régénérée (26 tables) et
+vérifiée sur PostgreSQL jetable (démarrage, Manager initial, connexion, hub, routes retirées
+en 404).
 
 ## J1 — Carte & ouverture (S2–S3)
 

@@ -22,12 +22,12 @@ public static class RateLimitingSetup
 
     private static readonly string[] ExemptPathPrefixes =
     [
-        "/chathub",
+        "/hubs",
         "/hangfire",
         "/version",
     ];
 
-    public static IServiceCollection AddBonProfRateLimiting(this IServiceCollection services)
+    public static IServiceCollection AddAppRateLimiting(this IServiceCollection services)
     {
         var enabled = EnvironmentVariables.RATE_LIMITING_ENABLED;
         var ipPerMinute = EnvironmentVariables.RATE_LIMIT_IP_PER_MINUTE;

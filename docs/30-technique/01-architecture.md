@@ -27,14 +27,14 @@
 | PostgreSQL + EF Core (Npgsql), migration unique `InitialCreate` | en place | modèle carte + commandes déjà migré |
 | ASP.NET Identity, rôles `Client` / `Manager`, Google | en place | comptes ([E01](../10-cahier-des-charges/E01-comptes-authentification.md)) |
 | JWT d'accès + jeton de renouvellement en cookie `httpOnly` | en place | cf. [ADR-0002](../40-decisions/ADR-0002-auth-cookies-httponly.md) |
-| SignalR (`ChatHub` sur `/chathub`) | en place, nommage hérité | à renommer et structurer en groupes : `order-{id}`, `customer-{id}`, `restaurant` |
+| SignalR (`RealtimeHub` sur `/hubs/realtime`, émission via `RealtimeService`) | en place (J0) | groupe `restaurant` (Managers, attribué à la connexion), envoi par utilisateur (claim `NameIdentifier`) ; groupes `order-{id}` à ajouter en J2 |
 | Hangfire + PostgreSQL | en place | expirations de paiement, refus auto, reprise de pause, réconciliation SumUp |
 | HybridCache | en place | carte publique, état d'ouverture ([ADR-0004](../40-decisions/ADR-0004-cache-memoire.md)) |
 | `StorageService` (S3) | en place | photos de produits et catégories ([ADR-0003](../40-decisions/ADR-0003-stockage-objet.md)) |
 | Mail (MailKit + RazorLight) | en place | e-mails de compte uniquement en V1 |
 | Rate limiting | en place | validation de commande, auth |
-| Notifications en base + Web Push | en place | non utilisés en V1 (cf. questions ouvertes) |
-| Centre d'aide, envois groupés, maintenance | en place | **à retirer** en J0 |
+| Notifications en base (cloche) | en place | disponibles |
+| Web Push (VAPID) | en place, **dormant** | branché en V2 sur « Prête » (US-E08-4) |
 
 ## Organisation du code à venir
 
@@ -54,12 +54,18 @@ métier testables sans base.
 
 | Événement | Destinataires |
 |---|---|
-| `OrderStatusChanged` | groupe `order-{id}` (client propriétaire), groupe `restaurant` |
+| `OrderStatusChanged` | client propriétaire (`SendToUserAsync`), groupe `restaurant` |
 | `OrderCreated` / `OrderAwaitingApproval` | groupe `restaurant` |
 | `AvailabilityChanged` (rupture, pause, ouverture) | tous (y compris anonymes sur la carte) |
 
 Le temps réel **notifie** ; la vérité reste l'API. Tout client resynchronise par une lecture
 REST à la (re)connexion.
+
+Authentification : le hub exige une session ; le navigateur transmet le JWT en paramètre
+`access_token`, accepté uniquement sur les chemins `/hubs`. Les groupes sont attribués par le
+serveur, jamais demandés par le client. Les clients anonymes (carte publique) ne sont pas
+connectés au hub en V1 : la disponibilité est relue par l'API (à revoir en J1 si besoin d'un
+hub public).
 
 ## Front — PWA Angular mobile-first
 

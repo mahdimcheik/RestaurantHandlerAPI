@@ -180,86 +180,6 @@ namespace RestaurantHandler.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("RestaurantHandler.Models.HelpEntry", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("AnswerHtml")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("ArchivedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Audience")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.PrimitiveCollection<List<string>>("Keywords")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.Property<string>("Language")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("character varying(8)");
-
-                    b.Property<DateTime?>("PublishedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Question")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("SearchText")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
-
-                    b.Property<string>("Summary")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("YoutubeVideoId")
-                        .HasMaxLength(11)
-                        .HasColumnType("character varying(11)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Slug")
-                        .IsUnique();
-
-                    b.HasIndex("Status", "Language", "Category", "SortOrder");
-
-                    b.ToTable("HelpEntries");
-                });
-
             modelBuilder.Entity("RestaurantHandler.Models.Ingredient", b =>
                 {
                     b.Property<Guid>("Id")
@@ -331,62 +251,6 @@ namespace RestaurantHandler.Migrations
 
                             t.HasCheckConstraint("CK_IngredientSubstitutions_ExtraPriceCents", "\"ExtraPriceCents\" >= 0");
                         });
-                });
-
-            modelBuilder.Entity("RestaurantHandler.Models.MailBroadcast", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Audience")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("BodyHtml")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("RecipientCount")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("SenderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("SenderKind")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("SenderId", "CreatedAt");
-
-                    b.ToTable("MailBroadcasts");
-                });
-
-            modelBuilder.Entity("RestaurantHandler.Models.MailBroadcastRecipient", b =>
-                {
-                    b.Property<Guid>("BroadcastId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("BroadcastId", "UserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("MailBroadcastRecipients");
                 });
 
             modelBuilder.Entity("RestaurantHandler.Models.Menu", b =>
@@ -842,44 +706,6 @@ namespace RestaurantHandler.Migrations
                         });
                 });
 
-            modelBuilder.Entity("RestaurantHandler.Models.PlatformSettings", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("ArchivedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("MaintenanceEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("MaintenanceMessage")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("UpdatedById")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PlatformSettings");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("5f0c6a52-7d0e-4b8f-9a39-2a1f7c3e9d10"),
-                            CreatedAt = new DateTime(2026, 10, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            MaintenanceEnabled = false
-                        });
-                });
-
             modelBuilder.Entity("RestaurantHandler.Models.Product", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1162,9 +988,6 @@ namespace RestaurantHandler.Migrations
                     b.Property<bool>("DataProcessingConsent")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTime>("DateOfBirth")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
@@ -1375,36 +1198,6 @@ namespace RestaurantHandler.Migrations
                     b.Navigation("ProductIngredient");
 
                     b.Navigation("SubstituteIngredient");
-                });
-
-            modelBuilder.Entity("RestaurantHandler.Models.MailBroadcast", b =>
-                {
-                    b.HasOne("RestaurantHandler.Models.UserApp", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Sender");
-                });
-
-            modelBuilder.Entity("RestaurantHandler.Models.MailBroadcastRecipient", b =>
-                {
-                    b.HasOne("RestaurantHandler.Models.MailBroadcast", "Broadcast")
-                        .WithMany("Recipients")
-                        .HasForeignKey("BroadcastId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantHandler.Models.UserApp", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Broadcast");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RestaurantHandler.Models.MenuSlot", b =>
@@ -1643,11 +1436,6 @@ namespace RestaurantHandler.Migrations
             modelBuilder.Entity("RestaurantHandler.Models.Category", b =>
                 {
                     b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("RestaurantHandler.Models.MailBroadcast", b =>
-                {
-                    b.Navigation("Recipients");
                 });
 
             modelBuilder.Entity("RestaurantHandler.Models.Menu", b =>

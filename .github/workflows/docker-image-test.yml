@@ -19,7 +19,11 @@ env:
   API_URL: https://test-api.bonprof.fr
 
 jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+
   build:
+    needs: tests
     runs-on: ubuntu-latest
     # Environnement GitHub « test » : porte les secrets TEST_VPS_* du serveur de test.
     environment:
@@ -45,8 +49,8 @@ jobs:
         run: |
           docker build . --file RestaurantHandler/Dockerfile \
             --build-arg APP_VERSION=${{ steps.version.outputs.version }} \
-            --tag mahdimcheik/bonprof:${{ steps.version.outputs.version }} \
-            --tag mahdimcheik/bonprof:test
+            --tag mahdimcheik/restauranthandler:${{ steps.version.outputs.version }} \
+            --tag mahdimcheik/restauranthandler:test
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
@@ -56,8 +60,8 @@ jobs:
 
       - name: Push image to Docker Hub
         run: |
-          docker push mahdimcheik/bonprof:${{ steps.version.outputs.version }}
-          docker push mahdimcheik/bonprof:test
+          docker push mahdimcheik/restauranthandler:${{ steps.version.outputs.version }}
+          docker push mahdimcheik/restauranthandler:test
 
       # Serveur de test DÉDIÉ : secrets TEST_VPS_*, jamais VPS_* (serveur de prod).
       # S'ils manquent, l'étape échoue au lieu de déployer ailleurs.
@@ -69,8 +73,8 @@ jobs:
           key: ${{ secrets.TEST_VPS_SSH_PRIVATE_KEY }}
           script: |
             set -e
-            cd ~/bonprof/back-end
-            docker pull mahdimcheik/bonprof:test
+            cd ~/restauranthandler/back-end
+            docker pull mahdimcheik/restauranthandler:test
             docker compose up -d --force-recreate
 
       # - name: Check the deployed version

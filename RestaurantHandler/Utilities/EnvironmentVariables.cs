@@ -40,12 +40,6 @@ public static class EnvironmentVariables
             .Select(name => $"variable manquante : {name}")
             .ToList();
 
-        var addressKey = getVariable("ADDRESS_ENCRYPTION_KEY");
-        if (!string.IsNullOrWhiteSpace(addressKey) && !FieldEncryption.IsValidKey(addressKey))
-        {
-            errors.Add("ADDRESS_ENCRYPTION_KEY doit être 32 octets encodés en base64");
-        }
-
         if (errors.Count > 0)
         {
             throw new InvalidOperationException(
@@ -74,9 +68,6 @@ public static class EnvironmentVariables
 
     public static string JWT_KEY => GetRequiredEnvVar("JWT_KEY");
 
-    // Clé AES-256 (base64, 32 octets) du chiffrement au repos (FieldEncryption). Lue seulement
-    // au premier chiffrement ; la perdre rend les champs chiffrés illisibles.
-    public static string ADDRESS_ENCRYPTION_KEY => GetRequiredEnvVar("ADDRESS_ENCRYPTION_KEY");
     public static string? API_BACK_URL => GetEnvVar("API_BACK_URL", "");
     public static string? API_FRONT_URL => GetEnvVar("API_FRONT_URL", "");
 

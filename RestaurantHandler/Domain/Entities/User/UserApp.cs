@@ -16,9 +16,6 @@ public class UserApp : IdentityUser<Guid>, IArchivable, IUpdateable, ICreatable
     [Required]
     [MaxLength(64)]
     public string LastName { get; set; } = string.Empty;
-    [Required]
-    public required DateTimeOffset DateOfBirth { get; set; }
-
     [MaxLength(500)]
     public string? ImgUrl { get; set; }
 
@@ -65,7 +62,6 @@ public class UserApp : IdentityUser<Guid>, IArchivable, IUpdateable, ICreatable
         Email = newUser.Email;
         FirstName = newUser.FirstName;
         LastName = newUser.LastName;
-        DateOfBirth = newUser.DateOfBirth;
         DataProcessingConsent = true;
         PrivacyPolicyConsent = true;
         StatusId = HardCode.ACCOUNT_PENDING;

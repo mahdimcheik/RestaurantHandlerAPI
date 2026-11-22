@@ -56,14 +56,3 @@ public class ConfirmMailModel
 
 public record EmailButton(string Href, string Label);
 
-/// <summary>Modèle de BroadcastTemplate : un envoi groupé rendu pour un destinataire.</summary>
-public class BroadcastMailModel
-{
-    public string RecipientFirstName { get; set; } = "";
-    public string SenderName { get; set; } = "";
-    public MailBroadcastSenderKind SenderKind { get; set; }
-    public string Subject { get; set; } = "";
-    public string MessageHtml { get; set; } = "";
-    public string WebsiteLink { get; set; } = "";
-    public bool AllowReply { get; set; }
-}

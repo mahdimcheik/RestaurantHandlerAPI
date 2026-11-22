@@ -16,17 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Premières fiches du centre d'aide, lues par HelpEntriesSeeder. -->
-    <Content Remove="Persistence\Seed\help-entries.json" />
-    <EmbeddedResource Include="Persistence\Seed\help-entries.json" LogicalName="RestaurantHandler.Persistence.Seed.help-entries.json" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="Bogus" Version="35.6.5" />
     <PackageReference Include="Google.Apis.Auth" Version="1.76.0" />
     <PackageReference Include="Hangfire" Version="1.8.22" />
     <PackageReference Include="Hangfire.PostgreSql" Version="1.20.13" />
-    <PackageReference Include="HtmlSanitizer" Version="9.2.1039" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.15" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.15" />
 
@@ -42,7 +34,6 @@
 	  <PackageReference Include="AWSSDK.S3" Version="4.0.101.5" />
 	  <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.11.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
-    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.4" />
     <PackageReference Include="RazorLight" Version="2.3.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="4.1.3" />

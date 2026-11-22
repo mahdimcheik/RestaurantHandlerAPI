@@ -16,7 +16,6 @@ public class SignInService
     private readonly SignInManager<UserApp> _signInManager;
     private readonly TokenService _tokenService;
     private readonly StorageService _storage;
-    private readonly MaintenanceService _maintenanceService;
 
     private const string InvalidCredentialsMessage = "Identifiants invalides";
 
@@ -26,8 +25,7 @@ public class SignInService
         GoogleAuthService googleAuthService,
         SignInManager<UserApp> signInManager,
         TokenService tokenService,
-        StorageService storage,
-        MaintenanceService maintenanceService
+        StorageService storage
     )
     {
         _context = context;
@@ -36,7 +34,6 @@ public class SignInService
         _signInManager = signInManager;
         _tokenService = tokenService;
         _storage = storage;
-        _maintenanceService = maintenanceService;
     }
 
     public async Task<Response<Login>> UpdateRefreshToken(string refreshToken)
@@ -128,20 +125,6 @@ public class SignInService
         if (refusal is not null)
         {
             return refusal;
-        }
-
-        // Pendant la maintenance, seul un Manager se connecte (pour la désactiver).
-        var maintenance = await _maintenanceService.GetStatusAsync();
-        if (
-            maintenance.Enabled
-            && !await _userManager.IsInRoleAsync(user, nameof(RoleEnum.Manager))
-        )
-        {
-            return new Response<Login>
-            {
-                Message = MaintenanceService.DisplayMessage(maintenance),
-                Status = 503,
-            };
         }
 
         var fullUser = await _context
@@ -316,9 +299,8 @@ public class SignInService
     /// <see cref="RegistrationService.Register"/> pour cette voie.
     ///
     /// <para>
-    /// Google ne fournit pas de date de naissance, non-nullable sur <see cref="UserApp"/> : on
-    /// pose une valeur par défaut et la connexion renvoie <c>ProfileIncomplete</c> pour que le
-    /// front propose de compléter le profil.
+    /// Google ne fournit pas de téléphone : la connexion renvoie <c>ProfileIncomplete</c> pour
+    /// que le front le demande, au plus tard à la première commande.
     /// </para>
     /// </summary>
     private async Task<(UserApp? user, string error)> CreateGoogleUserAsync(
@@ -335,7 +317,6 @@ public class SignInService
                 Email = payload.Email,
                 FirstName = payload.GivenName ?? string.Empty,
                 LastName = payload.FamilyName ?? string.Empty,
-                DateOfBirth = default,
                 DataProcessingConsent = true, // vérifiés par GoogleLogin avant la création
                 PrivacyPolicyConsent = true,
                 TermsAcceptedAt = DateTimeOffset.UtcNow,

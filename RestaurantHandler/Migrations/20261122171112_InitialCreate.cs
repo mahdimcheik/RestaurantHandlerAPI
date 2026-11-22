@@ -35,33 +35,6 @@ namespace RestaurantHandler.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "HelpEntries",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Slug = table.Column<string>(type: "character varying(160)", maxLength: 160, nullable: false),
-                    Language = table.Column<string>(type: "character varying(8)", maxLength: 8, nullable: false),
-                    Question = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Summary = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
-                    AnswerHtml = table.Column<string>(type: "text", nullable: true),
-                    Category = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
-                    Audience = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
-                    Keywords = table.Column<List<string>>(type: "text[]", nullable: false),
-                    YoutubeVideoId = table.Column<string>(type: "character varying(11)", maxLength: 11, nullable: true),
-                    SortOrder = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
-                    PublishedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    SearchText = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_HelpEntries", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Ingredients",
                 columns: table => new
                 {
@@ -96,23 +69,6 @@ namespace RestaurantHandler.Migrations
                     table.PrimaryKey("PK_Menus", x => x.Id);
                     table.CheckConstraint("CK_Menus_PriceCents", "\"PriceCents\" >= 0");
                     table.CheckConstraint("CK_Menus_VatRate", "\"VatRate\" >= 0 AND \"VatRate\" <= 100");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PlatformSettings",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    MaintenanceEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    MaintenanceMessage = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    UpdatedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PlatformSettings", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -236,7 +192,6 @@ namespace RestaurantHandler.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     FirstName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     LastName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    DateOfBirth = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ImgUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     DataProcessingConsent = table.Column<bool>(type: "boolean", nullable: false),
                     PrivacyPolicyConsent = table.Column<bool>(type: "boolean", nullable: false),
@@ -450,30 +405,6 @@ namespace RestaurantHandler.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MailBroadcasts",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    SenderId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SenderKind = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
-                    Audience = table.Column<int>(type: "integer", nullable: false),
-                    Subject = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    BodyHtml = table.Column<string>(type: "text", nullable: false),
-                    RecipientCount = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MailBroadcasts", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_MailBroadcasts_Users_SenderId",
-                        column: x => x.SenderId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Notifications",
                 columns: table => new
                 {
@@ -613,30 +544,6 @@ namespace RestaurantHandler.Migrations
                         columns: x => new { x.ProductId, x.IngredientId },
                         principalTable: "ProductIngredients",
                         principalColumns: new[] { "ProductId", "IngredientId" },
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MailBroadcastRecipients",
-                columns: table => new
-                {
-                    BroadcastId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MailBroadcastRecipients", x => new { x.BroadcastId, x.UserId });
-                    table.ForeignKey(
-                        name: "FK_MailBroadcastRecipients_MailBroadcasts_BroadcastId",
-                        column: x => x.BroadcastId,
-                        principalTable: "MailBroadcasts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_MailBroadcastRecipients_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -797,11 +704,6 @@ namespace RestaurantHandler.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "PlatformSettings",
-                columns: new[] { "Id", "ArchivedAt", "CreatedAt", "MaintenanceEnabled", "MaintenanceMessage", "UpdatedAt", "UpdatedById" },
-                values: new object[] { new Guid("5f0c6a52-7d0e-4b8f-9a39-2a1f7c3e9d10"), null, new DateTime(2026, 10, 10, 0, 0, 0, 0, DateTimeKind.Utc), false, null, null, null });
-
-            migrationBuilder.InsertData(
                 table: "Roles",
                 columns: new[] { "Id", "ArchivedAt", "Color", "ConcurrencyStamp", "CreatedAt", "Name", "NormalizedName", "UpdatedAt" },
                 values: new object[,]
@@ -862,17 +764,6 @@ namespace RestaurantHandler.Migrations
                 column: "Position");
 
             migrationBuilder.CreateIndex(
-                name: "IX_HelpEntries_Slug",
-                table: "HelpEntries",
-                column: "Slug",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_HelpEntries_Status_Language_Category_SortOrder",
-                table: "HelpEntries",
-                columns: new[] { "Status", "Language", "Category", "SortOrder" });
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Ingredients_Name",
                 table: "Ingredients",
                 column: "Name",
@@ -888,21 +779,6 @@ namespace RestaurantHandler.Migrations
                 name: "IX_IngredientSubstitutions_SubstituteIngredientId",
                 table: "IngredientSubstitutions",
                 column: "SubstituteIngredientId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MailBroadcastRecipients_UserId",
-                table: "MailBroadcastRecipients",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MailBroadcasts_CreatedAt",
-                table: "MailBroadcasts",
-                column: "CreatedAt");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MailBroadcasts_SenderId_CreatedAt",
-                table: "MailBroadcasts",
-                columns: new[] { "SenderId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_MenuSlotOptions_ProductId",
@@ -1081,13 +957,7 @@ namespace RestaurantHandler.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "HelpEntries");
-
-            migrationBuilder.DropTable(
                 name: "IngredientSubstitutions");
-
-            migrationBuilder.DropTable(
-                name: "MailBroadcastRecipients");
 
             migrationBuilder.DropTable(
                 name: "MenuSlotOptions");
@@ -1105,9 +975,6 @@ namespace RestaurantHandler.Migrations
                 name: "Payments");
 
             migrationBuilder.DropTable(
-                name: "PlatformSettings");
-
-            migrationBuilder.DropTable(
                 name: "ProductSupplements");
 
             migrationBuilder.DropTable(
@@ -1121,9 +988,6 @@ namespace RestaurantHandler.Migrations
 
             migrationBuilder.DropTable(
                 name: "ProductIngredients");
-
-            migrationBuilder.DropTable(
-                name: "MailBroadcasts");
 
             migrationBuilder.DropTable(
                 name: "OrderItems");

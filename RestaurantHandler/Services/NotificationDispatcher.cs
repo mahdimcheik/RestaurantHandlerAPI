@@ -22,7 +22,7 @@ public sealed record NotificationRequest(
 /// </summary>
 public class NotificationDispatcher(
     MainContext context,
-    SignalRNotificationsService signalR,
+    RealtimeService realtime,
     PushNotificationService push
 )
 {
@@ -67,14 +67,11 @@ public class NotificationDispatcher(
 
         foreach (var (request, notification) in staged)
         {
-            if (!string.IsNullOrEmpty(request.Email))
-            {
-                await signalR.SendMessageByUserEmail(
-                    request.Email,
-                    nameof(SignalRNotificationTypeEnum.Notification),
-                    new { Type = request.Type.ToString(), request.Message }
-                );
-            }
+            await realtime.SendToUserAsync(
+                request.UserId,
+                nameof(SignalRNotificationTypeEnum.Notification),
+                new { Type = request.Type.ToString(), request.Message }
+            );
 
             push.EnqueueNotification(notification.Id);
         }

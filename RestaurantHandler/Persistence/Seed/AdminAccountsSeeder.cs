@@ -23,7 +23,6 @@ public static class AdminAccountsSeeder
             StatusId = HardCode.ACCOUNT_ACTIVE,
             FirstName = "Manager",
             LastName = "Admin",
-            DateOfBirth = DateTimeOffset.UtcNow.AddYears(-20),
         };
 
         if (userManager.FindByEmailAsync(manager.Email).Result is not null)

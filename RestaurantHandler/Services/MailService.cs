@@ -12,7 +12,7 @@ public class MailService
 {
     // Le logo part en pièce jointe inline (CID) : Gmail bloque les data: URI et une
     // URL distante dépendrait du front et du « afficher les images » du client mail.
-    private const string LOGO_CONTENT_ID = "bonprof-logo";
+    private const string LOGO_CONTENT_ID = "app-logo";
 
     private static readonly string TemplatesRoot = Path.Combine(AppContext.BaseDirectory, "Templates");
     private static readonly string LogoPath = Path.Combine(TemplatesRoot, "Assets", "logo.png");
@@ -140,7 +140,7 @@ public class MailService
             {
                 MailFrom = EnvironmentVariables.DO_NO_REPLY_MAIL,
                 MailTo = receiver.Email!,
-                MailSubject = "Activez votre compte BonProf",
+                MailSubject = $"Activez votre compte {HardCode.APP_NAME}",
                 MailBody = template,
             };
 
@@ -168,7 +168,7 @@ public class MailService
             {
                 MailFrom = EnvironmentVariables.DO_NO_REPLY_MAIL,
                 MailTo = receiver.Email!,
-                MailSubject = "Réinitialisation de votre mot de passe BonProf",
+                MailSubject = $"Réinitialisation de votre mot de passe {HardCode.APP_NAME}",
                 MailBody = template,
             };
 
@@ -178,22 +178,5 @@ public class MailService
         {
             _logger.LogError(ex, "Échec de l'envoi du mail de réinitialisation à {Recipient}.", receiver.Email);
         }
-    }
-
-    /// <summary>Un exemplaire d'envoi groupé (ADR-0023), adressé à un seul destinataire.</summary>
-    public async Task SendBroadcast(string to, BroadcastMailModel model, string? replyTo)
-    {
-        string body = await RenderAsync("BroadcastTemplate.cshtml", model);
-
-        await SendEmail(
-            new MailApp
-            {
-                MailFrom = EnvironmentVariables.DO_NO_REPLY_MAIL,
-                MailTo = to,
-                MailSubject = model.Subject,
-                MailBody = body,
-                ReplyTo = replyTo,
-            }
-        );
     }
 }

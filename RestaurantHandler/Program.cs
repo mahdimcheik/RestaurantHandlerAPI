@@ -5,7 +5,6 @@ using Amazon.S3;
 using RestaurantHandler.Contexts;
 using RestaurantHandler.Controllers;
 using RestaurantHandler.Infrastructure.Errors;
-using RestaurantHandler.Infrastructure.Maintenance;
 using RestaurantHandler.Infrastructure.RateLimiting;
 using RestaurantHandler.Integrations.Storage;
 using RestaurantHandler.Models;
@@ -68,9 +67,6 @@ using (var scope = app.Services.CreateScope())
 
     // Seed default users
     AdminAccountsSeeder.Seed(scope.ServiceProvider);
-
-    // Premières fiches du centre d'aide, tant que la table est vide
-    HelpEntriesSeeder.SeedAsync(scope.ServiceProvider).GetAwaiter().GetResult();
 }
 
 // Configurer le pipeline de middleware
@@ -97,17 +93,14 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<AvatarService>();
     services.AddTransient<MailService>();
     services.AddTransient<ProfileService>();
-    services.AddTransient<MailBroadcastService>();
     services.AddTransient<UserAdministrationService>();
     services.AddTransient<UserManagementService>();
     services.AddScoped<CallerResolver>();
-    services.AddTransient<MaintenanceService>();
     services.AddTransient<RolesService>();
     services.AddTransient<NotificationService>();
     services.AddTransient<NotificationDispatcher>();
     services.AddTransient<PushNotificationService>();
     services.AddSingleton<IWebPushSender, VapidWebPushSender>();
-    services.AddTransient<HelpService>();
 
     services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client(
         new BasicAWSCredentials(
@@ -130,19 +123,13 @@ static void ConfigureServices(IServiceCollection services)
         }
     ));
     services.AddSingleton<StorageService>();
-    services.AddSingleton<RichTextSanitizer>();
 
     // Cache mémoire seul (une instance). Brancher Redis en L2 = enregistrer un
     // IDistributedCache (AddStackExchangeRedisCache), sans toucher aux services.
     services.AddHybridCache();
 
-    // signalR
-    services.AddSingleton<ConnectionManager>();
-    services.AddSignalR(options =>
-    {
-        options.EnableDetailedErrors = true; // For debugging
-    });
-    services.AddTransient<SignalRNotificationsService>();
+    services.AddSignalR();
+    services.AddTransient<RealtimeService>();
 
     services.AddLogging(loggingBuilder =>
     {
@@ -192,7 +179,7 @@ static void ConfigureServices(IServiceCollection services)
     ConfigureAuthentication(services);
     ConfigureAuthorization(services);
     ConfigureHangFire(services);
-    services.AddBonProfRateLimiting();
+    services.AddAppRateLimiting();
 }
 
 static void ConfigureCors(IServiceCollection services)
@@ -287,6 +274,23 @@ static void ConfigureAuthentication(IServiceCollection services)
                     Encoding.UTF8.GetBytes(EnvironmentVariables.JWT_KEY)
                 ),
             };
+            // Un navigateur ne peut pas poser d'en-tête Authorization sur un WebSocket : SignalR
+            // transmet le jeton en paramètre de requête, accepté sur le seul chemin des hubs.
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    var token = context.Request.Query["access_token"];
+                    if (
+                        !string.IsNullOrEmpty(token)
+                        && context.HttpContext.Request.Path.StartsWithSegments("/hubs")
+                    )
+                    {
+                        context.Token = token;
+                    }
+                    return Task.CompletedTask;
+                },
+            };
         });
 }
 
@@ -339,9 +343,9 @@ static void ConfigureSwagger(IServiceCollection services)
             "v1",
             new OpenApiInfo
             {
-                Title = "BonProf API",
+                Title = "RestaurantHandler API",
                 Version = "v1",
-                Description = "API for BonProf application",
+                Description = "API de commande du restaurant",
             }
         );
 
@@ -432,9 +436,9 @@ static void ConfigureMiddlewarePipeline(WebApplication app)
     {
         app.UseSwaggerUI(c =>
         {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "BonProfApi API v1");
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "RestaurantHandler API v1");
             c.RoutePrefix = string.Empty;
-            c.DocumentTitle = "BonProfApi API Documentation";
+            c.DocumentTitle = "RestaurantHandler API";
         });
     }
 
@@ -443,7 +447,6 @@ static void ConfigureMiddlewarePipeline(WebApplication app)
     app.UseCors();
 
     app.UseAuthentication();
-    app.UseMiddleware<MaintenanceMiddleware>();
     app.UseHangfireDashboard(
         "/hangfire",
         new DashboardOptions
@@ -461,7 +464,7 @@ static void ConfigureMiddlewarePipeline(WebApplication app)
     app.UseRateLimiter();
 
     app.MapControllers();
-    app.MapHub<ChatHub>("/chathub");
+    app.MapHub<RealtimeHub>(RealtimeHub.Path);
 
     // Version gravée dans l'image au build (ARG/ENV APP_VERSION du Dockerfile).
     // Le client peut comparer sa version à celle-ci.

@@ -12,11 +12,11 @@ En tant que visiteur, je veux créer un compte afin de pouvoir commander en lign
 
 **Critères d'acceptation**
 - L'inscription demande nom, prénom, e-mail, mot de passe et les consentements (CGU,
-  politique de confidentialité) ; le compte créé a le rôle `Client`.
+  politique de confidentialité) ; le compte créé a le rôle `Client`. Pas de date de naissance
+  (supprimée en J0 : aucun usage métier).
 - Un e-mail d'activation est envoyé ; tant que le compte n'est pas activé, la connexion est
   refusée avec un message explicite.
 - Un e-mail déjà utilisé (insensible à la casse) est refusé.
-- La date de naissance n'est plus requise si elle n'a pas d'usage métier (à statuer en J0).
 
 ### US-E01-2 — Se connecter avec Google
 
@@ -37,7 +37,7 @@ En tant que restaurant, je veux que toute commande en ligne soit rattachée à u
 pouvoir joindre le client et limiter les commandes fantômes.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle (la connexion renvoie `ProfileIncomplete` tant que le téléphone manque)
 
 **Critères d'acceptation**
 - La carte et le panier sont accessibles sans compte.
@@ -54,8 +54,8 @@ d'être joignable.
 **État :** Implémentée
 
 **Critères d'acceptation**
-- `PUT /Auth/me` met à jour le profil ; l'e-mail ne se change pas par ce biais.
-- Le téléphone est validé au format français ou international.
+- `PUT /Auth/me` met à jour nom, prénom et téléphone ; l'e-mail ne se change pas par ce biais.
+- Le téléphone est facultatif, validé (format téléphone, 20 caractères max) ; vide = effacé.
 
 ### US-E01-5 — Réinitialiser son mot de passe
 

@@ -121,7 +121,7 @@ public class PushNotificationService(
 
     /// <summary>
     /// Format attendu par le service worker Angular (ngsw) : il affiche <c>notification</c> et,
-    /// au clic, ouvre <c>url</c> dans l'onglet BonProf déjà ouvert ou dans un nouveau.
+    /// au clic, ouvre <c>url</c> dans l'onglet de l'application déjà ouvert ou dans un nouveau.
     /// </summary>
     public static string BuildPayload(PushMessage message)
     {
@@ -154,9 +154,9 @@ public class PushNotificationService(
             ? type switch
             {
                 NotificationTypeEnum.Account => "Compte",
-                _ => "BonProf",
+                _ => HardCode.APP_NAME,
             }
-            : "BonProf";
+            : HardCode.APP_NAME;
 
     private static string? Truncate(string? value, int max) =>
         value is null || value.Length <= max ? value : value[..(max - 1)] + "…";

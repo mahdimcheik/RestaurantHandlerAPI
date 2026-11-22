@@ -70,9 +70,7 @@ public class TokenService
                 Token = await GenerateAccessTokenAsync(user),
                 RefreshToken = refreshToken?.Token,
                 User = userDetails,
-                // Google ne fournit ni date de naissance ni genre : un compte créé par cette
-                // voie garde la valeur par défaut, que le front peut proposer de compléter.
-                ProfileIncomplete = user.DateOfBirth == default,
+                ProfileIncomplete = string.IsNullOrWhiteSpace(user.PhoneNumber),
             },
         };
     }
@@ -162,6 +160,7 @@ public class TokenService
 
         var authClaims = new List<Claim>
         {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.UserName!),
             new Claim(type: ClaimTypes.Email, value: user.Email),
         };

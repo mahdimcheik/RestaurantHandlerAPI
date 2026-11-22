@@ -25,8 +25,8 @@ personnel). L'autorisation est déclarée **sur l'opération**, avec **refus par
 **Propriété** : une commande n'est lisible par un Client que s'il en est le `CustomerId` ;
 toute autre tentative renvoie **404** (pas 403, pour ne pas révéler l'existence).
 
-**Temps réel** : un Client ne s'abonne qu'aux événements de ses commandes et à l'état
-d'ouverture ; le groupe « restaurant » (KDS, back-office) est réservé aux Managers.
+**Temps réel** : un Client ne reçoit que les événements qui lui sont adressés ; le groupe
+`restaurant` (KDS, back-office) est attribué à la connexion aux seuls Managers.
 
 **Limite assumée en V1** : pas de rôle équipier — un appareil de cuisine a les mêmes droits que
 le gérant. Voir [risques](../50-feuille-de-route/03-risques-dette.md).
