@@ -18,7 +18,7 @@ dans le bon ordre.
 - Une commande programmée n'apparaît qu'à partir de *heure de retrait − délai de préparation*
   (paramètre) pour ne pas encombrer l'écran.
 - Chaque carte montre : numéro, heure de retrait, canal, lignes avec quantités, composants de
-  menus, personnalisations **mises en évidence** (« SANS oignons », « + bacon ×2 »), note client.
+  menus, personnalisations **mises en évidence** (« SANS oignons », « + bacon ×2 », « Pain : Pita »), note client.
 - Une nouvelle commande déclenche un signal sonore.
 - Lisible à 2 mètres (taille de police, contraste) ; utilisable au doigt.
 

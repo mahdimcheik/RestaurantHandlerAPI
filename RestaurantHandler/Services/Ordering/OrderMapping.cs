@@ -91,7 +91,7 @@ public static class OrderMapping
             UnitPriceCents = i.UnitPriceCents,
             LineTotalCents = OrderPricing.LineTotal(i),
             Modifications = i.Modifications
-                .OrderBy(m => m.Type)
+                .OrderBy(m => m.Type).ThenBy(m => m.Position)
                 .Select(m => new OrderModificationDto
                 {
                     Type = m.Type,

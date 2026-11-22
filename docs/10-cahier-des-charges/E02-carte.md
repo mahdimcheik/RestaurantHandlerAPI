@@ -115,6 +115,28 @@ En tant que client, je veux connaître les allergènes d'un produit afin de comm
 
 **Critères d'acceptation**
 - Les 14 allergènes réglementaires sont rattachés aux ingrédients et remontent au produit
-  (composition + substitutions + suppléments choisis).
+  (composition + substitutions + suppléments + choix d'options).
 - En V1, l'information est assurée hors application (affichage en salle) — cf.
   [conformité](../20-regles-metier/04-conformite-legale.md).
+
+### US-E02-9 — Définir les groupes d'options d'un produit
+
+En tant que Manager, je veux proposer sur un produit des choix dans une liste (pain d'un
+sandwich, sauces, taille d'une pizza), avec un minimum, un maximum, un nombre de choix offerts
+et des surcoûts, afin que le client compose son plat sans passer par la composition.
+
+**Priorité :** V1
+**État :** Partielle
+**Avancement :** API faite (`PUT /manage/products/{id}/option-groups`, carte publique,
+commande) ; écran à faire.
+
+**Critères d'acceptation**
+- Les groupes sont propres au produit et remplacés en un seul appel, dans l'ordre d'affichage ;
+  un groupe ou un choix retiré est archivé, jamais supprimé.
+- Un groupe a un libellé, `0 ≤ min ≤ max`, au moins `min` choix, un nombre de choix offerts
+  (tous par défaut) et un prix par choix au-delà des offerts (≥ 0).
+- Un choix a un nom unique dans son groupe, un surcoût ≥ 0 (ex. +3 € pour la grande taille) et
+  peut être lié à un ingrédient : la rupture de l'ingrédient grise le choix.
+- Un ingrédient lié à un choix ne peut pas être archivé.
+- Exemples : « Pain » 1 parmi baguette / pita ; « Sauces » 0 à 3, 2 offertes puis +0,50 € ;
+  « Taille » 1 parmi 29 cm / 33 cm (+3 €).

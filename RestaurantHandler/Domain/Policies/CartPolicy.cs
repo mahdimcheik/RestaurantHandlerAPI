@@ -4,7 +4,12 @@ namespace RestaurantHandler.Domain.Policies;
 
 public sealed record CartModification(ModificationType Type, Guid IngredientId, Guid? SubstituteIngredientId = null, int Quantity = 1);
 
-public sealed record CartMenuChoice(Guid SlotId, Guid ProductId, IReadOnlyList<CartModification> Modifications);
+public sealed record CartMenuChoice(
+    Guid SlotId,
+    Guid ProductId,
+    IReadOnlyList<CartModification> Modifications,
+    IReadOnlyList<Guid>? OptionChoiceIds = null
+);
 
 /// <summary>Ce que le client veut ; jamais un prix (R2).</summary>
 public sealed record CartLine(
@@ -12,7 +17,8 @@ public sealed record CartLine(
     Guid? MenuId,
     int Quantity,
     IReadOnlyList<CartModification> Modifications,
-    IReadOnlyList<CartMenuChoice> Choices
+    IReadOnlyList<CartMenuChoice> Choices,
+    IReadOnlyList<Guid>? OptionChoiceIds = null
 );
 
 /// <summary>Écart sur une ligne du panier (index dans la requête) ; la commande est refusée.</summary>
@@ -26,7 +32,7 @@ public sealed record PricedCart(IReadOnlyList<OrderItem> Items, int TotalCents, 
 /// <summary>
 /// Construit les lignes de commande à partir du panier et de la carte en vigueur : disponibilité
 /// (R6), personnalisations (R4), menus (R5), snapshots (R3) et prix (R2). La carte attendue est
-/// le graphe complet (composition, substitutions, suppléments, catégorie ; menus avec emplacements
+/// le graphe complet (composition, substitutions, suppléments, groupes d'options, catégorie ; menus avec emplacements
 /// non archivés et options reliées à leurs produits).
 /// </summary>
 public static class CartPolicy
@@ -61,7 +67,7 @@ public static class CartPolicy
 
             OrderItem? item = (line.ProductId, line.MenuId) switch
             {
-                ({ } productId, null) => BuildProduct(productId, line.Modifications, products, report),
+                ({ } productId, null) => BuildProduct(productId, line.Modifications, line.OptionChoiceIds ?? [], products, report),
                 (null, { } menuId) => BuildMenu(menuId, line, products, menus, report),
                 _ => Fail(report, "Une ligne désigne soit un produit, soit un menu."),
             };
@@ -91,7 +97,7 @@ public static class CartPolicy
         Action<string> report
     )
     {
-        if (line.Modifications.Count > 0)
+        if (line.Modifications.Count > 0 || line.OptionChoiceIds is { Count: > 0 })
             return Fail(report, "Un menu se personnalise produit par produit.");
         if (!menus.TryGetValue(menuId, out var menu) || !AvailabilityPolicy.IsMenuListed(menu))
             return Fail(report, "Ce menu n'est plus proposé.");
@@ -131,7 +137,13 @@ public static class CartPolicy
                     continue;
                 }
 
-                var component = BuildProduct(choice.ProductId, choice.Modifications, products, m => report($"{menu.Name} : {m}"));
+                var component = BuildProduct(
+                    choice.ProductId,
+                    choice.Modifications,
+                    choice.OptionChoiceIds ?? [],
+                    products,
+                    m => report($"{menu.Name} : {m}")
+                );
                 if (component is null)
                 {
                     ok = false;
@@ -153,6 +165,7 @@ public static class CartPolicy
     private static OrderItem? BuildProduct(
         Guid productId,
         IReadOnlyList<CartModification> modifications,
+        IReadOnlyList<Guid> optionChoiceIds,
         IReadOnlyDictionary<Guid, Product> products,
         Action<string> report
     )
@@ -183,6 +196,10 @@ public static class CartPolicy
 
             switch (mod.Type)
             {
+                case ModificationType.Choice:
+                    error = "un choix d'option passe par la liste des choix.";
+                    break;
+
                 case ModificationType.Remove or ModificationType.Replace when !touched.Add(mod.IngredientId):
                     error = "un ingrédient ne peut être retiré ou remplacé qu'une fois.";
                     break;
@@ -271,6 +288,17 @@ public static class CartPolicy
             report($"{name} est en rupture : {product.Name} sera servi sans. Mettez à jour votre panier.");
             ok = false;
         }
+
+        var choices = OptionChoicePolicy.Build(product, optionChoiceIds, report);
+        if (choices is null)
+            ok = false;
+        else
+            foreach (var choice in choices)
+                item.Modifications.Add(choice);
+
+        var position = 0;
+        foreach (var modification in item.Modifications)
+            modification.Position = position++;
 
         return ok ? item : null;
     }

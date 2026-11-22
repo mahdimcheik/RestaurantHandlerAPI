@@ -121,6 +121,55 @@ public class ProductSupplementConfiguration : IEntityTypeConfiguration<ProductSu
     }
 }
 
+public class ProductOptionGroupConfiguration : IEntityTypeConfiguration<ProductOptionGroup>
+{
+    public void Configure(EntityTypeBuilder<ProductOptionGroup> builder)
+    {
+        builder.ToTable(t =>
+        {
+            t.HasCheckConstraint(
+                "CK_ProductOptionGroups_Choices",
+                "\"MinChoices\" >= 0 AND \"MaxChoices\" >= 1 AND \"MinChoices\" <= \"MaxChoices\""
+            );
+            t.HasCheckConstraint("CK_ProductOptionGroups_FreeChoices", "\"FreeChoices\" >= 0");
+            t.HasCheckConstraint("CK_ProductOptionGroups_ExtraChoicePriceCents", "\"ExtraChoicePriceCents\" >= 0");
+        });
+
+        builder.HasIndex(g => new { g.ProductId, g.Position });
+
+        builder
+            .HasOne(g => g.Product)
+            .WithMany(p => p.OptionGroups)
+            .HasForeignKey(g => g.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class ProductOptionChoiceConfiguration : IEntityTypeConfiguration<ProductOptionChoice>
+{
+    public void Configure(EntityTypeBuilder<ProductOptionChoice> builder)
+    {
+        builder.ToTable(t =>
+            t.HasCheckConstraint("CK_ProductOptionChoices_ExtraPriceCents", "\"ExtraPriceCents\" >= 0")
+        );
+
+        // Un nom archivé peut être réutilisé.
+        builder.HasIndex(c => new { c.GroupId, c.Name }).IsUnique().HasFilter("\"ArchivedAt\" IS NULL");
+        builder.HasIndex(c => c.IngredientId);
+
+        builder
+            .HasOne(c => c.Group)
+            .WithMany(g => g.Choices)
+            .HasForeignKey(c => c.GroupId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder
+            .HasOne(c => c.Ingredient)
+            .WithMany()
+            .HasForeignKey(c => c.IngredientId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 public class MenuConfiguration : IEntityTypeConfiguration<Menu>
 {
     public void Configure(EntityTypeBuilder<Menu> builder)

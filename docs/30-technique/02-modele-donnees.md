@@ -13,7 +13,8 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
   `MenuSlotOption`) : sans `BaseModel`.
 - Enums stockés en texte. Montants en `int` (centimes). TVA en `decimal(5,2)`.
 - Contraintes posées en base : unicités, prix ≥ 0, `Quantity > 0`, `MinChoices ≤ MaxChoices`,
-  une ligne = produit **ou** menu, `SubstituteIngredientId` renseigné ssi `Replace`.
+  une ligne = produit **ou** menu, `SubstituteIngredientId` renseigné ssi `Replace`,
+  `OptionChoiceId` renseigné ssi `Choice`.
 - Utilisateurs : `UserApp` (Identity, table `Users`), rôle via `RoleApp`.
 - Archivage : **pas de filtre global** ; chaque service filtre `ArchivedAt == null`
   explicitement, pour que les commandes relisent librement leurs produits archivés (M9). Les
@@ -30,6 +31,8 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 | `ProductIngredient` | Composition | PK (produit, ingrédient), `IsRemovable` |
 | `IngredientSubstitution` | Remplacement autorisé | FK composite vers la composition, `ExtraPriceCents` |
 | `ProductSupplement` | Supplément payant | PK (produit, ingrédient), `PriceCents`, `MaxQuantity` |
+| `ProductOptionGroup` | Groupe d'options d'un produit (pain, sauces, taille) | `Label`, `Position`, `Min/MaxChoices`, `FreeChoices`, `ExtraChoicePriceCents` ; archivé |
+| `ProductOptionChoice` | Choix d'un groupe | nom unique par groupe (non archivé), `IngredientId?` (rupture), `ExtraPriceCents`, `Position` ; archivé |
 | `Menu` | Formule | `PriceCents`, `VatRate`, `Position`, `ImageUrl`, `IsActive` |
 | `MenuSlot` | Emplacement | `Label`, position unique par menu, `Min/MaxChoices` |
 | `MenuSlotOption` | Produit proposé | PK (emplacement, produit), `ExtraPriceCents` |
@@ -49,7 +52,7 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 |---|---|---|
 | `Order` | Commande | `OrderNumber` (identity), `ServiceDate` + `DailyNumber` (unique), `IdempotencyKey` (unique par auteur), `CustomerId?`, `CustomerFirstName?`, `CreatedByUserId`, `Channel`, `Status`, `PickupMode`, `PickupAt`, `PaymentChoice`, `TotalCents`, `PaidAt/ConfirmedAt/ReadyAt/CompletedAt`, `PaymentIssue` (anomalie à traiter), jeton `xmin` |
 | `OrderItem` | Ligne | produit **ou** menu ; composants de menu en lignes enfants ; snapshots nom/prix/TVA |
-| `OrderItemModification` | Personnalisation | `Remove` / `Replace` / `Supplement`, libellé et prix figés |
+| `OrderItemModification` | Personnalisation | `Remove` / `Replace` / `Supplement` / `Choice`, libellé et prix figés, `Position` ; `OptionChoiceId` ssi `Choice`, `IngredientId` obligatoire sauf pour un `Choice` |
 | `Payment` | Paiement en ligne ou encaissement sur place déclaré | `Method` (`SumupOnline`, `OnSiteCard`, `OnSiteCash`, `OnSiteOther`), `Status`, `AmountCents`, identifiants SumUp uniques (`SumupCheckoutId`, `SumupTransactionCode`, `SumupTransactionId`), `CheckoutUrl`, `RefundedAt`, `DeclaredByUserId` |
 | `OrderStatusHistory` | Journal des statuts | auteur, horodatage, `Reason` |
 
@@ -68,6 +71,7 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 | M9 | ✅ Filtre automatique `ArchivedAt == null` : **non rétabli**, les services filtrent explicitement | lecture de commandes anciennes | J1 |
 | M10 | ✅ Index de lecture pour les statistiques : `Order(Status, CompletedAt)` et `Order(Status, ReadyAt)` ; table `NoShowResets` (historique des levées de blocage, US-E10-4) | E09, E10 | J5 |
 | M11 | Socle : retirer `HelpEntry`, `MailBroadcast`, paramètres de maintenance | J0 | J0 |
+| M12 | ✅ Groupes d'options produit : `ProductOptionGroup`, `ProductOptionChoice`, `ModificationType.Choice`, `OrderItemModification.OptionChoiceId` et `Position` | sandwichs (pain, sauces), pizzas (taille) — [US-E02-9](../10-cahier-des-charges/E02-carte.md#us-e02-9--définir-les-groupes-doptions-dun-produit) | J5 |
 
 Chaque écart est une migration nommée (`dotnet ef migrations add <Nom>`) ; plus de
 régénération d'`InitialCreate` une fois la première mise en production faite.

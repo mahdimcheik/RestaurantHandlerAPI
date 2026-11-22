@@ -30,7 +30,7 @@ une ouverture **sous 3 mois**.
 | Dans la V1 | Hors V1 |
 |---|---|
 | Comptes client obligatoires (e-mail/mot de passe ou Google) | Commande en invité |
-| Carte : catégories, produits, ingrédients retirables, substitutions, suppléments, menus à emplacements | Allergènes dans l'app (V2) |
+| Carte : catégories, produits, ingrédients retirables, substitutions, suppléments, groupes d'options (pain, sauces, taille), menus à emplacements | Allergènes dans l'app (V2) |
 | Horaires, fermetures exceptionnelles, pause des commandes | Gestion de stock chiffrée |
 | Ruptures d'ingrédients et de produits en temps réel | Multi-restaurants, multi-langue |
 | Click & collect : retrait ASAP ou sur créneau à capacité limitée | Livraison, commande à table, borne |

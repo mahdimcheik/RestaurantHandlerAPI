@@ -11,7 +11,8 @@ public sealed record ProductAvailability(bool IsOrderable, IReadOnlyList<Guid> F
 /// <summary>
 /// R6 (docs/20-regles-metier/01-regles-commande.md) sur un graphe de carte déjà chargé :
 /// <c>Product.Category</c>, <c>Product.Ingredients[].Ingredient</c>, substitutions et suppléments
-/// avec leurs ingrédients, <c>Menu.Slots[].Options[].Product</c> (et le graphe produit ci-dessus).
+/// avec leurs ingrédients, <c>Product.OptionGroups[].Choices[].Ingredient</c>,
+/// <c>Menu.Slots[].Options[].Product</c> (et le graphe produit ci-dessus).
 /// </summary>
 public static class AvailabilityPolicy
 {
@@ -38,8 +39,19 @@ public static class AvailabilityPolicy
             forcedRemovals.Add(component.IngredientId);
         }
 
+        // Un groupe obligatoire sans assez de choix disponibles (plus de pain) rend le produit indisponible.
+        if (ActiveOptionGroups(product).Any(g => g.Choices.Count(IsOptionChoiceOffered) < g.MinChoices))
+            return ProductAvailability.Unavailable;
+
         return new ProductAvailability(true, forcedRemovals);
     }
+
+    public static IEnumerable<ProductOptionGroup> ActiveOptionGroups(Product product) =>
+        product.OptionGroups.Where(g => g.ArchivedAt is null).OrderBy(g => g.Position);
+
+    /// <summary>Non archivé et, s'il est lié à un ingrédient, celui-ci est disponible.</summary>
+    public static bool IsOptionChoiceOffered(ProductOptionChoice choice) =>
+        choice.ArchivedAt is null && (choice.IngredientId is null || IsIngredientAvailable(choice.Ingredient));
 
     /// <summary>
     /// Une substitution est proposée si le remplaçant est disponible. Remplacer un ingrédient en

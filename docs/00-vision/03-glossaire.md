@@ -11,6 +11,7 @@
 | **Substitution** | Remplacement autorisé d'un ingrédient de la composition par un autre, avec un éventuel surcoût. | `IngredientSubstitution`, `ModificationType.Replace` |
 | **Supplément** | Ajout payant d'un ingrédient sur un produit, plafonné en quantité. | `ProductSupplement`, `ModificationType.Supplement` |
 | **Menu** | Formule à prix fixe composée d'emplacements. | `Menu` |
+| **Groupe d'options** | Choix à faire dans une liste propre au produit (« Pain », « Sauces », « Taille »), avec un minimum, un maximum, des choix offerts et des surcoûts. | `ProductOptionGroup`, `ProductOptionChoice`, `ModificationType.Choice` |
 | **Emplacement** | Étape d'un menu (« Plat », « Boisson »…) avec un nombre minimal et maximal de choix. | `MenuSlot` |
 | **Option d'emplacement** | Produit proposé dans un emplacement, avec un surcoût éventuel (« grande boisson +1 € »). | `MenuSlotOption` |
 | **Commande** | Ensemble de lignes passées par un client ou saisies au comptoir, avec un numéro unique. | `Order`, `OrderNumber` |

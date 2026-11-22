@@ -115,11 +115,12 @@ public static class StatsPolicy
 
         void AddSupplements(OrderItem item, int multiplier)
         {
-            foreach (var mod in item.Modifications.Where(m => m.Type == ModificationType.Supplement))
+            foreach (var mod in item.Modifications.Where(m => m.Type == ModificationType.Supplement && m.IngredientId is not null))
             {
-                var s = supplements.TryGetValue(mod.IngredientId, out var found)
+                var ingredientId = mod.IngredientId!.Value;
+                var s = supplements.TryGetValue(ingredientId, out var found)
                     ? found
-                    : supplements[mod.IngredientId] = new SupplementSales { IngredientId = mod.IngredientId };
+                    : supplements[ingredientId] = new SupplementSales { IngredientId = ingredientId };
                 s.Name = mod.LabelSnapshot;
                 s.Quantity += mod.Quantity * multiplier;
                 s.RevenueCents += mod.UnitPriceCents * mod.Quantity * multiplier;

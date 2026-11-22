@@ -33,6 +33,33 @@ public class PublicProduct
 
     [Required] public List<PublicIngredient> Ingredients { get; set; } = [];
     [Required] public List<PublicSupplement> Supplements { get; set; } = [];
+
+    /// <summary>Choix à faire avant l'ajout au panier (pain, sauces, taille), dans l'ordre d'affichage.</summary>
+    [Required] public List<PublicOptionGroup> OptionGroups { get; set; } = [];
+}
+
+public class PublicOptionGroup
+{
+    [Required] public Guid Id { get; set; }
+    [Required] public string Label { get; set; } = string.Empty;
+    [Required] public int MinChoices { get; set; }
+    [Required] public int MaxChoices { get; set; }
+
+    /// <summary>Choix inclus ; chacun des suivants coûte <see cref="ExtraChoicePriceCents"/>.</summary>
+    [Required] public int FreeChoices { get; set; }
+
+    [Required] public int ExtraChoicePriceCents { get; set; }
+    [Required] public List<PublicOptionChoice> Choices { get; set; } = [];
+}
+
+public class PublicOptionChoice
+{
+    [Required] public Guid Id { get; set; }
+    [Required] public string Name { get; set; } = string.Empty;
+    [Required] public int ExtraPriceCents { get; set; }
+
+    /// <summary>Faux = grisé (ingrédient en rupture).</summary>
+    [Required] public bool IsAvailable { get; set; }
 }
 
 public class PublicIngredient

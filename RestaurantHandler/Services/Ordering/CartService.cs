@@ -24,6 +24,9 @@ public class CartService(MainContext db)
             .Include(p => p.Ingredients).ThenInclude(pi => pi.Ingredient)
             .Include(p => p.Ingredients).ThenInclude(pi => pi.Substitutions).ThenInclude(s => s.SubstituteIngredient)
             .Include(p => p.Supplements).ThenInclude(s => s.Ingredient)
+            .Include(p => p.OptionGroups.Where(g => g.ArchivedAt == null))
+            .ThenInclude(g => g.Choices.Where(c => c.ArchivedAt == null)).ThenInclude(c => c.Ingredient)
+            .AsSplitQuery()
             .ToDictionaryAsync(p => p.Id);
         var menus = await db.Menus
             .Where(m => menuIds.Contains(m.Id))

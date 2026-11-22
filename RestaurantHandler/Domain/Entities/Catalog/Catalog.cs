@@ -62,6 +62,7 @@ public class Product : BaseModel
 
     public ICollection<ProductIngredient> Ingredients { get; set; } = new List<ProductIngredient>();
     public ICollection<ProductSupplement> Supplements { get; set; } = new List<ProductSupplement>();
+    public ICollection<ProductOptionGroup> OptionGroups { get; set; } = new List<ProductOptionGroup>();
 }
 
 public class Ingredient : BaseModel
@@ -114,6 +115,51 @@ public class ProductSupplement
 
     public int PriceCents { get; set; }
     public int MaxQuantity { get; set; } = 3;
+}
+
+/// <summary>
+/// Choix dans une liste propre au produit (« Pain », « Sauces », « Taille »), borné par
+/// <see cref="MinChoices"/> et <see cref="MaxChoices"/>. Archivé, jamais supprimé : les lignes de
+/// commande pointent vers ses choix.
+/// </summary>
+public class ProductOptionGroup : BaseModel
+{
+    public Guid ProductId { get; set; }
+    public Product? Product { get; set; }
+
+    [Required]
+    [MaxLength(64)]
+    public string Label { get; set; } = string.Empty;
+
+    public int Position { get; set; }
+    public int MinChoices { get; set; }
+    public int MaxChoices { get; set; } = 1;
+
+    /// <summary>Nombre de choix inclus ; chacun des suivants coûte <see cref="ExtraChoicePriceCents"/>.</summary>
+    public int FreeChoices { get; set; } = 1;
+
+    public int ExtraChoicePriceCents { get; set; }
+
+    public ICollection<ProductOptionChoice> Choices { get; set; } = new List<ProductOptionChoice>();
+}
+
+public class ProductOptionChoice : BaseModel
+{
+    public Guid GroupId { get; set; }
+    public ProductOptionGroup? Group { get; set; }
+
+    [Required]
+    [MaxLength(64)]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Si renseigné, la rupture de l'ingrédient rend le choix indisponible ; nul pour une taille.</summary>
+    public Guid? IngredientId { get; set; }
+    public Ingredient? Ingredient { get; set; }
+
+    /// <summary>Surcoût propre au choix, ex. +300 pour la grande taille.</summary>
+    public int ExtraPriceCents { get; set; }
+
+    public int Position { get; set; }
 }
 
 public class Menu : BaseModel

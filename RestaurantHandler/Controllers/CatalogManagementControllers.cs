@@ -85,6 +85,11 @@ public class ProductsController(ProductService products) : ControllerBase
     public async Task<ActionResult<Response<ProductDetails>>> UpdateComposition(Guid id, [FromBody] CompositionUpdate dto) =>
         Success(await products.UpdateCompositionAsync(id, dto));
 
+    /// <summary>Remplace les groupes d'options (pain, sauces, taille…) dans l'ordre d'affichage.</summary>
+    [HttpPut("{id:guid}/option-groups")]
+    public async Task<ActionResult<Response<ProductDetails>>> UpdateOptionGroups(Guid id, [FromBody] OptionGroupsUpdate dto) =>
+        Success(await products.UpdateOptionGroupsAsync(id, dto));
+
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<Response<object>>> Archive(Guid id)
     {

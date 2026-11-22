@@ -61,7 +61,7 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
         return ToDetails(ingredient);
     }
 
-    /// <summary>Refusé tant qu'un produit non archivé l'utilise (composition, remplacement, supplément).</summary>
+    /// <summary>Refusé tant qu'un produit non archivé l'utilise (composition, remplacement, supplément, choix d'option).</summary>
     public async Task ArchiveAsync(Guid id)
     {
         var ingredient = await FindAsync(id);
@@ -69,7 +69,9 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
         var users = await db.Products.AsNoTracking()
             .Where(p => p.ArchivedAt == null
                 && (p.Ingredients.Any(pi => pi.IngredientId == id || pi.Substitutions.Any(s => s.SubstituteIngredientId == id))
-                    || p.Supplements.Any(s => s.IngredientId == id)))
+                    || p.Supplements.Any(s => s.IngredientId == id)
+                    || p.OptionGroups.Any(g => g.ArchivedAt == null
+                        && g.Choices.Any(c => c.ArchivedAt == null && c.IngredientId == id))))
             .OrderBy(p => p.Name)
             .Select(p => p.Name)
             .Take(5)
