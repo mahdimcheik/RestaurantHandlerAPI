@@ -20,3 +20,12 @@ métier, technique, décisions (ADR) et **[feuille de route](docs/50-feuille-de-
    (`ADMIN_EMAIL` / `ADMIN_PASSWORD`) sont appliqués au démarrage ; Swagger sur `/swagger`.
 
 Vérifier la cohérence de la doc : `./docs/check-docs.sh`.
+
+# note à faire pour pour sumup
+
+Pour passer le test sandbox réel
+La procédure est détaillée dans docs/30-technique/03-exploitation.md. En résumé :
+
+1. Créez un sandbox SumUp et une clé API, puis renseignez SUMUP_API_KEY et SUMUP_MERCHANT_CODE dans .env.
+2. Exposez l'API en HTTPS avec un tunnel, pour que SumUp puisse joindre /payments/sumup/notifications, et mettez cette adresse dans API_BACK_URL.
+3. Payez une commande avec la carte de test 4200 0000 0000 0091.
