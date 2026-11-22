@@ -97,7 +97,7 @@ client ignoré, rupture entre panier et validation, concurrence sur la dernière
 isolement entre clients, permissions, garde « payée », snapshots, pause, non-venues. Paiement
 en ligne SumUp (statut `PendingPayment` créé sans checkout) : J3.
 
-## J3 — Paiement SumUp (S5–S6)
+## J3 — Paiement SumUp (S5–S6) — 🟡 intégration faite, sandbox réel à passer
 
 - Compte marchand SumUp en mode test, clés en variables d'environnement.
 - Écarts M4, M5. `Integrations/SumUp/` : création de checkout, relecture, remboursement.
@@ -107,6 +107,16 @@ en ligne SumUp (statut `PendingPayment` créé sans checkout) : J3.
 - Page reçu des paiements en ligne (contenu selon réponse question 2).
 - **Sortie :** paiement sandbox de bout en bout, notification rejouée sans effet, remboursement
   testé.
+
+**Bilan J3 (2026-11-22) :** API SumUp vérifiée sur la documentation officielle (notifications
+non signées). Écarts M4 et M5 faits. `Integrations/SumUp/SumUpClient` (checkout hébergé, lecture,
+désactivation, remboursement total) ; règle pure `OnlinePaymentPolicy` (12 tests) ; service de
+paiement : création du checkout à la validation, nouvelle tentative, bascule au retrait
+(transition ajoutée), notification relue et sérialisée par commande, réconciliation et
+expiration Hangfire, remboursement automatique à l'annulation et des paiements tardifs,
+anomalies signalées au Manager, reçu. 10 tests d'intégration contre un faux SumUp au format de
+l'API. **Reste pour la sortie :** le même parcours en sandbox SumUp réel (procédure dans
+[exploitation](../30-technique/03-exploitation.md#configuration)).
 
 ## J4 — PWA client (S6–S8)
 

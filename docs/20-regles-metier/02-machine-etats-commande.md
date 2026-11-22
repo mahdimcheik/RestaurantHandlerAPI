@@ -43,7 +43,8 @@ commande « payer au retrait » est préparée **avant** d'être payée.
 | — | `AValider` | Client valide, paiement au retrait | client non bloqué, une seule en cours |
 | — | `Confirmée` | Manager valide une commande comptoir | — |
 | `EnAttentePaiement` | `Confirmée` | Paiement confirmé (webhook + relecture SumUp) | montant = total ; `PaidAt` renseigné |
-| `EnAttentePaiement` | `Annulée` | Client, ou expiration (Hangfire) | — |
+| `EnAttentePaiement` | `Annulée` | Client, ou expiration (Hangfire) | checkout SumUp désactivé ; paiement arrivé entre-temps remboursé |
+| `EnAttentePaiement` | `AValider` | Client abandonne le paiement en ligne (ajoutée en J3) | mêmes limites qu'US-E04-5 ; checkout désactivé ; refus automatique planifié |
 | `AValider` | `Confirmée` | Manager accepte | — |
 | `AValider` | `Refusée` | Manager refuse (motif) ou délai dépassé (Hangfire) | — |
 | `Confirmée` | `EnPréparation` | Cuisine | — |

@@ -10,7 +10,7 @@ requis, horloge de test réglable). Tous les cas ci-dessous hors SumUp sont couv
 |---|---|---|---|
 | Unitaire | xUnit | `Domain/Policies/` : calcul des prix, ventilation TVA, validation des personnalisations et des menus, transitions d'état, calcul des créneaux, disponibilité | **chaque règle R1–R10 et chaque transition** a au moins un test ; exécution < 5 s |
 | Intégration | xUnit + `WebApplicationFactory` + PostgreSQL (Testcontainers) | API de bout en bout : validation de commande, capacité de créneau en concurrence, idempotence, webhook SumUp simulé, permissions (anonyme / client / autre client / Manager) | tous les points d'accès de commande et de paiement |
-| Contrat SumUp | sandbox SumUp | création de checkout, paiement test, notification, remboursement | avant la fin de J3 |
+| Contrat SumUp | faux SumUp (tests d'intégration) puis sandbox SumUp réel | création de checkout, paiement test, notification, remboursement | faux SumUp : fait en J3 ; sandbox réel : avant J4 |
 | Front | tests de composants sur le panier et la personnalisation ; un parcours e2e (Playwright) click & collect | parcours critiques | J4 / J5 |
 | Charge | k6 ou équivalent | pic d'un service : ~ 60 commandes / 15 min, 30 clients en suivi temps réel, KDS connecté | J6 |
 | Recette terrain | service simulé avec l'équipe | parcours 1 à 5 de la [vision](../00-vision/02-acteurs-parcours.md) sur les vrais appareils | J6, avant ouverture |

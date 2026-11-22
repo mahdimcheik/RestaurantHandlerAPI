@@ -57,6 +57,7 @@ métier testables sans base.
 | `OrderStatusChanged` | client propriétaire (`SendToUserAsync`), groupe `restaurant` |
 | `OrderCreated` / `OrderAwaitingApproval` | groupe `restaurant` |
 | `OrderUpdated` (encaissement déclaré) | groupe `restaurant` |
+| `PaymentAnomaly` (montant SumUp ≠ total, remboursement en échec) | groupe `restaurant` |
 | `AvailabilityChanged` (rupture, pause, ouverture) | tous (y compris anonymes sur la carte) |
 
 Le temps réel **notifie** ; la vérité reste l'API. Tout client resynchronise par une lecture

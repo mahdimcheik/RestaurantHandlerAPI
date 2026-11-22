@@ -29,6 +29,31 @@ public class OrderQueryService(MainContext db, TimeProvider clock)
         return OrderMapping.ToDetails(order, caller.IsManager);
     }
 
+    /// <summary>Justificatif d'une commande payée, au propriétaire ou à un Manager.</summary>
+    public async Task<OrderReceipt> ReceiptAsync(Guid id, CallerIdentity caller)
+    {
+        var order = await GetAsync(id, caller);
+        if (order.PaidAt is not { } paidAt)
+            throw new BusinessConflictException("Cette commande n'est pas payée : pas de justificatif.");
+
+        var settings = await db.RestaurantSettings.AsNoTracking().FirstAsync();
+        return new OrderReceipt
+        {
+            TradeName = settings.TradeName,
+            LegalName = settings.LegalName,
+            Address = settings.Address,
+            Siret = settings.Siret,
+            VatNumber = settings.VatNumber,
+            OrderNumber = order.OrderNumber,
+            DailyNumber = order.DailyNumber,
+            PaidAt = paidAt,
+            Items = order.Items,
+            Vat = order.Vat,
+            TotalCents = order.TotalCents,
+            Payments = order.Payments.Where(p => p.Status is PaymentStatus.Successful or PaymentStatus.Refunded).ToList(),
+        };
+    }
+
     public async Task<(List<OrderSummary> Items, int Total)> ListMineAsync(CallerIdentity caller, int page, int pageSize)
     {
         pageSize = Math.Clamp(pageSize, 1, 50);

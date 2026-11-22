@@ -37,6 +37,8 @@ public class OrderPlacementService(
         var settings = await ReadSettingsAsync();
         if (dto.PaymentChoice == PaymentChoice.OnSite)
             await EnsurePayOnSiteAllowedAsync(caller.UserId, settings);
+        else if (!EnvironmentVariables.SumUpEnabled)
+            throw new BusinessConflictException("Le paiement en ligne est indisponible : choisissez le paiement au retrait.");
 
         var (order, created) = await CreateUnderLockAsync(caller.UserId, dto.IdempotencyKey, async now =>
         {
@@ -165,6 +167,9 @@ public class OrderPlacementService(
     }
 
     /// <summary>US-E04-5 : une seule commande « au retrait » en cours, et pas au-delà du seuil de non-venues.</summary>
+    public async Task EnsurePayOnSiteAllowedAsync(Guid customerId) =>
+        await EnsurePayOnSiteAllowedAsync(customerId, await ReadSettingsAsync());
+
     private async Task EnsurePayOnSiteAllowedAsync(Guid customerId, RestaurantSettings settings)
     {
         var noShows = await db.Users.Where(u => u.Id == customerId).Select(u => u.NoShowCount).FirstOrDefaultAsync();

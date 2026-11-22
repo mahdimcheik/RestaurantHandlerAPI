@@ -24,6 +24,7 @@ public class OrderTransitionPolicyTests
     [InlineData(Confirmed, InPreparation, OrderActor.Manager)]
     [InlineData(Confirmed, Cancelled, OrderActor.Customer)]
     [InlineData(InPreparation, Ready, OrderActor.Manager)]
+    [InlineData(PendingPayment, AwaitingApproval, OrderActor.Customer)]
     public void Transitions_listees_autorisees(OrderStatus from, OrderStatus to, OrderActor actor) =>
         Assert.Null(Check(from, to, actor));
 
@@ -38,6 +39,7 @@ public class OrderTransitionPolicyTests
     [InlineData(AwaitingApproval, InPreparation, OrderActor.Manager)]
     [InlineData(Ready, Confirmed, OrderActor.Manager)]
     [InlineData(PendingPayment, Refused, OrderActor.Manager)]
+    [InlineData(PendingPayment, AwaitingApproval, OrderActor.Manager)]
     public void Transitions_non_listees_ou_mauvais_acteur_refusees(OrderStatus from, OrderStatus to, OrderActor actor) =>
         Assert.NotNull(Check(from, to, actor));
 

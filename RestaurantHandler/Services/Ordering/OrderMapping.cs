@@ -48,6 +48,11 @@ public static class OrderMapping
         details.CompletedAt = o.CompletedAt;
         details.PaidAt = o.PaidAt;
         details.PaidCents = PaidCents(o);
+        details.PaymentUrl = o.Status == OrderStatus.PendingPayment
+            ? o.Payments.Where(p => p.Status == PaymentStatus.Pending && p.CheckoutUrl != null)
+                .OrderByDescending(p => p.CreatedAt).Select(p => p.CheckoutUrl).FirstOrDefault()
+            : null;
+        details.PaymentIssue = forManager ? o.PaymentIssue : null;
         details.Items = topLevel.Select(ToItem).ToList();
         details.Vat = Vat(topLevel);
         details.History = o.StatusHistory

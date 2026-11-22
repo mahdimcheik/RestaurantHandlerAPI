@@ -71,7 +71,7 @@ public class RestaurantSettings
     public int ApprovalTimeoutMinutes { get; set; } = 10;
     public int PickupGraceMinutes { get; set; } = 30;
     public int NoShowThreshold { get; set; } = 2;
-    public int OnlinePaymentExpiryMinutes { get; set; } = 15;
+    public int OnlinePaymentExpiryMinutes { get; set; } = 30;
 
     // Pause des commandes en ligne
     public bool IsPaused { get; set; }

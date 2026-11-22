@@ -47,10 +47,10 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 
 | Table | Rôle | Points clés |
 |---|---|---|
-| `Order` | Commande | `OrderNumber` (identity), `ServiceDate` + `DailyNumber` (unique), `IdempotencyKey` (unique par auteur), `CustomerId?`, `CustomerFirstName?`, `CreatedByUserId`, `Channel`, `Status`, `PickupMode`, `PickupAt`, `PaymentChoice`, `TotalCents`, `PaidAt/ConfirmedAt/ReadyAt/CompletedAt`, jeton `xmin` |
+| `Order` | Commande | `OrderNumber` (identity), `ServiceDate` + `DailyNumber` (unique), `IdempotencyKey` (unique par auteur), `CustomerId?`, `CustomerFirstName?`, `CreatedByUserId`, `Channel`, `Status`, `PickupMode`, `PickupAt`, `PaymentChoice`, `TotalCents`, `PaidAt/ConfirmedAt/ReadyAt/CompletedAt`, `PaymentIssue` (anomalie à traiter), jeton `xmin` |
 | `OrderItem` | Ligne | produit **ou** menu ; composants de menu en lignes enfants ; snapshots nom/prix/TVA |
 | `OrderItemModification` | Personnalisation | `Remove` / `Replace` / `Supplement`, libellé et prix figés |
-| `Payment` | Paiement en ligne ou encaissement sur place déclaré | `Method` (`SumupOnline`, `OnSiteCard`, `OnSiteCash`, `OnSiteOther`), `Status`, `AmountCents`, identifiants SumUp (uniques), `DeclaredByUserId` |
+| `Payment` | Paiement en ligne ou encaissement sur place déclaré | `Method` (`SumupOnline`, `OnSiteCard`, `OnSiteCash`, `OnSiteOther`), `Status`, `AmountCents`, identifiants SumUp uniques (`SumupCheckoutId`, `SumupTransactionCode`, `SumupTransactionId`), `CheckoutUrl`, `RefundedAt`, `DeclaredByUserId` |
 | `OrderStatusHistory` | Journal des statuts | auteur, horodatage, `Reason` |
 
 ## Écarts à combler
@@ -60,8 +60,8 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 | M1 | ✅ `OrderStatus` : remplacer `Paid` par `Confirmed` ; ajouter `AwaitingApproval`, `Refused`, `NoShow` | [machine à états](../20-regles-metier/02-machine-etats-commande.md) | J2 |
 | M2 | ✅ `OrderStatusHistory.Reason` | motifs de refus / annulation | J2 |
 | M3 | ✅ `Order` : mode de retrait (ASAP / créneau), `PickupAt` (heure prévue), mode de paiement choisi (en ligne / au retrait), `IdempotencyKey` unique, `CustomerFirstName` facultatif (comptoir) | E04, E06 | J2 |
-| M4 | 🟡 (encaissements déclarés faits en J2) `PaymentMethod` : distinguer paiement en ligne SumUp et **encaissements sur place déclarés** (carte, espèces, autre) ; un encaissement déclaré porte l'auteur | paiement mixte, [US-E05-3](../10-cahier-des-charges/E05-paiement.md#us-e05-3--marquer-une-commande--payée--sur-place) | J3 |
-| M5 | `Payment` : identifiant de transaction SumUp unique (idempotence), `Refunded` + date | E05 | J3 |
+| M4 | ✅ `PaymentMethod` : distinguer paiement en ligne SumUp et **encaissements sur place déclarés** (carte, espèces, autre) ; un encaissement déclaré porte l'auteur | paiement mixte, [US-E05-3](../10-cahier-des-charges/E05-paiement.md#us-e05-3--marquer-une-commande--payée--sur-place) | J3 |
+| M5 | ✅ `Payment` : identifiant de transaction SumUp unique (idempotence), `Refunded` + date | E05 | J3 |
 | M6 | ✅ `Product.IsAvailable` (rupture produit, distincte de `IsActive`) | [US-E03-4](../10-cahier-des-charges/E03-ouverture-ruptures.md#us-e03-4--déclarer-une-rupture) | J1 |
 | M7 | ✅ Nouvelles tables : `OpeningHours` (jour, début, fin), `Closure` (début, fin, motif), `RestaurantSettings` (identité légale, délais, créneaux, pause jusqu'à) | E03, E10 | J1 |
 | M8 | ✅ `UserApp.NoShowCount` : compteur de non-venues / blocage paiement au retrait | [US-E04-5](../10-cahier-des-charges/E04-commande-en-ligne.md#us-e04-5--limiter-les-abus-du-paiement-au-retrait) | J2 |

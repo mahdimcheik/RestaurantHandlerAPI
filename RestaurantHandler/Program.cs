@@ -1,3 +1,4 @@
+using RestaurantHandler.Integrations.SumUp;
 using System.Text;
 using System.Text.Json.Serialization;
 using Amazon.Runtime;
@@ -67,6 +68,16 @@ using (var scope = app.Services.CreateScope())
 
     // Seed default users
     AdminAccountsSeeder.Seed(scope.ServiceProvider);
+}
+
+// Réconciliation SumUp : notifications perdues et commandes non payées dans le délai.
+if (EnvironmentVariables.SumUpEnabled)
+{
+    app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<OnlinePaymentService>(
+        "sumup-reconcile",
+        s => s.ReconcileAllAsync(),
+        EnvironmentVariables.SUMUP_RECONCILE_CRON
+    );
 }
 
 // Configurer le pipeline de middleware
@@ -148,6 +159,10 @@ static void ConfigureServices(IServiceCollection services)
     services.AddScoped<OrderQueryService>();
     services.AddScoped<OrderPlacementService>();
     services.AddScoped<OrderWorkflowService>();
+
+    // Paiement en ligne SumUp (J3)
+    services.AddHttpClient<SumUpClient>(SumUpClient.Configure);
+    services.AddScoped<OnlinePaymentService>();
 
     services.AddLogging(loggingBuilder =>
     {

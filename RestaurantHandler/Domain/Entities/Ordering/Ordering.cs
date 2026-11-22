@@ -109,6 +109,14 @@ public class Order : BaseModel
 
     /// <summary>Renseigné quand les paiements réussis couvrent le total (R9).</summary>
     public DateTimeOffset? PaidAt { get; set; }
+
+    /// <summary>
+    /// Anomalie de paiement à traiter par un Manager (montant SumUp ≠ total, remboursement en
+    /// échec…) : aucune transition automatique n'a lieu (R9).
+    /// </summary>
+    [MaxLength(500)]
+    public string? PaymentIssue { get; set; }
+
     public DateTimeOffset? ConfirmedAt { get; set; }
     public DateTimeOffset? ReadyAt { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }
@@ -202,6 +210,16 @@ public class Payment : BaseModel
 
     [MaxLength(128)]
     public string? SumupTransactionCode { get; set; }
+
+    /// <summary>Identifiant (UUID) de la transaction SumUp, requis pour rembourser.</summary>
+    [MaxLength(64)]
+    public string? SumupTransactionId { get; set; }
+
+    /// <summary>Page de paiement hébergée par SumUp (valable 30 min).</summary>
+    [MaxLength(500)]
+    public string? CheckoutUrl { get; set; }
+
+    public DateTimeOffset? RefundedAt { get; set; }
 
     /// <summary>Manager qui a déclaré un encaissement sur place.</summary>
     public Guid? DeclaredByUserId { get; set; }

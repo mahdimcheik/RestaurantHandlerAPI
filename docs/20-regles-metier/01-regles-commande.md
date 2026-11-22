@@ -95,3 +95,7 @@ actif et si chaque emplacement à minimum > 0 a au moins une option commandable.
 - La validation d'un panier porte une **clé d'idempotence** générée par le client ; un rejeu
   avec la même clé renvoie la commande déjà créée.
 - Chaque notification SumUp est traitée au plus une fois (identifiant de transaction unique).
+  Les notifications SumUp **ne sont pas signées** : elles déclenchent seulement une relecture
+  du checkout, sérialisée par commande (`pg_advisory_xact_lock`) ; la décision est la règle pure
+  `OnlinePaymentPolicy` (confirmer, échec de tentative, anomalie, remboursement d'un paiement
+  arrivé sur une commande qui ne l'attendait plus).

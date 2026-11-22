@@ -95,7 +95,7 @@ public class RestaurantSettingsWrite
     [Range(1, 120)] public int ApprovalTimeoutMinutes { get; set; } = 10;
     [Range(0, 240)] public int PickupGraceMinutes { get; set; } = 30;
     [Range(1, 20)] public int NoShowThreshold { get; set; } = 2;
-    [Range(1, 120)] public int OnlinePaymentExpiryMinutes { get; set; } = 15;
+    [Range(5, 30)] public int OnlinePaymentExpiryMinutes { get; set; } = 30;
 }
 
 public class RestaurantSettingsDetails : RestaurantSettingsWrite

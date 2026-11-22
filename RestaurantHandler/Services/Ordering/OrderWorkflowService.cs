@@ -1,3 +1,4 @@
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using RestaurantHandler.Contexts;
 using RestaurantHandler.Domain.Policies;
@@ -11,13 +12,23 @@ namespace RestaurantHandler.Services;
 /// Transitions de commande (machine à états), encaissements déclarés et non-venues. Chaque
 /// transition est vérifiée par <see cref="OrderTransitionPolicy"/>, historisée et diffusée.
 /// </summary>
-public class OrderWorkflowService(MainContext db, OrderNotifier notifier, TimeProvider clock)
+public class OrderWorkflowService(MainContext db, OrderNotifier notifier, IBackgroundJobClient jobs, TimeProvider clock)
 {
     // ---------- Client ----------
 
     /// <summary>US-E04-6 : avant la préparation uniquement. Remboursement en ligne : J3.</summary>
     public Task<OrderDetails> CancelByCustomerAsync(Guid orderId, CallerIdentity caller) =>
         TransitionAsync(orderId, OrderStatus.Cancelled, OrderActor.Customer, caller.UserId, null, ownerId: caller.UserId);
+
+    /// <summary>Paiement en ligne abandonné : la commande passe « au retrait » et attend le Manager.</summary>
+    public async Task<OrderDetails> SwitchToPayOnSiteAsync(Guid orderId, CallerIdentity caller)
+    {
+        var details = await TransitionAsync(orderId, OrderStatus.AwaitingApproval, OrderActor.Customer, caller.UserId, null,
+            ownerId: caller.UserId, apply: o => o.PaymentChoice = PaymentChoice.OnSite);
+        var timeout = await db.RestaurantSettings.Select(x => x.ApprovalTimeoutMinutes).FirstOrDefaultAsync();
+        jobs.Schedule<OrderWorkflowService>(x => x.AutoRefuseAsync(orderId), TimeSpan.FromMinutes(timeout));
+        return details;
+    }
 
     // ---------- Manager ----------
 
@@ -75,7 +86,7 @@ public class OrderWorkflowService(MainContext db, OrderNotifier notifier, TimePr
         var remaining = order.TotalCents - OrderMapping.PaidCents(order);
         var amount = dto.AmountCents ?? remaining;
         if (amount > remaining)
-            throw new BusinessRuleException($"Montant supérieur au reste à payer ({remaining / 100m:0.00} €).");
+            throw new BusinessRuleException($"Montant supérieur au reste à payer ({Money.Format(remaining)}).");
 
         var now = clock.GetUtcNow();
         order.Payments.Add(new Payment
@@ -107,6 +118,14 @@ public class OrderWorkflowService(MainContext db, OrderNotifier notifier, TimePr
 
     // ---------- Système ----------
 
+    /// <summary>Paiement en ligne confirmé par SumUp (après relecture) : `Confirmée` et payée.</summary>
+    public Task<OrderDetails> ConfirmPaidOnlineAsync(Guid orderId) =>
+        TransitionAsync(orderId, OrderStatus.Confirmed, OrderActor.System, null, null, apply: o => o.PaidAt = clock.GetUtcNow());
+
+    /// <summary>Aucun paiement réussi dans le délai : annulation automatique (US-E05-2).</summary>
+    public Task<OrderDetails> ExpireUnpaidAsync(Guid orderId) =>
+        TransitionAsync(orderId, OrderStatus.Cancelled, OrderActor.System, null, "Paiement en ligne non reçu dans le délai.");
+
     /// <summary>Tâche Hangfire : refuse une commande restée « À valider » au-delà du délai (US-E06-3).</summary>
     public async Task AutoRefuseAsync(Guid orderId)
     {
@@ -132,7 +151,8 @@ public class OrderWorkflowService(MainContext db, OrderNotifier notifier, TimePr
         OrderActor actor,
         Guid? authorId,
         string? reason,
-        Guid? ownerId = null
+        Guid? ownerId = null,
+        Action<Order>? apply = null
     )
     {
         var order = await db.Orders
@@ -171,6 +191,8 @@ public class OrderWorkflowService(MainContext db, OrderNotifier notifier, TimePr
                 order.Customer.NoShowCount++;
                 break;
         }
+
+        apply?.Invoke(order);
 
         db.OrderStatusHistory.Add(new OrderStatusHistory
         {

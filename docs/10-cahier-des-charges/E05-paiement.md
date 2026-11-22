@@ -12,7 +12,8 @@ En tant que client, je veux payer ma commande par carte en ligne afin de la reti
 attendre.
 
 **Priorité :** V1
-**État :** Partielle (modèle `Payment` présent, pas d'intégration)
+**État :** Partielle
+**Avancement :** API faite en J3 (checkout à page hébergée SumUp, `paymentUrl`, nouvelle tentative `POST /orders/{id}/payment`, bascule `POST /orders/{id}/pay-on-site`, anomalie si montant ≠ total), testée contre un faux SumUp ; **paiement sandbox réel à faire** (clés et URL publique) ; écran en J4.
 
 **Critères d'acceptation**
 - La validation crée un *checkout* SumUp du montant calculé par le serveur, en EUR, avec une
@@ -31,7 +32,8 @@ En tant que restaurant, je veux que chaque paiement soit pris en compte exacteme
 afin de ne perdre ni dupliquer aucune commande.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** Fait en J3 : notification relue chez SumUp, traitement idempotent et sérialisé par commande, réconciliation Hangfire (`SUMUP_RECONCILE_CRON`, 2 min) et annulation après `OnlinePaymentExpiryMinutes` (30 min) ; à valider en sandbox réel.
 
 **Critères d'acceptation**
 - Une notification rejouée ou reçue en double ne produit aucun effet supplémentaire.
@@ -64,7 +66,8 @@ En tant que Manager, je veux rembourser une commande payée en ligne afin de gé
 annulation ou une erreur.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J3 : remboursement total automatique à l'annulation (client ou Manager) et pour un paiement arrivé sur une commande qui ne l'attendait plus ; `POST /manage/orders/{id}/refund` pour relancer ou décider (non-venue) ; échec signalé en anomalie.
 
 **Critères d'acceptation**
 - Le remboursement est total en V1, déclenché via l'API SumUp, et tracé (`Refunded`).
@@ -77,7 +80,8 @@ En tant que client ayant payé en ligne, je veux un justificatif de mon achat af
 présenter (note de frais).
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J3 (`GET /orders/{id}/receipt`, commande payée uniquement) ; contenu à valider (question 2) ; page en J4.
 
 **Critères d'acceptation**
 - Une page « reçu » de la commande, accessible depuis l'historique, affiche : restaurant

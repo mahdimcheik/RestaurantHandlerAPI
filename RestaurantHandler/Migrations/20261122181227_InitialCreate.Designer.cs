@@ -13,7 +13,7 @@ using RestaurantHandler.Contexts;
 namespace RestaurantHandler.Migrations
 {
     [DbContext(typeof(MainContext))]
-    [Migration("20261122175741_InitialCreate")]
+    [Migration("20261122181227_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -558,6 +558,10 @@ namespace RestaurantHandler.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)");
 
+                    b.Property<string>("PaymentIssue")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<DateTime>("PickupAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -788,6 +792,10 @@ namespace RestaurantHandler.Migrations
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("CheckoutUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -813,6 +821,9 @@ namespace RestaurantHandler.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("RefundedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -826,6 +837,10 @@ namespace RestaurantHandler.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
+                    b.Property<string>("SumupTransactionId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -838,6 +853,11 @@ namespace RestaurantHandler.Migrations
 
                     b.HasIndex("SumupTransactionCode")
                         .IsUnique();
+
+                    b.HasIndex("SumupTransactionId")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "CreatedAt");
 
                     b.ToTable("Payments", t =>
                         {
@@ -1066,7 +1086,7 @@ namespace RestaurantHandler.Migrations
                             IsPaused = false,
                             MinLeadMinutes = 20,
                             NoShowThreshold = 2,
-                            OnlinePaymentExpiryMinutes = 15,
+                            OnlinePaymentExpiryMinutes = 30,
                             PickupGraceMinutes = 30,
                             SlotCapacityOrders = 5,
                             SlotDurationMinutes = 15,

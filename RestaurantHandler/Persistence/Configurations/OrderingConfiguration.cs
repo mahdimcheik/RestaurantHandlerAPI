@@ -143,6 +143,8 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.Currency).IsFixedLength().HasDefaultValue("EUR");
         builder.HasIndex(p => p.SumupCheckoutId).IsUnique();
         builder.HasIndex(p => p.SumupTransactionCode).IsUnique();
+        builder.HasIndex(p => p.SumupTransactionId).IsUnique();
+        builder.HasIndex(p => new { p.Status, p.CreatedAt });
         builder.HasIndex(p => p.OrderId);
 
         builder

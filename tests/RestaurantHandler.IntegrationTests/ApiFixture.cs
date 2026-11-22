@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using RestaurantHandler.Integrations.SumUp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using RestaurantHandler.Contexts;
@@ -39,6 +41,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     private readonly PostgreSqlContainer _db = new PostgreSqlBuilder("postgres:17").Build();
 
     public TestClock Clock { get; } = new(Monday12h);
+    public FakeSumUp SumUp { get; } = new();
     public SeededMenu Menu { get; private set; } = null!;
 
     public async Task InitializeAsync()
@@ -67,6 +70,11 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
             ["RATE_LIMITING_ENABLED"] = "false",
             ["VAPID_PUBLIC_KEY"] = "",
             ["VAPID_PRIVATE_KEY"] = "",
+            ["SUMUP_API_URL"] = "https://sumup.test",
+            ["SUMUP_API_KEY"] = "sup_sk_test_integration",
+            ["SUMUP_MERCHANT_CODE"] = "MTEST",
+            ["API_BACK_URL"] = "https://api.test",
+            ["API_FRONT_URL"] = "https://app.test",
         };
         foreach (var (key, value) in env)
             Environment.SetEnvironmentVariable(key, value);
@@ -84,10 +92,11 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        builder.ConfigureServices(services =>
+        builder.ConfigureTestServices(services =>
         {
             services.RemoveAll<TimeProvider>();
             services.AddSingleton<TimeProvider>(Clock);
+            services.AddHttpClient<SumUpClient>().ConfigurePrimaryHttpMessageHandler(() => SumUp);
         });
     }
 
@@ -183,6 +192,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         WithDbAsync(async db =>
         {
             Clock.SetUtcNow(Monday12h);
+            SumUp.Reset();
             var s = db.RestaurantSettings.Single();
             s.IsPaused = false;
             s.PausedUntil = null;

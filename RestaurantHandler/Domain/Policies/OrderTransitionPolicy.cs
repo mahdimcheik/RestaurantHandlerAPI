@@ -66,6 +66,8 @@ public static class OrderTransitionPolicy
         return (from, to) switch
         {
             (OrderStatus.PendingPayment, OrderStatus.Confirmed) => system ? null : Denied(),
+            // Paiement en ligne échoué : le client bascule au retrait (validation Manager ensuite).
+            (OrderStatus.PendingPayment, OrderStatus.AwaitingApproval) => customer ? null : Denied(),
             (OrderStatus.PendingPayment, OrderStatus.Cancelled) =>
                 customer || system ? null : manager ? RequireReason() : Denied(),
 

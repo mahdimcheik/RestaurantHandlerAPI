@@ -195,6 +195,12 @@ public class OrderDetails : OrderSummary
     public DateTimeOffset? CompletedAt { get; set; }
     public DateTimeOffset? PaidAt { get; set; }
     [Required] public int PaidCents { get; set; }
+
+    /// <summary>Page de paiement SumUp de la tentative en cours (commande en attente de paiement).</summary>
+    public string? PaymentUrl { get; set; }
+
+    /// <summary>Anomalie de paiement à traiter (Manager uniquement).</summary>
+    public string? PaymentIssue { get; set; }
     [Required] public List<OrderItemDto> Items { get; set; } = [];
     [Required] public List<VatLineDto> Vat { get; set; } = [];
     [Required] public List<OrderHistoryDto> History { get; set; } = [];
@@ -229,4 +235,24 @@ public class OrderFilter
     public OrderStatus? Status { get; set; }
     public OrderChannel? Channel { get; set; }
     public bool? IsPaid { get; set; }
+}
+
+/// <summary>
+/// Justificatif d'une commande payée (US-E05-5). Contenu à valider avec l'expert-comptable
+/// (question 2) : ce n'est pas un ticket de caisse au sens fiscal.
+/// </summary>
+public class OrderReceipt
+{
+    [Required] public string TradeName { get; set; } = string.Empty;
+    public string? LegalName { get; set; }
+    public string? Address { get; set; }
+    public string? Siret { get; set; }
+    public string? VatNumber { get; set; }
+    [Required] public int OrderNumber { get; set; }
+    [Required] public int DailyNumber { get; set; }
+    [Required] public DateTimeOffset PaidAt { get; set; }
+    [Required] public List<OrderItemDto> Items { get; set; } = [];
+    [Required] public List<VatLineDto> Vat { get; set; } = [];
+    [Required] public int TotalCents { get; set; }
+    [Required] public List<OrderPaymentDto> Payments { get; set; } = [];
 }

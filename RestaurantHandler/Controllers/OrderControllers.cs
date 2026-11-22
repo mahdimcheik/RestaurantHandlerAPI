@@ -21,7 +21,7 @@ public class OrdersController(
     CartService carts,
     OrderPlacementService placement,
     OrderQueryService queries,
-    OrderWorkflowService workflow
+    OnlinePaymentService payments
 ) : ControllerBase
 {
     /// <summary>Prix et contrôles du panier sans rien créer ; 409 avec <c>issues</c> si le panier doit changer.</summary>
@@ -30,12 +30,48 @@ public class OrdersController(
     public async Task<ActionResult<Response<QuoteResult>>> Quote([FromBody] QuoteRequest dto) =>
         Success(await carts.QuoteAsync(dto));
 
-    /// <summary>Valide le panier (US-E04-4). Un rejeu avec la même clé renvoie la commande déjà créée.</summary>
+    /// <summary>
+    /// Valide le panier (US-E04-4). Un rejeu avec la même clé renvoie la commande déjà créée. En
+    /// paiement en ligne, <c>paymentUrl</c> mène à la page SumUp ; si elle n'a pas pu être créée,
+    /// la commande existe quand même et <c>POST /orders/{id}/payment</c> relance la tentative.
+    /// </summary>
     [HttpPost]
     [Authorize(Roles = nameof(RoleEnum.Client))]
     [EnableRateLimiting(RateLimitingSetup.OrderPolicy)]
-    public async Task<ActionResult<Response<OrderDetails>>> Place([FromBody] OrderCreate dto) =>
-        CreatedWith(await placement.PlaceOnlineAsync(dto, await CallerAsync()), "Commande transmise");
+    public async Task<ActionResult<Response<OrderDetails>>> Place([FromBody] OrderCreate dto)
+    {
+        var caller = await CallerAsync();
+        var order = await placement.PlaceOnlineAsync(dto, caller);
+        if (order.Status != OrderStatus.PendingPayment || order.PaymentUrl is not null)
+            return CreatedWith(order, "Commande transmise");
+
+        try
+        {
+            return CreatedWith(await payments.StartCheckoutAsync(order.Id, caller), "Commande transmise : paiement en attente");
+        }
+        catch (BusinessException ex)
+        {
+            return CreatedWith(order, ex.Message);
+        }
+    }
+
+    /// <summary>Nouvelle tentative de paiement en ligne (après échec ou abandon).</summary>
+    [HttpPost("{id:guid}/payment")]
+    [Authorize(Roles = nameof(RoleEnum.Client))]
+    [EnableRateLimiting(RateLimitingSetup.OrderPolicy)]
+    public async Task<ActionResult<Response<OrderDetails>>> RetryPayment(Guid id) =>
+        Success(await payments.StartCheckoutAsync(id, await CallerAsync()));
+
+    /// <summary>Abandonne le paiement en ligne pour le paiement au retrait (validation Manager).</summary>
+    [HttpPost("{id:guid}/pay-on-site")]
+    [Authorize(Roles = nameof(RoleEnum.Client))]
+    public async Task<ActionResult<Response<OrderDetails>>> PayOnSite(Guid id) =>
+        Success(await payments.SwitchToPayOnSiteAsync(id, await CallerAsync()));
+
+    /// <summary>Justificatif d'une commande payée (US-E05-5).</summary>
+    [HttpGet("{id:guid}/receipt")]
+    public async Task<ActionResult<Response<OrderReceipt>>> Receipt(Guid id) =>
+        Success(await queries.ReceiptAsync(id, await CallerAsync()));
 
     [HttpGet("mine")]
     public async Task<ActionResult<Response<List<OrderSummary>>>> Mine([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -54,9 +90,10 @@ public class OrdersController(
     public async Task<ActionResult<Response<OrderDetails>>> Get(Guid id) =>
         Success(await queries.GetAsync(id, await CallerAsync()));
 
+    /// <summary>Avant préparation ; un paiement en ligne est remboursé automatiquement.</summary>
     [HttpPost("{id:guid}/cancel")]
     public async Task<ActionResult<Response<OrderDetails>>> Cancel(Guid id) =>
-        Success(await workflow.CancelByCustomerAsync(id, await CallerAsync()), "Commande annulée");
+        Success(await payments.CancelByCustomerAsync(id, await CallerAsync()), "Commande annulée");
 
     private async Task<CallerIdentity> CallerAsync() =>
         await this.GetCallerAsync() ?? throw new BusinessForbiddenException("Compte introuvable.");
@@ -71,7 +108,8 @@ public class OrdersController(
 public class ManageOrdersController(
     OrderPlacementService placement,
     OrderQueryService queries,
-    OrderWorkflowService workflow
+    OrderWorkflowService workflow,
+    OnlinePaymentService payments
 ) : ControllerBase
 {
     /// <summary>Saisie comptoir (US-E06-1) : `Confirmée` d'emblée, non bloquée par la pause.</summary>
@@ -122,9 +160,14 @@ public class ManageOrdersController(
     public async Task<ActionResult<Response<OrderDetails>>> NoShow(Guid id) =>
         Success(await workflow.NoShowAsync(id, await CallerAsync()));
 
+    /// <summary>Annulation avec motif ; un paiement en ligne est remboursé automatiquement.</summary>
     [HttpPost("{id:guid}/cancel")]
     public async Task<ActionResult<Response<OrderDetails>>> Cancel(Guid id, [FromBody] ReasonRequest dto) =>
-        Success(await workflow.CancelByManagerAsync(id, dto.Reason, await CallerAsync()));
+        Success(await payments.CancelByManagerAsync(id, dto.Reason, await CallerAsync()));
+
+    /// <summary>Remboursement total des paiements en ligne d'une commande annulée, refusée ou non retirée.</summary>
+    [HttpPost("{id:guid}/refund")]
+    public async Task<ActionResult<Response<OrderDetails>>> Refund(Guid id) => Success(await payments.RefundAsync(id));
 
     /// <summary>Déclare un encaissement sur place (carte, espèces, autre) ; montant par défaut = reste à payer.</summary>
     [HttpPost("{id:guid}/payments")]

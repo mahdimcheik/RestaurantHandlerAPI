@@ -71,6 +71,16 @@ public static class EnvironmentVariables
     public static string? API_BACK_URL => GetEnvVar("API_BACK_URL", "");
     public static string? API_FRONT_URL => GetEnvVar("API_FRONT_URL", "");
 
+    // SumUp (ADR-0007) : sans clé, le paiement en ligne est indisponible (le reste fonctionne).
+    // Le compte sandbox a sa propre clé et son propre merchant code.
+    public static string SUMUP_API_URL => GetEnvVar("SUMUP_API_URL", "https://api.sumup.com");
+    public static string SUMUP_API_KEY => GetEnvVar("SUMUP_API_KEY", "");
+    public static string SUMUP_MERCHANT_CODE => GetEnvVar("SUMUP_MERCHANT_CODE", "");
+    public static bool SumUpEnabled => SUMUP_API_KEY.Length > 0 && SUMUP_MERCHANT_CODE.Length > 0;
+
+    /// <summary>Intervalle de la tâche de réconciliation des paiements en ligne (expression cron).</summary>
+    public static string SUMUP_RECONCILE_CRON => GetEnvVar("SUMUP_RECONCILE_CRON", "*/2 * * * *");
+
     /// <summary>
     /// Clés VAPID des notifications natives (Web Push). Facultatives : sans la paire, aucune
     /// notification native n'est envoyée et le front masque l'option.
