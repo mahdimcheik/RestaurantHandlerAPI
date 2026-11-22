@@ -13,7 +13,7 @@ using RestaurantHandler.Contexts;
 namespace RestaurantHandler.Migrations
 {
     [DbContext(typeof(MainContext))]
-    [Migration("20261122171112_InitialCreate")]
+    [Migration("20261122174017_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -176,11 +176,47 @@ namespace RestaurantHandler.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"ArchivedAt\" IS NULL");
 
                     b.HasIndex("Position");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.Closure", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EndLocal")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("StartLocal")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EndLocal");
+
+                    b.ToTable("Closures", t =>
+                        {
+                            t.HasCheckConstraint("CK_Closures_Range", "\"EndLocal\" > \"StartLocal\"");
+                        });
                 });
 
             modelBuilder.Entity("RestaurantHandler.Models.Ingredient", b =>
@@ -209,7 +245,8 @@ namespace RestaurantHandler.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"ArchivedAt\" IS NULL");
 
                     b.ToTable("Ingredients");
                 });
@@ -272,6 +309,10 @@ namespace RestaurantHandler.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -279,6 +320,9 @@ namespace RestaurantHandler.Migrations
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
 
                     b.Property<int>("PriceCents")
                         .HasColumnType("integer");
@@ -335,7 +379,8 @@ namespace RestaurantHandler.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("MenuId", "Position")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"ArchivedAt\" IS NULL");
 
                     b.ToTable("MenuSlots", t =>
                         {
@@ -416,6 +461,42 @@ namespace RestaurantHandler.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.OpeningHours", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DayOfWeek")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<TimeOnly>("End")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<TimeOnly>("Start")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DayOfWeek", "Start");
+
+                    b.ToTable("OpeningHours", t =>
+                        {
+                            t.HasCheckConstraint("CK_OpeningHours_Range", "\"End\" > \"Start\"");
+                        });
                 });
 
             modelBuilder.Entity("RestaurantHandler.Models.Order", b =>
@@ -735,6 +816,9 @@ namespace RestaurantHandler.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -837,6 +921,125 @@ namespace RestaurantHandler.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.RestaurantSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<int>("ApprovalTimeoutMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("AsapDelayMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsPaused")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LegalName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("MinLeadMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("NoShowThreshold")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OnlinePaymentExpiryMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("PausedUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("PickupGraceMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Siret")
+                        .HasMaxLength(14)
+                        .HasColumnType("character varying(14)");
+
+                    b.Property<int>("SlotCapacityOrders")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SlotDurationMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TradeName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("VatNumber")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RestaurantSettings", t =>
+                        {
+                            t.HasCheckConstraint("CK_RestaurantSettings_Delays", "\"AsapDelayMinutes\" >= 0 AND \"MinLeadMinutes\" >= 0 AND \"ApprovalTimeoutMinutes\" >= 1 AND \"PickupGraceMinutes\" >= 0 AND \"OnlinePaymentExpiryMinutes\" >= 1");
+
+                            t.HasCheckConstraint("CK_RestaurantSettings_Singleton", "\"Id\" = '5e771465-0000-4000-8000-000000000001'");
+
+                            t.HasCheckConstraint("CK_RestaurantSettings_Slots", "\"SlotDurationMinutes\" >= 5 AND \"SlotCapacityOrders\" >= 1 AND \"NoShowThreshold\" >= 1");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("5e771465-0000-4000-8000-000000000001"),
+                            ApprovalTimeoutMinutes = 10,
+                            AsapDelayMinutes = 15,
+                            IsPaused = false,
+                            MinLeadMinutes = 20,
+                            NoShowThreshold = 2,
+                            OnlinePaymentExpiryMinutes = 15,
+                            PickupGraceMinutes = 30,
+                            SlotCapacityOrders = 5,
+                            SlotDurationMinutes = 15,
+                            TradeName = "Mon restaurant"
+                        });
+                });
+
+            modelBuilder.Entity("RestaurantHandler.Models.RestaurantSettingsHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ChangedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SnapshotJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChangedAt");
+
+                    b.ToTable("RestaurantSettingsHistory");
                 });
 
             modelBuilder.Entity("RestaurantHandler.Models.RoleApp", b =>

@@ -61,11 +61,11 @@ métier testables sans base.
 Le temps réel **notifie** ; la vérité reste l'API. Tout client resynchronise par une lecture
 REST à la (re)connexion.
 
-Authentification : le hub exige une session ; le navigateur transmet le JWT en paramètre
-`access_token`, accepté uniquement sur les chemins `/hubs`. Les groupes sont attribués par le
-serveur, jamais demandés par le client. Les clients anonymes (carte publique) ne sont pas
-connectés au hub en V1 : la disponibilité est relue par l'API (à revoir en J1 si besoin d'un
-hub public).
+Authentification : le hub accepte les connexions **anonymes** (depuis J1) pour que la carte
+publique reçoive `AvailabilityChanged` (portée `catalog` ou `opening`) en moins de 5 secondes ;
+un anonyme ne reçoit que les diffusions à tous. Le navigateur connecté transmet le JWT en
+paramètre `access_token`, accepté uniquement sur les chemins `/hubs`. Les groupes sont
+attribués par le serveur, jamais demandés par le client.
 
 ## Front — PWA Angular mobile-first
 

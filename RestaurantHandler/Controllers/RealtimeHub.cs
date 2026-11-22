@@ -8,8 +8,10 @@ namespace RestaurantHandler.Controllers;
 /// Canal temps réel unique (<c>/hubs/realtime</c>). Le client ne fait que se connecter : les
 /// groupes sont attribués par le serveur à partir de l'identité, jamais demandés par le client.
 /// Les événements partent de <see cref="Services.RealtimeService"/>.
+/// Connexion anonyme admise : un visiteur sur la carte ne reçoit que les diffusions à tous
+/// (<c>AvailabilityChanged</c>) ; le groupe restaurant et l'envoi par utilisateur exigent une session.
 /// </summary>
-[Authorize]
+[AllowAnonymous]
 public class RealtimeHub : Hub
 {
     public const string Path = "/hubs/realtime";

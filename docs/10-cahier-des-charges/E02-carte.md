@@ -1,14 +1,15 @@
 # E02 — Carte
 
-Le modèle de données existe ([modèle](../30-technique/02-modele-donnees.md)) ; aucune API ni
-écran. Toutes les écritures sont réservées au Manager.
+Modèle ([modèle](../30-technique/02-modele-donnees.md)) et API faits en J1 ; aucun écran.
+Toutes les écritures sont réservées au Manager.
 
 ### US-E02-1 — Consulter la carte
 
 En tant que visiteur, je veux voir la carte par catégorie afin de choisir ce que je commande.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J1 (`GET /menu`, cache invalidé à chaque écriture) ; écran client en J4.
 
 **Critères d'acceptation**
 - Les catégories actives s'affichent dans l'ordre `Position` ; les produits actifs de chacune,
@@ -25,7 +26,8 @@ En tant que Manager, je veux créer, modifier, réordonner, désactiver une cat�
 d'organiser la carte.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J1 (`/manage/categories`) ; glisser-déposer en J5.
 
 **Critères d'acceptation**
 - Le nom est unique et obligatoire (64 caractères max).
@@ -38,7 +40,8 @@ En tant que Manager, je veux créer et modifier un produit (nom, description, ph
 catégorie, prix TTC, taux de TVA, position) afin de tenir la carte à jour.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J1 (`/manage/products`, photo WebP publique) ; écran en J5.
 
 **Critères d'acceptation**
 - Le prix est saisi en euros et stocké en centimes ; il est ≥ 0.
@@ -54,7 +57,8 @@ En tant que Manager, je veux gérer la liste des ingrédients afin de décrire l
 les suppléments.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J1 (`/manage/ingredients`) ; écran en J5.
 
 **Critères d'acceptation**
 - Le nom est unique.
@@ -67,7 +71,8 @@ par quoi chacun peut être remplacé (et à quel surcoût), et quels supplément
 (prix, quantité max) afin que le client personnalise sa commande.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J1 (`PUT /manage/products/{id}/composition`) ; écran en J5.
 
 **Critères d'acceptation**
 - Un ingrédient ne figure qu'une fois dans une composition.
@@ -81,7 +86,8 @@ Accompagnement, Boisson) proposant chacun des produits, avec un surcoût par opt
 vendre des formules.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J1 (`/manage/menus`, emplacements, options) ; écran en J5.
 
 **Critères d'acceptation**
 - Chaque emplacement a un libellé, une position unique dans le menu, un minimum et un maximum

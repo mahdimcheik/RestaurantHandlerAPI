@@ -8,9 +8,7 @@ namespace RestaurantHandler.Utilities;
 /// </summary>
 public static class MonthRange
 {
-    public static readonly TimeZoneInfo PlatformTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
-        "Europe/Paris"
-    );
+    public static TimeZoneInfo PlatformTimeZone => RestaurantClock.TimeZone;
 
     public static bool IsValid(int year, int month) =>
         month >= 1 && month <= 12 && year >= 2000 && year <= 2100;

@@ -131,6 +131,17 @@ static void ConfigureServices(IServiceCollection services)
     services.AddSignalR();
     services.AddTransient<RealtimeService>();
 
+    // Carte et restaurant (J1)
+    services.AddSingleton(TimeProvider.System);
+    services.AddScoped<CatalogChangeNotifier>();
+    services.AddScoped<CatalogImageService>();
+    services.AddScoped<CategoryService>();
+    services.AddScoped<ProductService>();
+    services.AddScoped<IngredientService>();
+    services.AddScoped<MenuService>();
+    services.AddScoped<PublicCatalogService>();
+    services.AddScoped<RestaurantService>();
+
     services.AddLogging(loggingBuilder =>
     {
         loggingBuilder.ClearProviders();

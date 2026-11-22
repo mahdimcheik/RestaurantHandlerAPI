@@ -47,7 +47,7 @@ projet `tests/RestaurantHandler.Tests` (7 tests) ; `InitialCreate` régénérée
 vérifiée sur PostgreSQL jetable (démarrage, Manager initial, connexion, hub, routes retirées
 en 404).
 
-## J1 — Carte & ouverture (S2–S3)
+## J1 — Carte & ouverture (S2–S3) — ✅ API terminée le 2026-11-22
 
 - Écarts modèle M6, M7, M9 ([modèle](../30-technique/02-modele-donnees.md#écarts-à-combler)).
 - API Manager : catégories, produits (photo), ingrédients, compositions, substitutions,
@@ -58,6 +58,18 @@ en 404).
 - Calcul de l'état d'ouverture et des créneaux (règle pure + tests).
 - **Sortie :** la vraie carte du restaurant est saisie via Swagger ; l'API publique renvoie
   disponibilité et état d'ouverture corrects.
+
+**Bilan J1 :** `Product.IsAvailable`, tables `OpeningHours`, `Closure`, `RestaurantSettings`
+(+ historique) dans `InitialCreate` régénérée ; pas de filtre global d'archivage (M9). Règles
+pures `AvailabilityPolicy` (R6, retrait imposé — question 10), `OpeningPolicy` (fuseau
+`Europe/Paris`, changements d'heure), `SlotPolicy` (capacité en commandes, jour même —
+question 5), `OpeningHoursPolicy` : 35 tests unitaires. API Manager sous `/manage/*`
+(catégories, produits, photos WebP publiques, ingrédients, composition, menus, emplacements,
+options, archivage, réordonnancement, horaires, fermetures, pause, paramètres) ; API publique
+`GET /menu`, `/restaurant/status`, `/restaurant/slots`, `/restaurant/info` ; cache invalidé à
+chaque écriture ; hub ouvert aux anonymes. Vérifié sur PostgreSQL jetable (scénario de saisie
+complet, ruptures, pause, fermeture, droits 401/403). **Reste pour la sortie :** saisir la vraie
+carte du restaurant.
 
 ## J2 — Commande (S3–S5)
 

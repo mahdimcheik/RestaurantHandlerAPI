@@ -1,7 +1,8 @@
 # Modèle de données
 
 Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.cs),
-[`Ordering.cs`](../../RestaurantHandler/Domain/Entities/Ordering/Ordering.cs), configurations dans
+[`Ordering.cs`](../../RestaurantHandler/Domain/Entities/Ordering/Ordering.cs),
+[`Restaurant.cs`](../../RestaurantHandler/Domain/Entities/Restaurant/Restaurant.cs), configurations dans
 `RestaurantHandler/Persistence/Configurations/`, migration unique `InitialCreate`.
 
 ## Conventions
@@ -14,20 +15,33 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 - Contraintes posées en base : unicités, prix ≥ 0, `Quantity > 0`, `MinChoices ≤ MaxChoices`,
   une ligne = produit **ou** menu, `SubstituteIngredientId` renseigné ssi `Replace`.
 - Utilisateurs : `UserApp` (Identity, table `Users`), rôle via `RoleApp`.
+- Archivage : **pas de filtre global** ; chaque service filtre `ArchivedAt == null`
+  explicitement, pour que les commandes relisent librement leurs produits archivés (M9). Les
+  unicités de nom (catégorie, ingrédient) et de position d'emplacement ne portent que sur les
+  lignes non archivées.
 
 ## Carte
 
 | Table | Rôle | Points clés |
 |---|---|---|
 | `Category` | Rubrique de carte | nom unique, `Position`, `IsActive` |
-| `Product` | Plat / boisson / dessert | `Kind`, `PriceCents`, `VatRate`, `Position`, `IsActive` |
+| `Product` | Plat / boisson / dessert | `Kind`, `PriceCents`, `VatRate`, `Position`, `IsActive`, `IsAvailable` (rupture) |
 | `Ingredient` | Ingrédient | nom unique, `IsAvailable` (rupture) |
 | `ProductIngredient` | Composition | PK (produit, ingrédient), `IsRemovable` |
 | `IngredientSubstitution` | Remplacement autorisé | FK composite vers la composition, `ExtraPriceCents` |
 | `ProductSupplement` | Supplément payant | PK (produit, ingrédient), `PriceCents`, `MaxQuantity` |
-| `Menu` | Formule | `PriceCents`, `VatRate`, `IsActive` |
+| `Menu` | Formule | `PriceCents`, `VatRate`, `Position`, `ImageUrl`, `IsActive` |
 | `MenuSlot` | Emplacement | `Label`, position unique par menu, `Min/MaxChoices` |
 | `MenuSlotOption` | Produit proposé | PK (emplacement, produit), `ExtraPriceCents` |
+
+## Restaurant
+
+| Table | Rôle | Points clés |
+|---|---|---|
+| `OpeningHours` | Plage hebdomadaire | jour, `Start` < `End` en heure locale, pas de passage de minuit |
+| `Closure` | Fermeture exceptionnelle ou partielle | `StartLocal`/`EndLocal` en heure locale (sans fuseau), `Reason` affiché |
+| `RestaurantSettings` | Paramètres (ligne unique) | identité légale, logo, délais, créneaux (capacité en commandes), `IsPaused` + `PausedUntil` |
+| `RestaurantSettingsHistory` | Historique des paramètres | auteur, date, instantané `jsonb` |
 
 ## Commandes
 
@@ -48,10 +62,10 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 | M3 | `Order` : mode de retrait (ASAP / créneau), `PickupAt` (heure prévue), mode de paiement choisi (en ligne / au retrait), `IdempotencyKey` unique, `CustomerFirstName` facultatif (comptoir) | E04, E06 | J2 |
 | M4 | `PaymentMethod` : distinguer paiement en ligne SumUp et **encaissements sur place déclarés** (carte, espèces, autre) ; un encaissement déclaré porte l'auteur | paiement mixte, [US-E05-3](../10-cahier-des-charges/E05-paiement.md#us-e05-3--marquer-une-commande--payée--sur-place) | J3 |
 | M5 | `Payment` : identifiant de transaction SumUp unique (idempotence), `Refunded` + date | E05 | J3 |
-| M6 | `Product.IsAvailable` (rupture produit, distincte de `IsActive`) | [US-E03-4](../10-cahier-des-charges/E03-ouverture-ruptures.md#us-e03-4--déclarer-une-rupture) | J1 |
-| M7 | Nouvelles tables : `OpeningHours` (jour, début, fin), `Closure` (début, fin, motif), `RestaurantSettings` (identité légale, délais, créneaux, pause jusqu'à) | E03, E10 | J1 |
+| M6 | ✅ `Product.IsAvailable` (rupture produit, distincte de `IsActive`) | [US-E03-4](../10-cahier-des-charges/E03-ouverture-ruptures.md#us-e03-4--déclarer-une-rupture) | J1 |
+| M7 | ✅ Nouvelles tables : `OpeningHours` (jour, début, fin), `Closure` (début, fin, motif), `RestaurantSettings` (identité légale, délais, créneaux, pause jusqu'à) | E03, E10 | J1 |
 | M8 | `UserApp` : compteur de non-venues / blocage paiement au retrait | [US-E04-5](../10-cahier-des-charges/E04-commande-en-ligne.md#us-e04-5--limiter-les-abus-du-paiement-au-retrait) | J2 |
-| M9 | Filtre automatique `ArchivedAt == null` sur le catalogue : **retiré** lors de la création du modèle ; décider si on le rétablit ou si les services filtrent explicitement | lecture de commandes anciennes | J1 |
+| M9 | ✅ Filtre automatique `ArchivedAt == null` : **non rétabli**, les services filtrent explicitement | lecture de commandes anciennes | J1 |
 | M10 | Index de lecture pour les statistiques : `Order(Status, CompletedAt)` | E09 | J5 |
 | M11 | Socle : retirer `HelpEntry`, `MailBroadcast`, paramètres de maintenance | J0 | J0 |
 

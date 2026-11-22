@@ -9,11 +9,9 @@ question tranchée est déplacée en bas avec sa réponse et, si structurante, u
 | 2 | **Ventes en ligne SumUp** : doivent-elles aussi être enregistrées dans la caisse certifiée ? Quel justificatif délivrer (reçu, facture) et avec quelles mentions ? | expert-comptable | G0 |
 | 3 | **TVA** : taux de chaque produit à emporter (5,5 % / 10 % / 20 %) ; ventilation d'un menu qui mêle des taux différents (taux unique ou ventilation par composant) ? | expert-comptable | G0 |
 | 4 | **Machine à états** : la proposition (`Confirmée` remplace `Payée`, ajout de `AValider`, `Refusée`, `NonVenu`) convient-elle ? Délai de refus automatique d'une commande `AValider` ? | gérant + dev | début J2 |
-| 5 | **Créneaux** : durée d'une tranche, capacité exprimée en **nombre de commandes** ou en **nombre de produits**, délai minimal avant le premier créneau, commandes programmées le jour même seulement ou à J+n ? | gérant | J1 |
 | 6 | **Annulation / remboursement** : jusqu'à quand le client annule-t-il seul ? Remboursement en cas de non-venue d'une commande payée en ligne ? À inscrire dans les CGV. | gérant | J3 |
 | 8 | **Allergènes en ligne** : un document lié depuis la carte suffit-il pour l'ouverture, ou faut-il les intégrer dès la V1 ? | expert-comptable / DGCCRF | G0 |
 | 9 | **Mode dégradé** : contenu exact de la procédure papier, matériel de secours 4G, la caisse tierce fonctionne-t-elle hors ligne ? | gérant | J6 |
-| 10 | **Ingrédient retirable en rupture** : le produit reste-t-il commandable « sans » cet ingrédient (retrait imposé) ? | gérant | J1 |
 | 11 | **Numéro affiché** : séquence globale complète ou numéro court remis à zéro chaque jour (plus lisible pour l'appel) ? | gérant | J2 |
 | 13 | **Session** : bascule complète en cookie `httpOnly` (ADR-0002) avant l'ouverture, ou après ? | dev | J4 |
 | 14 | **Nom de domaine** et identité visuelle (logo, couleurs) de la PWA. | gérant | J4 |
@@ -41,4 +39,6 @@ question tranchée est déplacée en bas avec sa réponse et, si structurante, u
 | Socle conservé | Auth (mot de passe + Google), profil ; retrait du centre d'aide, des envois groupés, de la maintenance | 2026-11-22 | feuille de route J0 |
 | Web Push (ex-question 7) | Gardé dormant, branché en V2 | 2026-11-22 | [architecture](../30-technique/01-architecture.md) |
 | Date de naissance (ex-question 12) | Supprimée ; le profil incomplet = téléphone manquant | 2026-11-22 | [E01](../10-cahier-des-charges/E01-comptes-authentification.md) |
+| Créneaux (ex-question 5) | Capacité en nombre de commandes, réservation le jour même uniquement ; durée, capacité et délai minimal paramétrables | 2026-11-22 | [E03](../10-cahier-des-charges/E03-ouverture-ruptures.md) |
+| Ingrédient retirable en rupture (ex-question 10) | Produit commandable, retrait imposé et affiché | 2026-11-22 | [E03](../10-cahier-des-charges/E03-ouverture-ruptures.md) |
 | Nom de l'image Docker | `mahdimcheik/restauranthandler` | 2026-11-22 | [exploitation](../30-technique/03-exploitation.md) |

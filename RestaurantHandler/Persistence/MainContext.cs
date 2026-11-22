@@ -29,6 +29,12 @@ public class MainContext : IdentityDbContext<UserApp, RoleApp, Guid>
     public DbSet<MenuSlot> MenuSlots { get; set; }
     public DbSet<MenuSlotOption> MenuSlotOptions { get; set; }
 
+    // restaurant : horaires, fermetures, paramètres
+    public DbSet<OpeningHours> OpeningHours { get; set; }
+    public DbSet<Closure> Closures { get; set; }
+    public DbSet<RestaurantSettings> RestaurantSettings { get; set; }
+    public DbSet<RestaurantSettingsHistory> RestaurantSettingsHistory { get; set; }
+
     // commandes et paiements
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }

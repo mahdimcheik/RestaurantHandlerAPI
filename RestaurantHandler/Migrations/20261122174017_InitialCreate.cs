@@ -35,6 +35,24 @@ namespace RestaurantHandler.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Closures",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    StartLocal = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    EndLocal = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    Reason = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Closures", x => x.Id);
+                    table.CheckConstraint("CK_Closures_Range", "\"EndLocal\" > \"StartLocal\"");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Ingredients",
                 columns: table => new
                 {
@@ -57,8 +75,10 @@ namespace RestaurantHandler.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    ImageUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     PriceCents = table.Column<int>(type: "integer", nullable: false),
                     VatRate = table.Column<decimal>(type: "numeric(5,2)", precision: 5, scale: 2, nullable: false),
+                    Position = table.Column<int>(type: "integer", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -69,6 +89,70 @@ namespace RestaurantHandler.Migrations
                     table.PrimaryKey("PK_Menus", x => x.Id);
                     table.CheckConstraint("CK_Menus_PriceCents", "\"PriceCents\" >= 0");
                     table.CheckConstraint("CK_Menus_VatRate", "\"VatRate\" >= 0 AND \"VatRate\" <= 100");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OpeningHours",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    DayOfWeek = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
+                    Start = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
+                    End = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OpeningHours", x => x.Id);
+                    table.CheckConstraint("CK_OpeningHours_Range", "\"End\" > \"Start\"");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RestaurantSettings",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TradeName = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    LegalName = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                    Address = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    Phone = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: true),
+                    Siret = table.Column<string>(type: "character varying(14)", maxLength: 14, nullable: true),
+                    VatNumber = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: true),
+                    LogoUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    AsapDelayMinutes = table.Column<int>(type: "integer", nullable: false),
+                    SlotDurationMinutes = table.Column<int>(type: "integer", nullable: false),
+                    SlotCapacityOrders = table.Column<int>(type: "integer", nullable: false),
+                    MinLeadMinutes = table.Column<int>(type: "integer", nullable: false),
+                    ApprovalTimeoutMinutes = table.Column<int>(type: "integer", nullable: false),
+                    PickupGraceMinutes = table.Column<int>(type: "integer", nullable: false),
+                    NoShowThreshold = table.Column<int>(type: "integer", nullable: false),
+                    OnlinePaymentExpiryMinutes = table.Column<int>(type: "integer", nullable: false),
+                    IsPaused = table.Column<bool>(type: "boolean", nullable: false),
+                    PausedUntil = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RestaurantSettings", x => x.Id);
+                    table.CheckConstraint("CK_RestaurantSettings_Delays", "\"AsapDelayMinutes\" >= 0 AND \"MinLeadMinutes\" >= 0 AND \"ApprovalTimeoutMinutes\" >= 1 AND \"PickupGraceMinutes\" >= 0 AND \"OnlinePaymentExpiryMinutes\" >= 1");
+                    table.CheckConstraint("CK_RestaurantSettings_Singleton", "\"Id\" = '5e771465-0000-4000-8000-000000000001'");
+                    table.CheckConstraint("CK_RestaurantSettings_Slots", "\"SlotDurationMinutes\" >= 5 AND \"SlotCapacityOrders\" >= 1 AND \"NoShowThreshold\" >= 1");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RestaurantSettingsHistory",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ChangedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ChangedByUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SnapshotJson = table.Column<string>(type: "jsonb", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RestaurantSettingsHistory", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -121,6 +205,7 @@ namespace RestaurantHandler.Migrations
                     VatRate = table.Column<decimal>(type: "numeric(5,2)", precision: 5, scale: 2, nullable: false),
                     Position = table.Column<int>(type: "integer", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    IsAvailable = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -704,6 +789,11 @@ namespace RestaurantHandler.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "RestaurantSettings",
+                columns: new[] { "Id", "Address", "ApprovalTimeoutMinutes", "AsapDelayMinutes", "IsPaused", "LegalName", "LogoUrl", "MinLeadMinutes", "NoShowThreshold", "OnlinePaymentExpiryMinutes", "PausedUntil", "Phone", "PickupGraceMinutes", "Siret", "SlotCapacityOrders", "SlotDurationMinutes", "TradeName", "UpdatedAt", "VatNumber" },
+                values: new object[] { new Guid("5e771465-0000-4000-8000-000000000001"), null, 10, 15, false, null, null, 20, 2, 15, null, null, 30, null, 5, 15, "Mon restaurant", null, null });
+
+            migrationBuilder.InsertData(
                 table: "Roles",
                 columns: new[] { "Id", "ArchivedAt", "Color", "ConcurrencyStamp", "CreatedAt", "Name", "NormalizedName", "UpdatedAt" },
                 values: new object[,]
@@ -756,7 +846,8 @@ namespace RestaurantHandler.Migrations
                 name: "IX_Categories_Name",
                 table: "Categories",
                 column: "Name",
-                unique: true);
+                unique: true,
+                filter: "\"ArchivedAt\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Categories_Position",
@@ -764,10 +855,16 @@ namespace RestaurantHandler.Migrations
                 column: "Position");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Closures_EndLocal",
+                table: "Closures",
+                column: "EndLocal");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Ingredients_Name",
                 table: "Ingredients",
                 column: "Name",
-                unique: true);
+                unique: true,
+                filter: "\"ArchivedAt\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_IngredientSubstitutions_ProductId_IngredientId_SubstituteIn~",
@@ -789,12 +886,18 @@ namespace RestaurantHandler.Migrations
                 name: "IX_MenuSlots_MenuId_Position",
                 table: "MenuSlots",
                 columns: new[] { "MenuId", "Position" },
-                unique: true);
+                unique: true,
+                filter: "\"ArchivedAt\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notifications_UserId",
                 table: "Notifications",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OpeningHours_DayOfWeek_Start",
+                table: "OpeningHours",
+                columns: new[] { "DayOfWeek", "Start" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItemModifications_IngredientId",
@@ -905,6 +1008,11 @@ namespace RestaurantHandler.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RestaurantSettingsHistory_ChangedAt",
+                table: "RestaurantSettingsHistory",
+                column: "ChangedAt");
+
+            migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
                 table: "Roles",
                 column: "NormalizedName",
@@ -957,6 +1065,9 @@ namespace RestaurantHandler.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "Closures");
+
+            migrationBuilder.DropTable(
                 name: "IngredientSubstitutions");
 
             migrationBuilder.DropTable(
@@ -964,6 +1075,9 @@ namespace RestaurantHandler.Migrations
 
             migrationBuilder.DropTable(
                 name: "Notifications");
+
+            migrationBuilder.DropTable(
+                name: "OpeningHours");
 
             migrationBuilder.DropTable(
                 name: "OrderItemModifications");
@@ -979,6 +1093,12 @@ namespace RestaurantHandler.Migrations
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");
+
+            migrationBuilder.DropTable(
+                name: "RestaurantSettings");
+
+            migrationBuilder.DropTable(
+                name: "RestaurantSettingsHistory");
 
             migrationBuilder.DropTable(
                 name: "WebPushSubscriptions");

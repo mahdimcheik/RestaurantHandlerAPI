@@ -8,7 +8,8 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
 {
     public void Configure(EntityTypeBuilder<Category> builder)
     {
-        builder.HasIndex(c => c.Name).IsUnique();
+        // Un nom archivé peut être réutilisé.
+        builder.HasIndex(c => c.Name).IsUnique().HasFilter("\"ArchivedAt\" IS NULL");
         builder.HasIndex(c => c.Position);
     }
 }
@@ -39,7 +40,7 @@ public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
 {
     public void Configure(EntityTypeBuilder<Ingredient> builder)
     {
-        builder.HasIndex(i => i.Name).IsUnique();
+        builder.HasIndex(i => i.Name).IsUnique().HasFilter("\"ArchivedAt\" IS NULL");
     }
 }
 
@@ -145,7 +146,8 @@ public class MenuSlotConfiguration : IEntityTypeConfiguration<MenuSlot>
             )
         );
 
-        builder.HasIndex(s => new { s.MenuId, s.Position }).IsUnique();
+        // Un emplacement archivé libère sa position.
+        builder.HasIndex(s => new { s.MenuId, s.Position }).IsUnique().HasFilter("\"ArchivedAt\" IS NULL");
 
         builder
             .HasOne(s => s.Menu)

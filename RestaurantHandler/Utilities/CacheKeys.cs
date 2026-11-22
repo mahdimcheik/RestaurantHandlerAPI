@@ -8,6 +8,16 @@ namespace RestaurantHandler.Utilities;
 /// </summary>
 public static class CacheKeys
 {
+    /// <summary>Carte publique, sans l'état d'ouverture (la pause n'est jamais en cache).</summary>
+    public const string PublicCard = "catalog:public-card";
+    public const string CatalogTag = "catalog";
+
+    /// <summary>Horaires et fermetures à venir.</summary>
+    public const string Schedule = "restaurant:schedule";
+    public const string ScheduleTag = "schedule";
+
+    public static readonly HybridCacheEntryOptions Catalog = Expire(TimeSpan.FromHours(6));
+
     private static HybridCacheEntryOptions Expire(TimeSpan duration) =>
         new() { Expiration = duration, LocalCacheExpiration = duration };
 }

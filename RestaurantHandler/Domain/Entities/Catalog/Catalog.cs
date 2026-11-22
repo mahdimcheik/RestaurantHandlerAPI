@@ -57,6 +57,9 @@ public class Product : BaseModel
     public int Position { get; set; }
     public bool IsActive { get; set; } = true;
 
+    /// <summary>Faux = rupture déclarée sur le produit lui-même, distincte de <see cref="IsActive"/>.</summary>
+    public bool IsAvailable { get; set; } = true;
+
     public ICollection<ProductIngredient> Ingredients { get; set; } = new List<ProductIngredient>();
     public ICollection<ProductSupplement> Supplements { get; set; } = new List<ProductSupplement>();
 }
@@ -122,8 +125,14 @@ public class Menu : BaseModel
     [MaxLength(1000)]
     public string? Description { get; set; }
 
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
+
     public int PriceCents { get; set; }
     public decimal VatRate { get; set; }
+
+    /// <summary>Ordre dans la rubrique des menus.</summary>
+    public int Position { get; set; }
     public bool IsActive { get; set; } = true;
 
     public ICollection<MenuSlot> Slots { get; set; } = new List<MenuSlot>();

@@ -53,7 +53,8 @@ En tant que Manager, je veux renseigner les informations du restaurant afin qu'e
 apparaissent sur la PWA et les reçus.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J1 (`/manage/restaurant/settings`, logo, historique) ; écran en J5.
 
 **Critères d'acceptation**
 - Nom commercial, raison sociale, adresse, téléphone, SIRET, n° de TVA intracommunautaire,
