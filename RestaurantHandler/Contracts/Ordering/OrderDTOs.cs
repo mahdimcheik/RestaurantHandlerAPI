@@ -1,0 +1,232 @@
+using System.ComponentModel.DataAnnotations;
+using RestaurantHandler.Domain.Policies;
+
+namespace RestaurantHandler.Models;
+
+// ---------- Panier (aucun prix : le serveur calcule, R2) ----------
+
+public class CartModificationDto
+{
+    [Required] public ModificationType Type { get; set; }
+    [Required] public Guid IngredientId { get; set; }
+
+    /// <summary>Obligatoire pour un remplacement.</summary>
+    public Guid? SubstituteIngredientId { get; set; }
+
+    /// <summary>Pour un supplément ; 1 sinon.</summary>
+    [Range(1, 20)] public int Quantity { get; set; } = 1;
+}
+
+public class CartMenuChoiceDto
+{
+    [Required] public Guid SlotId { get; set; }
+    [Required] public Guid ProductId { get; set; }
+    public List<CartModificationDto> Modifications { get; set; } = [];
+}
+
+public class CartLineDto
+{
+    public Guid? ProductId { get; set; }
+    public Guid? MenuId { get; set; }
+
+    [Range(1, CartPolicy.MaxLineQuantity)]
+    public int Quantity { get; set; } = 1;
+
+    public List<CartModificationDto> Modifications { get; set; } = [];
+    public List<CartMenuChoiceDto> Choices { get; set; } = [];
+
+    public CartLine ToCartLine() =>
+        new(
+            ProductId,
+            MenuId,
+            Quantity,
+            Modifications.Select(ToCart).ToList(),
+            Choices.Select(c => new CartMenuChoice(c.SlotId, c.ProductId, c.Modifications.Select(ToCart).ToList())).ToList()
+        );
+
+    private static CartModification ToCart(CartModificationDto m) =>
+        new(m.Type, m.IngredientId, m.SubstituteIngredientId, m.Quantity);
+}
+
+public class QuoteRequest
+{
+    [Required]
+    [MinLength(1, ErrorMessage = "Le panier est vide.")]
+    [MaxLength(CartPolicy.MaxLines)]
+    public List<CartLineDto> Lines { get; set; } = [];
+}
+
+public class OrderCreate : QuoteRequest, IValidatableObject
+{
+    /// <summary>Générée par l'appareil pour ce panier ; un rejeu renvoie la commande déjà créée (R10).</summary>
+    [Required]
+    [StringLength(64, MinimumLength = 8)]
+    public string IdempotencyKey { get; set; } = string.Empty;
+
+    [Required] public PickupMode PickupMode { get; set; }
+
+    /// <summary>Début du créneau choisi (tel que renvoyé par /restaurant/slots), si PickupMode = Slot.</summary>
+    public DateTimeOffset? SlotStart { get; set; }
+
+    [Required] public PaymentChoice PaymentChoice { get; set; }
+
+    [MaxLength(500)] public string? CustomerNote { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (PickupMode == PickupMode.Slot && SlotStart is null)
+            yield return new("Choisissez un créneau.", [nameof(SlotStart)]);
+    }
+}
+
+public class CounterOrderCreate : QuoteRequest
+{
+    [Required]
+    [StringLength(64, MinimumLength = 8)]
+    public string IdempotencyKey { get; set; } = string.Empty;
+
+    [MaxLength(64)] public string? CustomerFirstName { get; set; }
+    [MaxLength(500)] public string? CustomerNote { get; set; }
+}
+
+public class QuoteLine
+{
+    [Required] public int Index { get; set; }
+    [Required] public string Name { get; set; } = string.Empty;
+    [Required] public int Quantity { get; set; }
+    [Required] public int UnitTotalCents { get; set; }
+    [Required] public int LineTotalCents { get; set; }
+}
+
+public class QuoteResult
+{
+    [Required] public int TotalCents { get; set; }
+    [Required] public List<QuoteLine> Lines { get; set; } = [];
+    [Required] public List<VatLineDto> Vat { get; set; } = [];
+}
+
+/// <summary>Détail d'un refus de panier, renvoyé dans <c>issues</c> du ProblemDetails (409).</summary>
+public class CartIssueDto
+{
+    /// <summary>Index de la ligne dans la requête ; -1 pour le panier entier.</summary>
+    [Required] public int LineIndex { get; set; }
+    [Required] public string Message { get; set; } = string.Empty;
+}
+
+// ---------- Lecture ----------
+
+public class VatLineDto
+{
+    [Required] public decimal Rate { get; set; }
+    [Required] public int GrossCents { get; set; }
+    [Required] public int NetCents { get; set; }
+    [Required] public int VatCents { get; set; }
+}
+
+public class OrderModificationDto
+{
+    [Required] public ModificationType Type { get; set; }
+    [Required] public string Label { get; set; } = string.Empty;
+    [Required] public int Quantity { get; set; }
+    [Required] public int UnitPriceCents { get; set; }
+}
+
+public class OrderItemDto
+{
+    [Required] public Guid Id { get; set; }
+    public Guid? ProductId { get; set; }
+    public Guid? MenuId { get; set; }
+    [Required] public string Name { get; set; } = string.Empty;
+    [Required] public int Quantity { get; set; }
+    [Required] public int UnitPriceCents { get; set; }
+    [Required] public int LineTotalCents { get; set; }
+    [Required] public List<OrderModificationDto> Modifications { get; set; } = [];
+
+    /// <summary>Produits choisis dans les emplacements d'un menu.</summary>
+    [Required] public List<OrderItemDto> Components { get; set; } = [];
+}
+
+public class OrderHistoryDto
+{
+    [Required] public OrderStatus Status { get; set; }
+    [Required] public DateTimeOffset ChangedAt { get; set; }
+    public string? Reason { get; set; }
+
+    /// <summary>Renseigné pour le Manager uniquement.</summary>
+    public string? ChangedBy { get; set; }
+}
+
+public class OrderPaymentDto
+{
+    [Required] public Guid Id { get; set; }
+    [Required] public PaymentMethod Method { get; set; }
+    [Required] public PaymentStatus Status { get; set; }
+    [Required] public int AmountCents { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
+}
+
+public class OrderSummary
+{
+    [Required] public Guid Id { get; set; }
+    [Required] public int OrderNumber { get; set; }
+
+    /// <summary>Numéro d'appel du jour.</summary>
+    [Required] public int DailyNumber { get; set; }
+    [Required] public DateOnly ServiceDate { get; set; }
+    [Required] public OrderStatus Status { get; set; }
+    [Required] public OrderChannel Channel { get; set; }
+    [Required] public PickupMode PickupMode { get; set; }
+    [Required] public DateTimeOffset PickupAt { get; set; }
+    [Required] public PaymentChoice PaymentChoice { get; set; }
+    [Required] public bool IsPaid { get; set; }
+    [Required] public int TotalCents { get; set; }
+
+    /// <summary>Nom du client ou prénom saisi au comptoir.</summary>
+    public string? CustomerLabel { get; set; }
+    [Required] public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class OrderDetails : OrderSummary
+{
+    public Guid? CustomerId { get; set; }
+    public string? CustomerNote { get; set; }
+    public DateTimeOffset? ConfirmedAt { get; set; }
+    public DateTimeOffset? ReadyAt { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
+    public DateTimeOffset? PaidAt { get; set; }
+    [Required] public int PaidCents { get; set; }
+    [Required] public List<OrderItemDto> Items { get; set; } = [];
+    [Required] public List<VatLineDto> Vat { get; set; } = [];
+    [Required] public List<OrderHistoryDto> History { get; set; } = [];
+    [Required] public List<OrderPaymentDto> Payments { get; set; } = [];
+}
+
+// ---------- Actions ----------
+
+public class ReasonRequest
+{
+    [Required(ErrorMessage = "Un motif est obligatoire.")]
+    [MaxLength(500)]
+    public string Reason { get; set; } = string.Empty;
+}
+
+public class PaymentDeclare
+{
+    [Required]
+    [AllowedValues(PaymentMethod.OnSiteCard, PaymentMethod.OnSiteCash, PaymentMethod.OnSiteOther,
+        ErrorMessage = "Moyen : carte, espèces ou autre (encaissement sur place).")]
+    public PaymentMethod Method { get; set; }
+
+    /// <summary>Par défaut, le reste à payer ; plusieurs déclarations pour un paiement mixte.</summary>
+    [Range(1, 10_000_000)]
+    public int? AmountCents { get; set; }
+}
+
+public class OrderFilter
+{
+    /// <summary>Jour de service (heure de Paris) ; aujourd'hui par défaut.</summary>
+    public DateOnly? Date { get; set; }
+    public OrderStatus? Status { get; set; }
+    public OrderChannel? Channel { get; set; }
+    public bool? IsPaid { get; set; }
+}

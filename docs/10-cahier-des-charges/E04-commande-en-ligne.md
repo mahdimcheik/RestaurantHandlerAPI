@@ -9,7 +9,8 @@ En tant que client, je veux ajouter un produit en retirant, remplaçant ou ajout
 ingrédients afin de commander exactement ce que je veux.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** Règles et prix côté serveur faits en J2 (`POST /orders/quote`, R2/R4) ; panier en J4.
 
 **Critères d'acceptation**
 - Seuls les ingrédients retirables peuvent être retirés ; seules les substitutions et suppléments
@@ -24,7 +25,8 @@ En tant que client, je veux choisir un produit dans chaque emplacement d'un menu
 personnaliser) afin de commander une formule.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** Règles de menu faites en J2 (R5, surcoûts, personnalisation des composants) ; écran en J4.
 
 **Critères d'acceptation**
 - Le nombre de choix par emplacement respecte son minimum et son maximum ; un emplacement
@@ -38,7 +40,8 @@ En tant que client, je veux choisir « dès que possible » ou un créneau préc
 ma commande quand cela m'arrange.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (ASAP si ouvert et hors pause, créneau du jour non plein) ; écran en J4.
 
 **Critères d'acceptation**
 - « Dès que possible » n'est proposé que si le restaurant est ouvert et non en pause ; l'heure
@@ -54,7 +57,8 @@ En tant que client connecté, je veux valider mon panier avec un mode de paiemen
 commande soit transmise au restaurant.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (`POST /orders` : recalcul, revérification, refus détaillé par ligne, idempotence, numéro du jour) ; redirection SumUp en J3.
 
 **Critères d'acceptation**
 - Le serveur **recalcule** le total à partir de la carte en vigueur ; le total envoyé par le
@@ -75,7 +79,8 @@ En tant que restaurant, je veux limiter le paiement au retrait afin de réduire 
 retirées.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (une commande au retrait en cours, blocage au seuil de non-venues, levée par `POST /manage/customers/{id}/no-shows/reset`) ; écran en J5.
 
 **Critères d'acceptation**
 - Un client a au plus une commande « payer au retrait » en cours.
@@ -88,7 +93,8 @@ En tant que client, je veux annuler ma commande tant qu'elle n'est pas en prépa
 corriger une erreur.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (`POST /orders/{id}/cancel`) ; remboursement en ligne en J3.
 
 **Critères d'acceptation**
 - Annulation possible en `En attente de paiement`, `À valider` ou `Confirmée` ; impossible à

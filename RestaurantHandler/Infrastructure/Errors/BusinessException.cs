@@ -39,3 +39,12 @@ public sealed class BusinessQuotaException(string message) : BusinessException(m
 {
     public override int StatusCode => StatusCodes.Status429TooManyRequests;
 }
+
+/// <summary>Panier refusé (rupture, prix changé, personnalisation invalide) : détail par ligne (409).</summary>
+public sealed class CartRejectedException(IReadOnlyList<RestaurantHandler.Domain.Policies.CartIssue> issues)
+    : BusinessException("Votre panier doit être mis à jour : " + string.Join(" ", issues.Select(i => i.Message)))
+{
+    public IReadOnlyList<RestaurantHandler.Domain.Policies.CartIssue> Issues { get; } = issues;
+
+    public override int StatusCode => StatusCodes.Status409Conflict;
+}

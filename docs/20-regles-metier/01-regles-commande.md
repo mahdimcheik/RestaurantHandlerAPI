@@ -52,6 +52,8 @@ Un même ingrédient ne peut pas être à la fois retiré et remplacé dans une 
 - Chaque choix est une `MenuSlotOption` de cet emplacement, avec un produit actif et disponible.
 - Les choix sont des lignes enfants (`ParentItemId`) qui portent le surcoût d'option comme prix
   unitaire et leurs propres personnalisations.
+- TVA : en attendant la réponse à la question 3, la ligne menu et ses composants portent le
+  **taux du menu**.
 
 ## R6 — Disponibilité
 
@@ -67,12 +69,18 @@ actif et si chaque emplacement à minimum > 0 a au moins une option commandable.
   sérialisable ou verrou applicatif sur le créneau) pour qu'aucune commande concurrente ne la
   dépasse.
 - Une commande comptoir n'exige que l'ouverture.
+- Toute commande active (tous canaux) dont l'heure de retrait tombe dans un créneau l'occupe :
+  la capacité protège la cuisine. Les créations de commandes sont sérialisées par un verrou
+  `pg_advisory_xact_lock` (capacité, numéro du jour, idempotence).
+- Un ingrédient retirable en rupture doit figurer en retrait (ou remplacement) dans la ligne :
+  sinon la commande est refusée et le panier mis à jour.
 
 ## R8 — Numérotation
 
 - `OrderNumber` est une séquence globale attribuée par la base (identity Postgres), unique.
-- Le numéro **affiché** peut être raccourci (ex. modulo 1000) pour l'appel en salle — à statuer
-  en J2 ; la référence technique reste l'identifiant complet.
+- Le numéro **affiché** est `DailyNumber` : 1, 2, 3… par jour de service (heure de Paris),
+  unique par jour (question 11, tranchée le 2026-11-22). La référence technique reste
+  `OrderNumber`.
 
 ## R9 — Paiement
 

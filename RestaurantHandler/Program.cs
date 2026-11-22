@@ -142,6 +142,13 @@ static void ConfigureServices(IServiceCollection services)
     services.AddScoped<PublicCatalogService>();
     services.AddScoped<RestaurantService>();
 
+    // Commandes (J2)
+    services.AddScoped<CartService>();
+    services.AddScoped<OrderNotifier>();
+    services.AddScoped<OrderQueryService>();
+    services.AddScoped<OrderPlacementService>();
+    services.AddScoped<OrderWorkflowService>();
+
     services.AddLogging(loggingBuilder =>
     {
         loggingBuilder.ClearProviders();

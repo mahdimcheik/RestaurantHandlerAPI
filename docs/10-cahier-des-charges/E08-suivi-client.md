@@ -9,7 +9,8 @@ En tant que client, je veux voir l'avancement de ma commande sans recharger la p
 savoir quand venir.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (`GET /orders/{id}`, `OrderStatusChanged` envoyé au client, 404 pour un autre client) ; page de suivi en J4.
 
 **Critères d'acceptation**
 - Page de suivi : numéro (en grand), heure de retrait, état (*En attente de paiement / À
@@ -26,7 +27,8 @@ En tant que client, je veux retrouver ma commande en cours dès l'ouverture de l
 de ne pas la chercher.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (`GET /orders/mine/current`) ; bandeau en J4.
 
 **Critères d'acceptation**
 - Un bandeau « Commande n° 42 — En préparation » est affiché sur toutes les pages tant qu'une
@@ -37,7 +39,8 @@ de ne pas la chercher.
 En tant que client, je veux voir mes commandes passées et leur reçu afin de garder une trace.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (`GET /orders/mine` paginé, détail depuis les snapshots) ; écran en J4.
 
 **Critères d'acceptation**
 - Liste paginée, plus récente en premier : date, numéro, total, statut.

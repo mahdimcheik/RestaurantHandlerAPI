@@ -6,7 +6,8 @@ En tant que Manager, je veux saisir rapidement la commande d'un client présent 
 l'envoyer en cuisine.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (`POST /manage/orders/counter`, non bloquée par la pause) ; écran tactile en J5.
 
 **Critères d'acceptation**
 - Interface tactile optimisée tablette : catégories en tuiles, personnalisation en deux
@@ -26,7 +27,8 @@ En tant que Manager, je veux une liste des commandes du jour filtrable par statu
 état de paiement afin de piloter le service.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (`GET /manage/orders`, filtres statut / canal / payée, détail avec historique) ; écran en J5.
 
 **Critères d'acceptation**
 - Mise à jour en temps réel.
@@ -39,7 +41,8 @@ En tant que Manager, je veux accepter ou refuser une commande en ligne à payer 
 de ne préparer que des commandes crédibles.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (accepter, refuser avec motif, refus automatique Hangfire après `ApprovalTimeoutMinutes`, temps réel) ; son et badge en J5.
 
 **Critères d'acceptation**
 - Les commandes `À valider` sont mises en évidence (son + badge) dans le back-office.
@@ -54,7 +57,8 @@ de ne préparer que des commandes crédibles.
 En tant que Manager, je veux marquer une commande comme retirée afin de clore son cycle.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (`complete`, refusé si non payée) ; recherche par numéro en J5.
 
 **Critères d'acceptation**
 - Possible uniquement depuis `Prête` et si la commande est payée.
@@ -66,7 +70,8 @@ En tant que Manager, je veux marquer une commande prête non retirée comme « n
 clore la commande et de suivre les abus.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (`no-show` après retrait + délai de grâce, compteur client) ; écran en J5.
 
 **Critères d'acceptation**
 - Possible depuis `Prête` après l'heure de retrait + délai de grâce.
@@ -80,7 +85,8 @@ En tant que Manager, je veux annuler une commande avec un motif afin de gérer u
 (rupture découverte, erreur de saisie).
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (annulation Manager avec motif à tout statut non final) ; remboursement en ligne en J3.
 
 **Critères d'acceptation**
 - Possible à tout statut avant `Retirée` ; motif obligatoire ; historisé.

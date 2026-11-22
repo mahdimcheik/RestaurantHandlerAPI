@@ -13,7 +13,7 @@ using RestaurantHandler.Contexts;
 namespace RestaurantHandler.Migrations
 {
     [DbContext(typeof(MainContext))]
-    [Migration("20261122174017_InitialCreate")]
+    [Migration("20261122175741_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -516,11 +516,18 @@ namespace RestaurantHandler.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("CreatedByUserId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("CustomerFirstName")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<Guid?>("CustomerId")
                         .HasColumnType("uuid");
@@ -528,6 +535,14 @@ namespace RestaurantHandler.Migrations
                     b.Property<string>("CustomerNote")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<int>("DailyNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<int>("OrderNumber")
                         .ValueGeneratedOnAdd()
@@ -538,8 +553,24 @@ namespace RestaurantHandler.Migrations
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("PaymentChoice")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTime>("PickupAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PickupMode")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
                     b.Property<DateTime?>("ReadyAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("ServiceDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -552,6 +583,12 @@ namespace RestaurantHandler.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedByUserId");
@@ -559,6 +596,14 @@ namespace RestaurantHandler.Migrations
                     b.HasIndex("CustomerId");
 
                     b.HasIndex("OrderNumber")
+                        .IsUnique();
+
+                    b.HasIndex("CreatedByUserId", "IdempotencyKey")
+                        .IsUnique();
+
+                    b.HasIndex("PickupAt", "Status");
+
+                    b.HasIndex("ServiceDate", "DailyNumber")
                         .IsUnique();
 
                     b.HasIndex("Status", "CreatedAt");
@@ -713,6 +758,10 @@ namespace RestaurantHandler.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -753,6 +802,9 @@ namespace RestaurantHandler.Migrations
                         .HasDefaultValue("EUR")
                         .IsFixedLength();
 
+                    b.Property<Guid?>("DeclaredByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Method")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -782,6 +834,9 @@ namespace RestaurantHandler.Migrations
                     b.HasIndex("OrderId");
 
                     b.HasIndex("SumupCheckoutId")
+                        .IsUnique();
+
+                    b.HasIndex("SumupTransactionCode")
                         .IsUnique();
 
                     b.ToTable("Payments", t =>
@@ -1220,6 +1275,9 @@ namespace RestaurantHandler.Migrations
 
                     b.Property<DateTime?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("NoShowCount")
+                        .HasColumnType("integer");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)

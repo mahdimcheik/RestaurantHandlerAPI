@@ -11,13 +11,19 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.ToTable(t => t.HasCheckConstraint("CK_Orders_TotalCents", "\"TotalCents\" >= 0"));
 
         builder.Property(o => o.OrderNumber).UseIdentityByDefaultColumn();
+        builder.Property(o => o.Version).IsRowVersion();
         builder.HasIndex(o => o.OrderNumber).IsUnique();
         builder.HasIndex(o => new { o.Status, o.CreatedAt });
+        builder.HasIndex(o => new { o.ServiceDate, o.DailyNumber }).IsUnique();
+        builder.HasIndex(o => new { o.CreatedByUserId, o.IdempotencyKey }).IsUnique();
+        builder.HasIndex(o => new { o.PickupAt, o.Status });
         builder.HasIndex(o => o.CustomerId);
         builder.HasIndex(o => o.CreatedByUserId);
 
         builder.Property(o => o.Channel).HasConversion<string>().HasMaxLength(16);
         builder.Property(o => o.Status).HasConversion<string>().HasMaxLength(32);
+        builder.Property(o => o.PickupMode).HasConversion<string>().HasMaxLength(16);
+        builder.Property(o => o.PaymentChoice).HasConversion<string>().HasMaxLength(16);
 
         // Une commande passée reste en base pour la compta : on n'efface pas un compte qui en a.
         builder
@@ -136,6 +142,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.Status).HasConversion<string>().HasMaxLength(16);
         builder.Property(p => p.Currency).IsFixedLength().HasDefaultValue("EUR");
         builder.HasIndex(p => p.SumupCheckoutId).IsUnique();
+        builder.HasIndex(p => p.SumupTransactionCode).IsUnique();
         builder.HasIndex(p => p.OrderId);
 
         builder

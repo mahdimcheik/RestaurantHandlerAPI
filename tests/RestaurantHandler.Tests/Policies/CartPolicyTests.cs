@@ -1,0 +1,167 @@
+using RestaurantHandler.Domain.Policies;
+using RestaurantHandler.Models;
+
+namespace RestaurantHandler.Tests.Policies;
+
+public class CartPolicyTests
+{
+    private readonly CatalogFixture _c = new();
+
+    private PricedCart Price(params CartLine[] lines) => CartPolicy.Price(lines, _c.Products, _c.Menus);
+
+    private static CartLine Product(Guid id, int qty = 1, params CartModification[] mods) => new(id, null, qty, mods, []);
+
+    private CartLine MenuLine(int qty, params CartMenuChoice[] choices) => new(null, _c.Menu.Id, qty, [], choices);
+
+    [Fact]
+    public void Produit_simple_au_prix_de_la_carte_avec_snapshots()
+    {
+        var cart = Price(Product(_c.Classic.Id, 2));
+
+        Assert.True(cart.IsValid);
+        Assert.Equal(1900, cart.TotalCents);
+        var item = cart.Items.Single();
+        Assert.Equal("Classic", item.NameSnapshot);
+        Assert.Equal(950, item.UnitPriceCents);
+        Assert.Equal(10m, item.VatRate);
+    }
+
+    [Fact]
+    public void Personnalisations_R2_retrait_gratuit_remplacement_et_supplement_payants()
+    {
+        var cart = Price(Product(_c.Classic.Id, 2,
+            new CartModification(ModificationType.Replace, _c.Tomate.Id, _c.Salade.Id),
+            new CartModification(ModificationType.Supplement, _c.Cheddar.Id, Quantity: 2)));
+
+        // (950 + 30 + 2 × 80) × 2
+        Assert.Equal(2280, cart.TotalCents);
+        Assert.Equal(["Tomate → Salade", "+ Cheddar"], cart.Items[0].Modifications.Select(m => m.LabelSnapshot));
+    }
+
+    [Fact]
+    public void Retrait_ne_baisse_jamais_le_prix()
+    {
+        var cart = Price(Product(_c.Classic.Id, 1, new CartModification(ModificationType.Remove, _c.Tomate.Id)));
+
+        Assert.Equal(950, cart.TotalCents);
+        Assert.Equal("Sans Tomate", cart.Items[0].Modifications.Single().LabelSnapshot);
+    }
+
+    [Theory]
+    [InlineData("retrait-non-retirable")]
+    [InlineData("retrait-et-remplacement")]
+    [InlineData("remplacement-inconnu")]
+    [InlineData("supplement-au-dela-du-max")]
+    [InlineData("supplement-inconnu")]
+    public void Personnalisation_invalide_R4_refusee(string cas)
+    {
+        CartModification[] mods = cas switch
+        {
+            "retrait-non-retirable" => [new(ModificationType.Remove, _c.Steak.Id)],
+            "retrait-et-remplacement" => [new(ModificationType.Remove, _c.Tomate.Id), new(ModificationType.Replace, _c.Tomate.Id, _c.Salade.Id)],
+            "remplacement-inconnu" => [new(ModificationType.Replace, _c.Tomate.Id, _c.Cheddar.Id)],
+            "supplement-au-dela-du-max" => [new(ModificationType.Supplement, _c.Cheddar.Id, Quantity: 4)],
+            _ => [new(ModificationType.Supplement, _c.Salade.Id)],
+        };
+
+        var cart = Price(Product(_c.Classic.Id, 1, mods));
+
+        Assert.False(cart.IsValid);
+        Assert.Empty(cart.Items);
+        Assert.Equal(0, cart.Issues.Single().LineIndex);
+    }
+
+    [Fact]
+    public void Rupture_non_retirable_survenue_apres_ajout_au_panier_refuse()
+    {
+        _c.Steak.IsAvailable = false;
+
+        var cart = Price(Product(_c.Cola.Id), Product(_c.Classic.Id));
+
+        Assert.False(cart.IsValid);
+        Assert.Equal(1, cart.Issues.Single().LineIndex);
+    }
+
+    [Fact]
+    public void Rupture_retirable_exige_le_retrait_ou_un_remplacement()
+    {
+        _c.Tomate.IsAvailable = false;
+
+        Assert.False(Price(Product(_c.Classic.Id)).IsValid);
+        Assert.True(Price(Product(_c.Classic.Id, 1, new CartModification(ModificationType.Remove, _c.Tomate.Id))).IsValid);
+        Assert.True(Price(Product(_c.Classic.Id, 1, new CartModification(ModificationType.Replace, _c.Tomate.Id, _c.Salade.Id))).IsValid);
+    }
+
+    [Fact]
+    public void Supplement_ou_remplacant_en_rupture_refuse()
+    {
+        _c.Cheddar.IsAvailable = false;
+        _c.Salade.IsAvailable = false;
+
+        Assert.False(Price(Product(_c.Classic.Id, 1, new CartModification(ModificationType.Supplement, _c.Cheddar.Id))).IsValid);
+        Assert.False(Price(Product(_c.Classic.Id, 1, new CartModification(ModificationType.Replace, _c.Tomate.Id, _c.Salade.Id))).IsValid);
+    }
+
+    [Fact]
+    public void Menu_R5_surcout_option_et_personnalisation_du_composant()
+    {
+        var cart = Price(MenuLine(2,
+            new CartMenuChoice(_c.PlatSlot.Id, _c.Classic.Id, [new(ModificationType.Supplement, _c.Cheddar.Id)]),
+            new CartMenuChoice(_c.BoissonSlot.Id, _c.GrandCola.Id, [])));
+
+        Assert.True(cart.IsValid);
+        // (1290 + 0 + 80 + 100) × 2
+        Assert.Equal(2940, cart.TotalCents);
+        var menu = cart.Items.Single();
+        Assert.Equal(2, menu.Children.Count);
+        Assert.All(menu.Children, c => Assert.Equal(10m, c.VatRate));
+        Assert.Equal(100, menu.Children.Single(c => c.ProductId == _c.GrandCola.Id).UnitPriceCents);
+    }
+
+    [Fact]
+    public void Menu_emplacement_obligatoire_manquant_ou_trop_de_choix_refuse()
+    {
+        Assert.False(Price(MenuLine(1, new CartMenuChoice(_c.PlatSlot.Id, _c.Classic.Id, []))).IsValid);
+        Assert.False(Price(MenuLine(1,
+            new CartMenuChoice(_c.PlatSlot.Id, _c.Classic.Id, []),
+            new CartMenuChoice(_c.BoissonSlot.Id, _c.Cola.Id, []),
+            new CartMenuChoice(_c.BoissonSlot.Id, _c.GrandCola.Id, []))).IsValid);
+    }
+
+    [Fact]
+    public void Menu_choix_hors_options_ou_indisponible_refuse()
+    {
+        Assert.False(Price(MenuLine(1,
+            new CartMenuChoice(_c.PlatSlot.Id, _c.Cola.Id, []),
+            new CartMenuChoice(_c.BoissonSlot.Id, _c.Cola.Id, []))).IsValid);
+
+        _c.Cola.IsAvailable = false;
+        Assert.False(Price(MenuLine(1,
+            new CartMenuChoice(_c.PlatSlot.Id, _c.Classic.Id, []),
+            new CartMenuChoice(_c.BoissonSlot.Id, _c.Cola.Id, []))).IsValid);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(21)]
+    public void Quantite_hors_bornes_refusee(int qty) => Assert.False(Price(Product(_c.Cola.Id, qty)).IsValid);
+
+    [Fact]
+    public void Panier_vide_ou_ligne_ambigue_refuse()
+    {
+        Assert.False(Price().IsValid);
+        Assert.False(Price(new CartLine(_c.Cola.Id, _c.Menu.Id, 1, [], [])).IsValid);
+    }
+
+    [Fact]
+    public void Snapshots_independants_de_la_carte_apres_validation()
+    {
+        var item = Price(Product(_c.Classic.Id)).Items.Single();
+
+        _c.Classic.Name = "Classic v2";
+        _c.Classic.PriceCents = 1200;
+
+        Assert.Equal("Classic", item.NameSnapshot);
+        Assert.Equal(950, OrderPricing.LineTotal(item));
+    }
+}

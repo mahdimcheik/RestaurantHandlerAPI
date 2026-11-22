@@ -47,6 +47,12 @@ public sealed class BusinessExceptionHandler(
         };
         // Le front lit « message » dans l'enveloppe Response<T> : on le garde le temps du lot 7.
         problem.Extensions["message"] = problem.Title;
+        if (exception is CartRejectedException cart)
+        {
+            problem.Extensions["issues"] = cart.Issues
+                .Select(i => new { lineIndex = i.LineIndex, message = i.Message })
+                .ToList();
+        }
         if (status == StatusCodes.Status500InternalServerError && environment.IsDevelopment())
         {
             problem.Extensions["exception"] = exception.ToString();

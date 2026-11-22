@@ -46,7 +46,7 @@ public class RestaurantService(
         };
     }
 
-    /// <summary>Créneaux du jour ; aucun pendant une pause (R7). Occupation branchée en J2.</summary>
+    /// <summary>Créneaux du jour, places restantes comprises ; aucun pendant une pause (R7).</summary>
     public async Task<List<PickupSlotDto>> GetSlotsAsync()
     {
         var now = clock.GetUtcNow();
@@ -54,10 +54,31 @@ public class RestaurantService(
         if (OpeningPolicy.IsPauseActive(settings.IsPaused, settings.PausedUntil, now))
             return [];
 
-        var schedule = await GetScheduleAsync();
-        return SlotPolicy
-            .ForToday(now, schedule.Hours, schedule.Closures, settings.SlotDurationMinutes, settings.SlotCapacityOrders, settings.MinLeadMinutes)
+        return (await SlotsWithOccupancyAsync(now, await GetScheduleAsync(), settings))
             .Select(s => new PickupSlotDto { Start = s.Start, End = s.End, Remaining = s.Remaining })
+            .ToList();
+    }
+
+    /// <summary>
+    /// Créneaux non pleins. Toute commande active dont l'heure de retrait tombe dans un créneau
+    /// l'occupe, quel que soit son canal : la capacité protège la cuisine. Jamais en cache.
+    /// </summary>
+    public async Task<List<PickupSlot>> SlotsWithOccupancyAsync(DateTimeOffset now, Schedule schedule, RestaurantSettings settings)
+    {
+        var candidates = SlotPolicy.ForToday(now, schedule.Hours, schedule.Closures, settings.SlotDurationMinutes, settings.SlotCapacityOrders, settings.MinLeadMinutes);
+        if (candidates.Count == 0)
+            return [];
+
+        var from = candidates[0].Start;
+        var to = candidates[^1].End;
+        var pickups = await db.Orders.AsNoTracking()
+            .Where(o => o.PickupAt >= from && o.PickupAt < to && OrderTransitionPolicy.ActiveStatuses.Contains(o.Status))
+            .Select(o => o.PickupAt)
+            .ToListAsync();
+
+        var occupancy = candidates.ToDictionary(s => s.Start, s => pickups.Count(p => p >= s.Start && p < s.End));
+        return SlotPolicy
+            .ForToday(now, schedule.Hours, schedule.Closures, settings.SlotDurationMinutes, settings.SlotCapacityOrders, settings.MinLeadMinutes, occupancy)
             .ToList();
     }
 

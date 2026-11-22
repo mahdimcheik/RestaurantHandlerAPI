@@ -47,7 +47,8 @@ En tant que Manager, je veux indiquer qu'une commande a été encaissée sur la 
 par quel moyen afin de savoir ce qui reste à encaisser.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (`POST /manage/orders/{id}/payments`, paiement mixte, auteur, garde avant `Retirée`) ; écran en J5.
 
 **Critères d'acceptation**
 - Moyens enregistrables : carte (terminal), espèces, autre ; **plusieurs** moyens et montants

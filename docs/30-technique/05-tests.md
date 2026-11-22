@@ -1,8 +1,8 @@
 # Stratégie de tests
 
-Le dépôt n'a **aucune suite de tests** aujourd'hui (elle a été retirée avec le domaine
-d'origine). Elle est recréée en J2, en commençant par ce qui coûte le plus en cas d'erreur :
-l'argent et les états.
+Deux projets : `tests/RestaurantHandler.Tests` (unitaires, règles de `Domain/Policies/`) et
+`tests/RestaurantHandler.IntegrationTests` (API complète sur PostgreSQL Testcontainers, Docker
+requis, horloge de test réglable). Tous les cas ci-dessous hors SumUp sont couverts depuis J2.
 
 ## Niveaux
 

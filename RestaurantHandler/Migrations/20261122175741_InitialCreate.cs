@@ -287,6 +287,7 @@ namespace RestaurantHandler.Migrations
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     StatusId = table.Column<Guid>(type: "uuid", nullable: false),
                     ConfirmationEmailSentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    NoShowCount = table.Column<int>(type: "integer", nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -524,6 +525,13 @@ namespace RestaurantHandler.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     OrderNumber = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ServiceDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    DailyNumber = table.Column<int>(type: "integer", nullable: false),
+                    IdempotencyKey = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    CustomerFirstName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    PickupMode = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
+                    PickupAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    PaymentChoice = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
                     CustomerId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreatedByUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Channel = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
@@ -531,8 +539,10 @@ namespace RestaurantHandler.Migrations
                     CustomerNote = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     TotalCents = table.Column<int>(type: "integer", nullable: false),
                     PaidAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ConfirmedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ReadyAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -698,7 +708,8 @@ namespace RestaurantHandler.Migrations
                     OrderId = table.Column<Guid>(type: "uuid", nullable: false),
                     Status = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     ChangedByUserId = table.Column<Guid>(type: "uuid", nullable: true),
-                    ChangedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    ChangedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Reason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -729,6 +740,7 @@ namespace RestaurantHandler.Migrations
                     Currency = table.Column<string>(type: "character(3)", fixedLength: true, maxLength: 3, nullable: false, defaultValue: "EUR"),
                     SumupCheckoutId = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
                     SumupTransactionCode = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                    DeclaredByUserId = table.Column<Guid>(type: "uuid", nullable: true),
                     CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -945,6 +957,12 @@ namespace RestaurantHandler.Migrations
                 column: "CreatedByUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Orders_CreatedByUserId_IdempotencyKey",
+                table: "Orders",
+                columns: new[] { "CreatedByUserId", "IdempotencyKey" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_CustomerId",
                 table: "Orders",
                 column: "CustomerId");
@@ -953,6 +971,17 @@ namespace RestaurantHandler.Migrations
                 name: "IX_Orders_OrderNumber",
                 table: "Orders",
                 column: "OrderNumber",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_PickupAt_Status",
+                table: "Orders",
+                columns: new[] { "PickupAt", "Status" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_ServiceDate_DailyNumber",
+                table: "Orders",
+                columns: new[] { "ServiceDate", "DailyNumber" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -979,6 +1008,12 @@ namespace RestaurantHandler.Migrations
                 name: "IX_Payments_SumupCheckoutId",
                 table: "Payments",
                 column: "SumupCheckoutId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_SumupTransactionCode",
+                table: "Payments",
+                column: "SumupTransactionCode",
                 unique: true);
 
             migrationBuilder.CreateIndex(

@@ -11,14 +11,33 @@ public enum OrderChannel
     Counter,
 }
 
+/// <summary>Avancement (docs/20-regles-metier/02-machine-etats-commande.md) ; « payée » est à part.</summary>
 public enum OrderStatus
 {
     PendingPayment,
-    Paid,
+    AwaitingApproval,
+    Confirmed,
     InPreparation,
     Ready,
     Completed,
+    NoShow,
+    Refused,
     Cancelled,
+}
+
+public enum PickupMode
+{
+    /// <summary>Dès que possible : heure estimée = validation + délai ASAP.</summary>
+    Asap,
+    Slot,
+}
+
+public enum PaymentChoice
+{
+    Online,
+
+    /// <summary>Au retrait, après validation Manager (ADR-0010) ; toujours le cas au comptoir.</summary>
+    OnSite,
 }
 
 public enum ModificationType
@@ -30,8 +49,12 @@ public enum ModificationType
 
 public enum PaymentMethod
 {
-    SumupTerminal,
     SumupOnline,
+
+    // Encaissements sur place déclarés par un Manager (la caisse certifiée tierce fait foi, ADR-0006).
+    OnSiteCard,
+    OnSiteCash,
+    OnSiteOther,
 }
 
 public enum PaymentStatus
@@ -45,8 +68,27 @@ public enum PaymentStatus
 
 public class Order : BaseModel
 {
-    /// <summary>Numéro affiché en cuisine, attribué par la base.</summary>
+    /// <summary>Référence technique globale, attribuée par la base.</summary>
     public int OrderNumber { get; set; }
+
+    /// <summary>Jour de service (heure de Paris) et numéro d'appel, remis à zéro chaque jour.</summary>
+    public DateOnly ServiceDate { get; set; }
+    public int DailyNumber { get; set; }
+
+    /// <summary>Clé générée par l'appareil qui valide (R10) ; unique par auteur.</summary>
+    [MaxLength(64)]
+    public string IdempotencyKey { get; set; } = string.Empty;
+
+    /// <summary>Prénom pour l'appel d'un client de passage au comptoir.</summary>
+    [MaxLength(64)]
+    public string? CustomerFirstName { get; set; }
+
+    public PickupMode PickupMode { get; set; }
+
+    /// <summary>Heure de retrait prévue : estimée (ASAP) ou début du créneau.</summary>
+    public DateTimeOffset PickupAt { get; set; }
+
+    public PaymentChoice PaymentChoice { get; set; }
 
     /// <summary>Nul pour un client de passage.</summary>
     public Guid? CustomerId { get; set; }
@@ -65,9 +107,14 @@ public class Order : BaseModel
     /// <summary>Toujours recalculé côté serveur.</summary>
     public int TotalCents { get; set; }
 
+    /// <summary>Renseigné quand les paiements réussis couvrent le total (R9).</summary>
     public DateTimeOffset? PaidAt { get; set; }
+    public DateTimeOffset? ConfirmedAt { get; set; }
     public DateTimeOffset? ReadyAt { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }
+
+    /// <summary>Jeton de concurrence (xmin) : deux gestes simultanés sur une commande → 409.</summary>
+    public uint Version { get; set; }
 
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
@@ -156,6 +203,9 @@ public class Payment : BaseModel
     [MaxLength(128)]
     public string? SumupTransactionCode { get; set; }
 
+    /// <summary>Manager qui a déclaré un encaissement sur place.</summary>
+    public Guid? DeclaredByUserId { get; set; }
+
     public DateTimeOffset? CompletedAt { get; set; }
 }
 
@@ -172,4 +222,8 @@ public class OrderStatusHistory
     public UserApp? ChangedByUser { get; set; }
 
     public DateTimeOffset ChangedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    /// <summary>Motif de refus ou d'annulation, affiché au client.</summary>
+    [MaxLength(500)]
+    public string? Reason { get; set; }
 }

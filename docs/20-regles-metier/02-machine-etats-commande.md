@@ -1,6 +1,6 @@
 # Machine à états de la commande
 
-## Proposition V1
+## Machine V1 (validée le 2026-11-22, question 4)
 
 Le statut décrit **l'avancement de la commande** ; le fait d'être **payée** est une
 information distincte (R9 des [règles de commande](01-regles-commande.md)), parce qu'une
@@ -60,12 +60,9 @@ Règles :
 - Chaque transition est diffusée en temps réel au client propriétaire, au back-office et au KDS.
 - Les états finaux (`Retirée`, `NonVenu`, `Refusée`, `Annulée`) sont **immuables**.
 
-## Écart avec le modèle actuel
+## Mise en œuvre
 
-`OrderStatus` contient aujourd'hui `PendingPayment, Paid, InPreparation, Ready, Completed,
-Cancelled`. À faire en J2 :
-- remplacer `Paid` par `Confirmed` (le paiement devient l'information `PaidAt` + encaissements) ;
-- ajouter `AwaitingApproval`, `Refused`, `NoShow` ;
-- ajouter le motif (`Reason`) à `OrderStatusHistory`.
-
-Voir [modèle de données](../30-technique/02-modele-donnees.md#écarts-à-combler).
+Règle pure `Domain/Policies/OrderTransitionPolicy.cs` (testée transition par transition),
+appliquée par `OrderWorkflowService`. Refus automatique d'une commande `AValider` après
+`ApprovalTimeoutMinutes` (paramètre, 10 min par défaut) par une tâche Hangfire. Deux gestes
+simultanés sur une même commande : le second reçoit 409 (jeton de concurrence `xmin`).

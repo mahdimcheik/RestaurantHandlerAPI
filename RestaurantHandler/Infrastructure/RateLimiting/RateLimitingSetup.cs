@@ -20,6 +20,10 @@ public static class RateLimitingSetup
 {
     public const string AuthPolicy = "auth";
 
+    /// <summary>Validation de commande : par utilisateur, contre les rafales de création.</summary>
+    public const string OrderPolicy = "order";
+    public const int OrderPerMinute = 10;
+
     private static readonly string[] ExemptPathPrefixes =
     [
         "/hubs",
@@ -43,6 +47,7 @@ public static class RateLimitingSetup
             if (!enabled)
             {
                 options.AddPolicy(AuthPolicy, _ => RateLimitPartition.GetNoLimiter("disabled"));
+                options.AddPolicy(OrderPolicy, _ => RateLimitPartition.GetNoLimiter("disabled"));
                 return;
             }
 
@@ -63,6 +68,21 @@ public static class RateLimitingSetup
                         ? RateLimitPartition.GetNoLimiter("exempt")
                         : SlidingWindow($"user:{user}", userPerMinute);
                 })
+            );
+
+            options.AddPolicy(
+                OrderPolicy,
+                context => UserKey(context.User) is { } user
+                    ? RateLimitPartition.GetFixedWindowLimiter(
+                        $"order:{user}",
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = OrderPerMinute,
+                            Window = TimeSpan.FromMinutes(1),
+                            QueueLimit = 0,
+                        }
+                    )
+                    : RateLimitPartition.GetNoLimiter("anonymous")
             );
 
             options.AddPolicy(

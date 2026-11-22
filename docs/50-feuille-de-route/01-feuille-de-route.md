@@ -71,7 +71,7 @@ chaque écriture ; hub ouvert aux anonymes. Vérifié sur PostgreSQL jetable (sc
 complet, ruptures, pause, fermeture, droits 401/403). **Reste pour la sortie :** saisir la vraie
 carte du restaurant.
 
-## J2 — Commande (S3–S5)
+## J2 — Commande (S3–S5) — ✅ API terminée le 2026-11-22
 
 - Écarts M1, M2, M3, M8.
 - `Domain/Policies/` : calcul des prix (R2), ventilation TVA (R1), validation des
@@ -84,6 +84,18 @@ carte du restaurant.
 - Tests d'intégration (PostgreSQL Testcontainers) : concurrence sur un créneau, permissions.
 - **Sortie :** tous les cas de [tests obligatoires](../30-technique/05-tests.md) hors paiement
   passent.
+
+**Bilan J2 :** écarts M1, M2, M3, M8 faits, et M4 en partie (encaissements sur place déclarés,
+paiement mixte, garde « payée » avant `Retirée`, avancés depuis J3). Règles pures
+`CartPolicy` (R2–R5, ruptures), `VatPolicy` (R1, taux unique du menu en attendant G0),
+`OrderTransitionPolicy` (machine validée, question 4) : 52 tests unitaires. Validation en ligne
+et comptoir sous verrou `pg_advisory_xact_lock` (capacité, numéro du jour — question 11 —,
+idempotence), devis du panier, refus détaillé par ligne, limite de 10 validations par minute et
+par utilisateur, refus automatique Hangfire, transitions Manager et cuisine avec annulation de
+geste, suivi client, file KDS, temps réel. 13 tests d'intégration (Testcontainers) : prix
+client ignoré, rupture entre panier et validation, concurrence sur la dernière place, rejeu,
+isolement entre clients, permissions, garde « payée », snapshots, pause, non-venues. Paiement
+en ligne SumUp (statut `PendingPayment` créé sans checkout) : J3.
 
 ## J3 — Paiement SumUp (S5–S6)
 

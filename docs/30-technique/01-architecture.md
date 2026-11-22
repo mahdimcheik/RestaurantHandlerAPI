@@ -27,7 +27,7 @@
 | PostgreSQL + EF Core (Npgsql), migration unique `InitialCreate` | en place | modèle carte + commandes déjà migré |
 | ASP.NET Identity, rôles `Client` / `Manager`, Google | en place | comptes ([E01](../10-cahier-des-charges/E01-comptes-authentification.md)) |
 | JWT d'accès + jeton de renouvellement en cookie `httpOnly` | en place | cf. [ADR-0002](../40-decisions/ADR-0002-auth-cookies-httponly.md) |
-| SignalR (`RealtimeHub` sur `/hubs/realtime`, émission via `RealtimeService`) | en place (J0) | groupe `restaurant` (Managers, attribué à la connexion), envoi par utilisateur (claim `NameIdentifier`) ; groupes `order-{id}` à ajouter en J2 |
+| SignalR (`RealtimeHub` sur `/hubs/realtime`, émission via `RealtimeService`) | en place (J0) | groupe `restaurant` (Managers, attribué à la connexion), envoi par utilisateur (claim `NameIdentifier`) : le suivi client passe par l'envoi au propriétaire, sans groupe par commande |
 | Hangfire + PostgreSQL | en place | expirations de paiement, refus auto, reprise de pause, réconciliation SumUp |
 | HybridCache | en place | carte publique, état d'ouverture ([ADR-0004](../40-decisions/ADR-0004-cache-memoire.md)) |
 | `StorageService` (S3) | en place | photos de produits et catégories ([ADR-0003](../40-decisions/ADR-0003-stockage-objet.md)) |
@@ -56,6 +56,7 @@ métier testables sans base.
 |---|---|
 | `OrderStatusChanged` | client propriétaire (`SendToUserAsync`), groupe `restaurant` |
 | `OrderCreated` / `OrderAwaitingApproval` | groupe `restaurant` |
+| `OrderUpdated` (encaissement déclaré) | groupe `restaurant` |
 | `AvailabilityChanged` (rupture, pause, ouverture) | tous (y compris anonymes sur la carte) |
 
 Le temps réel **notifie** ; la vérité reste l'API. Tout client resynchronise par une lecture

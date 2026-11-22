@@ -9,7 +9,8 @@ En tant que cuisinier, je veux voir en temps réel les commandes à préparer af
 dans le bon ordre.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** File faite en J2 (`GET /manage/orders/kitchen`, tri et visibilité des commandes programmées) ; écran en J5.
 
 **Critères d'acceptation**
 - Affiche les commandes `Confirmée` et `En préparation`, en colonnes ou en cartes.
@@ -27,7 +28,8 @@ En tant que cuisinier, je veux passer une commande en préparation puis prête d
 tenir le client et le comptoir informés.
 
 **Priorité :** V1
-**État :** Absente
+**État :** Partielle
+**Avancement :** API faite en J2 (`start`, `ready`, `undo` sous 10 s, historique) ; écran en J5.
 
 **Critères d'acceptation**
 - `Confirmée → En préparation → Prête`, une touche par transition.
