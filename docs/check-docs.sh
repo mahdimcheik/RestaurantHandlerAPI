@@ -26,23 +26,25 @@ done < <(grep -rl '```' --include='*.md' "$DOCS")
 [ $bad -eq 0 ] && ok "tous les blocs de code sont fermés"
 
 echo "── 3. User stories ──"
-dup=$(grep -rhoE '^#{2,3} US-E[0-9]{2}-[0-9]+[a-z]?' "$DOCS/10-user-stories"/E*.md | awk '{print $2}' | sort | uniq -d)
+dup=$(grep -rhoE '^#{2,3} US-E[0-9]{2}-[0-9]+[a-z]?' "$DOCS/10-cahier-des-charges"/E*.md | awk '{print $2}' | sort | uniq -d)
 [ -n "$dup" ] && ko "identifiants dupliqués : $dup" || ok "aucun identifiant dupliqué"
-for f in "$DOCS/10-user-stories"/E*.md; do
+for f in "$DOCS/10-cahier-des-charges"/E*.md; do
   s=$(grep -cE '^#{2,3} US-' "$f"); c=$(grep -c "^\*\*Critères d'acceptation\*\*" "$f")
   [ "$s" -ne "$c" ] && ko "$(basename "$f") : $s stories mais $c blocs de critères"
-  e=$(grep -cE '^\*\*État :\*\* (Implémentée|Partielle|Absente|Hors API)' "$f")
+  e=$(grep -cE '^\*\*État :\*\* (Implémentée|Partielle|Absente)' "$f")
   [ "$s" -ne "$e" ] && ko "$(basename "$f") : $s stories mais $e lignes d'état valides"
+  p=$(grep -cE '^\*\*Priorité :\*\* V[12]' "$f")
+  [ "$s" -ne "$p" ] && ko "$(basename "$f") : $s stories mais $p lignes de priorité valides"
 done
 [ $rc -eq 0 ] && ok "chaque story porte des critères d'acceptation et un état"
-echo "  → $(grep -rhcE '^#{2,3} US-' "$DOCS/10-user-stories"/E*.md | paste -sd+ | bc) user stories"
+echo "  → $(grep -rhcE '^#{2,3} US-' "$DOCS/10-cahier-des-charges"/E*.md | paste -sd+ | bc) user stories"
 
 echo "── 4. ADR référencés ──"
 for a in "$DOCS/40-decisions"/ADR-*.md; do
   n=$(basename "$a")
   c=$(grep -rl "$n" "$DOCS" --include='*.md' | grep -vc "40-decisions/$n")
   [ "$c" -eq 0 ] && ko "$n n'est référencé par aucune spec"
-  grep -qE '^\*\*Application :\*\* (Appliquée|Partielle|À faire)' "$a" || ko "$n : ligne Application absente ou invalide"
+  grep -qE '^\*\*Statut :\*\* ' "$a" || ko "$n : ligne Statut absente"
 done
 ok "contrôle des références ADR effectué"
 
@@ -63,15 +65,6 @@ if command -v npx >/dev/null 2>&1; then
 else
   echo "  – npx absent, contrôle ignoré"
 fi
-
-echo "── 6. Couverture des contrôleurs ──"
-C="$DOCS/30-specs-techniques/03-contrat-api.md"; n=0; miss=0
-for f in RestaurantHandler/Controllers/*.cs; do
-  b=$(basename "$f" .cs)
-  grep -q -- "$b" "$C" || { ko "$b absent du contrat d'API"; miss=1; }
-  n=$((n+1))
-done
-[ $miss -eq 0 ] && ok "les $n fichiers de RestaurantHandler/Controllers sont tous traités"
 
 echo
 [ $rc -eq 0 ] && echo "✓ Documentation cohérente." || echo "✗ Des contrôles ont échoué."

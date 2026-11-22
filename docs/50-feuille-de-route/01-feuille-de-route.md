@@ -1,0 +1,118 @@
+# Feuille de route
+
+**Hypothèses :** développeur solo (back + front), ouverture visée **sous 3 mois** (~12
+semaines à partir du 2026-11-23), V1 sans caisse maison
+([ADR-0006](../40-decisions/ADR-0006-caisse-certifiee-tierce-v1.md)). Les semaines sont
+indicatives ; c'est le **critère de sortie** qui clôt un jalon, pas la date.
+
+Ordre retenu : **backend métier d'abord** (J1–J3, testé), puis **front** (J4–J5), parce que les
+règles d'argent et d'états sont le risque principal et que le front s'appuie sur un contrat
+d'API stable.
+
+## Vue d'ensemble
+
+| Jalon | Semaines | Objectif | Critère de sortie |
+|---|---|---|---|
+| **J0 — Socle propre** | S1 | Base saine pour le restaurant | build vert, doc validée, aucun reliquat inutile |
+| **J1 — Carte & ouverture** | S2–S3 | Le Manager saisit toute la carte et les horaires par l'API | carte réelle du restaurant saisie via Swagger |
+| **J2 — Commande** | S3–S5 | Le cœur : calcul, validation, créneaux, états | tests unitaires R1–R10 + transitions verts |
+| **J3 — Paiement SumUp** | S5–S6 | Paiement en ligne sûr, encaissements déclarés | paiement sandbox de bout en bout, rejeu de webhook sans effet |
+| **J4 — PWA client** | S6–S8 | Le client commande et suit sa commande | parcours click & collect complet sur mobile |
+| **J5 — Back-office & KDS** | S8–S10 | Le restaurant pilote le service | service simulé de 30 min sans papier |
+| **J6 — Mise en service** | S10–S12 | Ouvrir en production | recette terrain signée, sauvegarde restaurée, ouverture |
+
+**Jalon de décision G0 (avant la fin de J2)** : réponses de l'expert-comptable sur les
+questions 1–3 et 8 ([questions ouvertes](02-questions-ouvertes.md)). Un « non » sur la
+caisse tierce ou les allergènes en ligne remet en cause le périmètre V1.
+
+## J0 — Socle propre (S1)
+
+- Retirer du socle : centre d'aide (`HelpEntry`, `HelpController`, seed), envois groupés
+  (`MailBroadcast*`), mode maintenance (middleware, contrôleur, paramètres) ; décider du sort
+  de Web Push (question 7).
+- Renommer le hub temps réel (`ChatHub` → hub de commandes) et en définir les groupes.
+- Statuer sur la date de naissance à l'inscription (US-E01-1).
+- Dette immédiate : nom d'image Docker `bonprof` dans les workflows, `ADDRESS_ENCRYPTION_KEY`,
+  mise à jour ImageSharp (vulnérabilités), suppression de `bin/Debug/net8.0`.
+- Recréer un projet de tests (xUnit) vide branché en CI.
+- Mettre à jour `.claude/CLAUDE.md` (fait avec cette doc).
+- **Sortie :** build vert, migration à jour, CI exécutant les tests.
+
+## J1 — Carte & ouverture (S2–S3)
+
+- Écarts modèle M6, M7, M9 ([modèle](../30-technique/02-modele-donnees.md#écarts-à-combler)).
+- API Manager : catégories, produits (photo), ingrédients, compositions, substitutions,
+  suppléments, menus / emplacements / options, archivage, réordonnancement — E02.
+- API publique : carte complète en une requête, mise en cache + invalidation — US-E02-1.
+- Ruptures ingrédient / produit, règle de disponibilité R6 — US-E03-4.
+- Horaires, fermetures, pause, paramètres du restaurant — E03, US-E10-5.
+- Calcul de l'état d'ouverture et des créneaux (règle pure + tests).
+- **Sortie :** la vraie carte du restaurant est saisie via Swagger ; l'API publique renvoie
+  disponibilité et état d'ouverture corrects.
+
+## J2 — Commande (S3–S5)
+
+- Écarts M1, M2, M3, M8.
+- `Domain/Policies/` : calcul des prix (R2), ventilation TVA (R1), validation des
+  personnalisations (R4) et des menus (R5), transitions (machine à états), capacité des
+  créneaux (R7). **Tests unitaires d'abord.**
+- Validation de commande (en ligne et comptoir) avec revérification complète, idempotence
+  (R10), capacité sous verrou.
+- Transitions Manager / cuisine, historique avec motif, diffusion temps réel.
+- Tâches Hangfire : refus automatique des `AValider`, reprise de pause.
+- Tests d'intégration (PostgreSQL Testcontainers) : concurrence sur un créneau, permissions.
+- **Sortie :** tous les cas de [tests obligatoires](../30-technique/05-tests.md) hors paiement
+  passent.
+
+## J3 — Paiement SumUp (S5–S6)
+
+- Compte marchand SumUp en mode test, clés en variables d'environnement.
+- Écarts M4, M5. `Integrations/SumUp/` : création de checkout, relecture, remboursement.
+- Notification SumUp : relecture, idempotence, contrôle du montant, anomalies.
+- Réconciliation + expiration des commandes non payées (Hangfire).
+- Encaissements déclarés sur place (mixte) ; garde « payée » avant `Retirée`.
+- Page reçu des paiements en ligne (contenu selon réponse question 2).
+- **Sortie :** paiement sandbox de bout en bout, notification rejouée sans effet, remboursement
+  testé.
+
+## J4 — PWA client (S6–S8)
+
+- Projet Angular PWA (manifest, service worker), client API généré, auth (mot de passe +
+  Google).
+- Carte, fiche produit avec personnalisation, composition de menu, panier persistant.
+- Choix ASAP / créneau, validation, paiement en ligne ou au retrait.
+- Suivi temps réel, bandeau de commande en cours, historique et reçu.
+- Pages légales (CGV, confidentialité, mentions, lien allergènes).
+- **Sortie :** parcours 1 et 2 complets sur un iPhone et un Android réels.
+
+## J5 — Back-office & KDS (S8–S10)
+
+- Back-office tablette : commandes du jour, validation `AValider` (son + badge), saisie
+  comptoir rapide, encaissement déclaré, remise, non venu, annulation.
+- KDS plein écran : file triée, gestes, annulation de geste, son, resynchronisation.
+- Gestion de la carte, ruptures, pause, horaires, paramètres (écrans sur l'API de J1).
+- Statistiques : tableau du jour, ventes par produit, heures de pointe (écart M10).
+- **Sortie :** service simulé de 30 minutes (comptoir + en ligne + KDS) sans papier.
+
+## J6 — Mise en service (S10–S12)
+
+- Production : VPS, domaine, TLS, variables, SumUp en mode réel, sauvegardes + test de
+  restauration, supervision.
+- Test de charge d'un pic de service.
+- Recette terrain avec l'équipe sur les appareils réels ; procédure de mode dégradé testée
+  (bascule 4G).
+- Formation de l'équipe (1 h) ; affichage de la procédure papier.
+- Ouverture progressive possible : comptoir + KDS d'abord, click & collect une semaine après.
+- **Sortie :** ouverture, puis gel des déploiements pendant les services.
+
+## V2 — après l'ouverture
+
+Par ordre de valeur estimée (à reprioriser après un mois d'exploitation) :
+
+1. Caisse maison certifiée NF525 + imprimante ePOS/WebPRNT (supprime la double saisie).
+2. Allergènes dans la carte (US-E02-8).
+3. Notification push « c'est prêt » (US-E08-4).
+4. Rôle équipier distinct du gérant.
+5. Vue cuisine agrégée (US-E07-4), délai ASAP calculé selon la charge.
+6. Recommande (US-E04-7), comparaison de périodes (US-E09-4), prévisualisation de carte.
+7. Codes promo, fidélité, export comptable.

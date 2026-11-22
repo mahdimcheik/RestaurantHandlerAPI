@@ -1,114 +1,72 @@
-# Spécifications BonProfAPI
+# Documentation RestaurantHandler
 
-Source de vérité fonctionnelle et technique de l'API BonProf. Tout désaccord entre le code
-et ces documents est un bug — de l'un ou de l'autre — et doit être tranché explicitement.
+Source de vérité fonctionnelle et technique de **RestaurantHandler**, l'application de
+commande d'un fast-food à emporter : click & collect, saisie au comptoir, écran cuisine,
+statistiques. Tout désaccord entre le code et ces documents est un bug, de l'un ou de
+l'autre, et doit être tranché explicitement.
 
-Ces documents décrivent **à la fois la cible et l'existant**. Le produit visé est le même que
-celui des specs de NewBonProf, dont ce dossier est issu, mais on l'atteint en **refactorant
-BonProfAPI sur place**. Chaque user story et chaque décision indique donc où en est le code,
-et [la feuille de route](50-backlog/01-roadmap-refactoring.md) dit dans quel ordre on comble
-les écarts.
+Rédigée le 2026-11-22, après le retrait du domaine d'origine (BonProf) et la création du modèle
+de données restaurant. Elle remplace intégralement l'ancienne documentation.
 
 ## Ordre de lecture
 
-| # | Dossier | Contenu | Pour qui |
-|---|---|---|---|
-| 1 | [`00-vision/`](00-vision/) | Pourquoi le produit existe, pour qui, avec quel vocabulaire | tout le monde |
-| 2 | [`10-user-stories/`](10-user-stories/) | Ce que chaque utilisateur peut faire, avec critères d'acceptation | produit, dev, QA |
-| 3 | [`20-specs-fonctionnelles/`](20-specs-fonctionnelles/) | Les règles transverses : argent, états, permissions | produit, dev |
-| 4 | [`30-specs-techniques/`](30-specs-techniques/) | Comment on le construit | dev, ops |
-| 5 | [`40-decisions/`](40-decisions/) | Les arbitrages structurants et leurs conséquences (ADR) | dev |
-| 6 | [`50-backlog/`](50-backlog/) | Ce qui reste à trancher, dans quel ordre on refactore, la dette à corriger | produit |
+| # | Dossier | Contenu |
+|---|---|---|
+| 1 | [`00-vision/`](00-vision/) | Pourquoi, pour qui, périmètre V1, vocabulaire |
+| 2 | [`10-cahier-des-charges/`](10-cahier-des-charges/) | User stories par épopée, avec critères d'acceptation |
+| 3 | [`20-regles-metier/`](20-regles-metier/) | Calcul, états, permissions, légal |
+| 4 | [`30-technique/`](30-technique/) | Architecture, modèle, exploitation, sécurité, tests |
+| 5 | [`40-decisions/`](40-decisions/) | Arbitrages structurants (ADR) |
+| 6 | [`50-feuille-de-route/`](50-feuille-de-route/) | Jalons, questions ouvertes, risques |
 
-**Raccourci si vous ne lisez qu'une chose :** [le glossaire](00-vision/03-glossaire.md),
-puis [les règles métier](20-specs-fonctionnelles/01-regles-metier.md).
+**Si vous ne lisez que trois choses :** la [vision](00-vision/01-vision-objectifs.md), la
+[feuille de route](50-feuille-de-route/01-feuille-de-route.md) et les
+[questions ouvertes](50-feuille-de-route/02-questions-ouvertes.md).
 
 ## Index
 
 ### 00 — Vision
-- [Vision produit](00-vision/01-vision-produit.md)
-- [Personas](00-vision/02-personas.md)
+- [Vision et objectifs](00-vision/01-vision-objectifs.md)
+- [Acteurs et parcours](00-vision/02-acteurs-parcours.md)
 - [Glossaire](00-vision/03-glossaire.md)
-- [Parcours utilisateurs](00-vision/04-parcours-utilisateurs.md)
 
-### 10 — User stories
-- [Conventions d'écriture](10-user-stories/README.md)
-- [E01 — Authentification & comptes](10-user-stories/E01-authentification-comptes.md)
-- [E02 — Profils](10-user-stories/E02-profils.md)
-- [E03 — Catalogue de produits](10-user-stories/E03-catalogue-produits.md)
-- [E04 — Recherche & découverte](10-user-stories/E04-recherche-decouverte.md)
-- [E05 — Créneaux & planning](10-user-stories/E05-creneaux-planning.md)
-- [E06 — Réservation & commande](10-user-stories/E06-reservation-commande.md)
-- [E07 — Paiement](10-user-stories/E07-paiement.md)
-- [E08 — Portefeuille & versements](10-user-stories/E08-wallet-versements.md)
-- [E09 — Annulation & remboursement](10-user-stories/E09-annulation-remboursement.md)
-- [E10 — Preuve de réalisation](10-user-stories/E10-preuve-de-realisation.md)
-- [E11 — Litiges](10-user-stories/E11-litiges.md)
-- [E12 — Avis & réputation](10-user-stories/E12-avis-reputation.md)
-- [E13 — Messagerie](10-user-stories/E13-messagerie.md)
-- [E14 — Notifications](10-user-stories/E14-notifications.md)
-- [E15 — Certification & documents](10-user-stories/E15-certification-documents.md)
-- [E16 — Facturation & comptabilité](10-user-stories/E16-facturation-comptabilite.md)
-- [E17 — Administration](10-user-stories/E17-administration.md)
-- [E18 — Référentiels & i18n](10-user-stories/E18-referentiels-i18n.md)
-- [E19 — Transverse](10-user-stories/E19-transverse.md)
-- [E20 — Suivi de cours](10-user-stories/E20-suivi-de-cours.md)
+### 10 — Cahier des charges
+- [Conventions](10-cahier-des-charges/README.md)
+- [E01 — Comptes & authentification](10-cahier-des-charges/E01-comptes-authentification.md)
+- [E02 — Carte](10-cahier-des-charges/E02-carte.md)
+- [E03 — Ouverture, horaires & ruptures](10-cahier-des-charges/E03-ouverture-ruptures.md)
+- [E04 — Commande en ligne](10-cahier-des-charges/E04-commande-en-ligne.md)
+- [E05 — Paiement](10-cahier-des-charges/E05-paiement.md)
+- [E06 — Comptoir et gestion des commandes](10-cahier-des-charges/E06-comptoir.md)
+- [E07 — Cuisine (KDS)](10-cahier-des-charges/E07-cuisine-kds.md)
+- [E08 — Suivi client](10-cahier-des-charges/E08-suivi-client.md)
+- [E09 — Statistiques](10-cahier-des-charges/E09-statistiques.md)
+- [E10 — Administration](10-cahier-des-charges/E10-administration.md)
 
-### 20 — Spécifications fonctionnelles
-- [Règles métier](20-specs-fonctionnelles/01-regles-metier.md)
-- [Machines à états](20-specs-fonctionnelles/02-machines-etats.md)
-- [Rôles & permissions](20-specs-fonctionnelles/03-roles-permissions.md)
-- [Flux d'argent](20-specs-fonctionnelles/04-flux-argent.md)
-- [Politique d'annulation](20-specs-fonctionnelles/05-politique-annulation.md)
-- [Événements & notifications](20-specs-fonctionnelles/06-evenements-notifications.md)
+### 20 — Règles métier
+- [Règles de commande](20-regles-metier/01-regles-commande.md)
+- [Machine à états de la commande](20-regles-metier/02-machine-etats-commande.md)
+- [Rôles et permissions](20-regles-metier/03-roles-permissions.md)
+- [Conformité légale](20-regles-metier/04-conformite-legale.md)
 
-### 30 — Spécifications techniques
-- [Architecture](30-specs-techniques/01-architecture.md)
-- [Modèle de données](30-specs-techniques/02-modele-donnees.md)
-- [Contrat d'API](30-specs-techniques/03-contrat-api.md)
-- [Sécurité](30-specs-techniques/04-securite.md)
-- [Intégrations externes](30-specs-techniques/05-integrations.md)
-- [Tâches planifiées](30-specs-techniques/06-jobs-planifies.md)
-- [Clients de l'API](30-specs-techniques/07-clients.md)
-- [Exploitation](30-specs-techniques/08-exploitation.md)
-- [Stratégie de tests](30-specs-techniques/09-strategie-tests.md)
+### 30 — Technique
+- [Architecture](30-technique/01-architecture.md)
+- [Modèle de données](30-technique/02-modele-donnees.md)
+- [Exploitation](30-technique/03-exploitation.md)
+- [Sécurité](30-technique/04-securite.md)
+- [Stratégie de tests](30-technique/05-tests.md)
 
-### 40 — Décisions d'architecture
+### 40 — Décisions
 - [Index des ADR](40-decisions/README.md)
 
-### 50 — Backlog
-- [Feuille de route du refactoring](50-backlog/01-roadmap-refactoring.md)
-- [Questions ouvertes](50-backlog/02-questions-ouvertes.md)
-- [Dette technique](50-backlog/03-dette-technique.md)
+### 50 — Feuille de route
+- [Feuille de route](50-feuille-de-route/01-feuille-de-route.md)
+- [Questions ouvertes](50-feuille-de-route/02-questions-ouvertes.md)
+- [Risques et dette](50-feuille-de-route/03-risques-dette.md)
 
-## Vérification
+## Maintenance
 
-```bash
-./docs/check-docs.sh
-```
-
-Contrôle les liens relatifs (y compris vers le code), les blocs de code, l'unicité des
-identifiants de user story, la présence de leurs critères d'acceptation et de leur état,
-le référencement des ADR, la validité des diagrammes mermaid, et que chaque contrôleur de
-[`RestaurantHandler/Controllers`](../RestaurantHandler/Controllers/) est traité dans le
-[contrat d'API](30-specs-techniques/03-contrat-api.md).
-
-## Conventions
-
-- **Langue** : français pour le fonctionnel, anglais pour les identifiants techniques
-  (`Reservation`, `PAYABLE`, `CHECKOUT_WINDOW`) — ce sont des noms de code, on ne les
-  traduit jamais dans le texte.
-- **Montants** : en euros, TTC sauf mention contraire, arrondis au centime
-  (`MidpointRounding.AwayFromZero`).
-- **Dates & heures** : stockées et raisonnées en UTC ; l'affichage seul est localisé.
-- **Statut d'un document** : indiqué en tête (`Stable` · `À arbitrer` · `Brouillon`).
-- **Référence croisée** : toujours un lien relatif vers le fichier, jamais une
-  reformulation — une règle n'est écrite qu'à un seul endroit.
-- **État d'implémentation** : chaque user story porte une ligne `État` —
-  `Implémentée` · `Partielle` · `Absente` · `Hors API` (entièrement du ressort du front) —
-  et chaque ADR une ligne `Application` —
-  `Appliquée` · `Partielle` · `À faire`. Un écart est toujours décrit avec un lien vers le
-  code concerné (`../../RestaurantHandler/...`). Ces lignes sont mises à jour **dans la même
-  contribution** que le code qui les change.
-- **Liens vers le code** : vers le fichier, sans numéro de ligne — les numéros bougent à
-  chaque modification, les noms de méthode restent.
+- `./docs/check-docs.sh` vérifie les liens, les blocs de code, le format des stories et les
+  ADR référencés.
+- À chaque jalon : mettre à jour l'**État** des stories concernées, cocher la feuille de route,
+  déplacer les questions tranchées.
