@@ -285,6 +285,10 @@ public class OptionChoiceDetails
     [Required] public string Name { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
     public Guid? IngredientId { get; set; }
+
+    /// <summary>Photo de l'ingrédient lié, affichée sur la carte si le choix n'a pas la sienne.</summary>
+    public string? IngredientImageUrl { get; set; }
+
     [Required] public int ExtraPriceCents { get; set; }
     [Required] public int Position { get; set; }
 

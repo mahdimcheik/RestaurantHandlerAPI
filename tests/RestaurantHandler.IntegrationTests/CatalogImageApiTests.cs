@@ -69,6 +69,53 @@ public class CatalogImageApiTests(ApiFixture api) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Choix_lie_sans_photo_montre_celle_de_l_ingredient_sauf_s_il_a_la_sienne()
+    {
+        var manager = await api.ManagerAsync();
+        var ingredientId = await CreateIngredientAsync(manager);
+        var ingredientUrl = (await OkDataAsync(await manager.PostAsync($"/manage/ingredients/{ingredientId}/image", Png())))
+            .GetProperty("imageUrl").GetString()!;
+        var group = await OkDataAsync(await manager.PostAsJsonAsync("/manage/option-groups", new
+        {
+            label = $"Suppléments {Guid.NewGuid():N}"[..24], minChoices = 0, maxChoices = 1,
+            choices = new object[] { new { name = "Tomate", ingredientId, extraPriceCents = 50 } },
+        }, ApiFixture.Json));
+        var groupId = group.GetProperty("id").GetGuid();
+        var choice = group.GetProperty("choices")[0];
+        var choiceId = choice.GetProperty("id").GetGuid();
+
+        Assert.Equal(JsonValueKind.Null, choice.GetProperty("imageUrl").ValueKind);
+        Assert.Equal(ingredientUrl, choice.GetProperty("ingredientImageUrl").GetString());
+
+        var categoryId = (await OkDataAsync(await manager.GetAsync("/manage/categories"))).EnumerateArray()
+            .First(c => c.GetProperty("name").GetString() == "Burgers").GetProperty("id").GetGuid();
+        var productId = (await OkDataAsync(await manager.PostAsJsonAsync("/manage/products", new
+        {
+            categoryId, name = $"Burger {Guid.NewGuid():N}"[..20], kind = "Dish", priceCents = 800, vatRate = 10, isActive = true,
+        }, ApiFixture.Json))).GetProperty("id").GetGuid();
+        await OkDataAsync(await manager.PutAsJsonAsync($"/manage/products/{productId}/option-groups",
+            new { optionGroups = new[] { new { optionGroupId = groupId } } }, ApiFixture.Json));
+
+        var (client, _) = await api.NewClientAsync();
+        async Task<string?> PublicChoiceImageAsync()
+        {
+            var card = await OkDataAsync(await client.GetAsync("/menu"));
+            return card.GetProperty("categories").EnumerateArray()
+                .SelectMany(c => c.GetProperty("products").EnumerateArray())
+                .Single(p => p.GetProperty("id").GetGuid() == productId)
+                .GetProperty("optionGroups")[0].GetProperty("choices")[0].GetProperty("imageUrl").GetString();
+        }
+
+        Assert.Equal(ingredientUrl, await PublicChoiceImageAsync());
+
+        var choiceUrl = (await OkDataAsync(await manager.PostAsync($"/manage/option-groups/{groupId}/choices/{choiceId}/image", Png(20, 20))))
+            .GetProperty("choices")[0].GetProperty("imageUrl").GetString();
+
+        Assert.NotEqual(ingredientUrl, choiceUrl);
+        Assert.Equal(choiceUrl, await PublicChoiceImageAsync());
+    }
+
+    [Fact]
     public async Task Remplacer_puis_retirer_la_photo_supprime_les_anciens_objets()
     {
         var manager = await api.ManagerAsync();

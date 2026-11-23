@@ -159,6 +159,7 @@ public class OptionGroupService(MainContext db, CatalogImageService images, Cata
                     Name = c.Name,
                     ImageUrl = images.Url(c.ImageUrl),
                     IngredientId = c.IngredientId,
+                    IngredientImageUrl = images.Url(c.Ingredient?.ImageUrl),
                     ExtraPriceCents = c.ExtraPriceCents,
                     Position = c.Position,
                     IsAvailable = AvailabilityPolicy.IsOptionChoiceOffered(c),

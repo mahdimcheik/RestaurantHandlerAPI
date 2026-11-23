@@ -126,7 +126,7 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
                         {
                             Id = c.Id,
                             Name = c.Name,
-                            ImageUrl = images.Url(c.ImageUrl),
+                            ImageUrl = images.Url(c.ImageUrl ?? c.Ingredient?.ImageUrl),
                             ExtraPriceCents = c.ExtraPriceCents,
                             IsAvailable = AvailabilityPolicy.IsOptionChoiceOffered(c),
                         })

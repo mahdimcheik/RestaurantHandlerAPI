@@ -164,6 +164,8 @@ back-office en cours (client, `/gestion/options`).
 - Un ingrédient lié à un choix d'un groupe non archivé ne peut pas être archivé.
 - Groupes et choix peuvent avoir une photo (même contrôle et format que les produits),
   envoyée à part (`POST /manage/option-groups/{id}/image`, `…/choices/{choiceId}/image`) et
-  conservée quand les choix sont remplacés.
+  conservée quand les choix sont remplacés. Un choix lié à un ingrédient et sans photo propre
+  affiche sur la carte celle de l'ingrédient, lue à l'affichage (rien n'est recopié) ; le détail
+  back-office la donne à part (`ingredientImageUrl`).
 - Exemples : « Pain » 1 parmi baguette / pita ; « Sauces » 0 à 3, 2 offertes puis +0,50 € ;
   « Taille » 1 parmi 29 cm / 33 cm (+3 €).
