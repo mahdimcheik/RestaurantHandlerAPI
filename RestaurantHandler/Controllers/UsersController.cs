@@ -26,7 +26,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Liste paginée des utilisateurs avec filtres (rôle, nom).
+    /// Liste paginée des utilisateurs avec filtres (rôle, statut, nom, e-mail ou téléphone).
     /// </summary>
     [HttpPost("filter")]
     public async Task<ActionResult<Response<List<UserAdminDetails>>>> GetUsers(
@@ -38,10 +38,10 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Récupère un utilisateur par son identifiant.
+    /// Fiche d'un utilisateur : rôles, statut, inscription et compteur de non-venues.
     /// </summary>
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Response<UserDetails>>> GetUserById([FromRoute] Guid id)
+    public async Task<ActionResult<Response<UserAdminDetails>>> GetUserById([FromRoute] Guid id)
     {
         var response = await _usersService.GetUserByIdAsync(id);
         return StatusCode(response.Status, response);

@@ -1,3 +1,4 @@
+using RestaurantHandler.Infrastructure.Errors;
 using RestaurantHandler.Models;
 using RestaurantHandler.Services;
 using RestaurantHandler.Utilities;
@@ -27,6 +28,7 @@ public class UserManagementController : ControllerBase
 
     /// <summary>
     /// Modifie manuellement le statut du compte d'un utilisateur (actif, en attente, banni).
+    /// Refusé sur son propre compte et sur le dernier Manager actif.
     /// </summary>
     [HttpPatch("users/{userId:guid}/status")]
     public async Task<ActionResult<Response<UserDetails>>> SetUserAccountStatus(
@@ -34,7 +36,14 @@ public class UserManagementController : ControllerBase
         [FromQuery] Guid statusId
     )
     {
-        var response = await _userManagementService.SetUserAccountStatusAsync(userId, statusId);
+        var caller =
+            await this.GetCallerAsync()
+            ?? throw new BusinessForbiddenException("Compte introuvable.");
+        var response = await _userManagementService.SetUserAccountStatusAsync(
+            userId,
+            statusId,
+            caller.UserId
+        );
         return StatusCode(response.Status, response);
     }
 }

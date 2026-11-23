@@ -7,6 +7,8 @@ client.
 
 **Priorité :** V1
 **État :** Implémentée
+**Avancement :** recherche sur le téléphone, filtre par statut, compteur de non-venues sur la
+fiche et `GET /manage/customers/{userId}/orders` ajoutés en F7 ; écran `/gestion/utilisateurs`.
 
 **Critères d'acceptation**
 - Recherche par nom, e-mail, téléphone ; filtre par rôle et statut.
@@ -21,7 +23,8 @@ un nouvel équipier.
 **État :** Implémentée
 
 **Critères d'acceptation**
-- Seul un Manager crée un Manager (`POST /Users`).
+- Seul un Manager crée un Manager (`POST /Users`) ; le compte créé est « en attente » jusqu'à
+  son activation depuis sa fiche.
 - Le compte Manager initial est créé au démarrage depuis `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 
 ### US-E10-3 — Changer le statut d'un compte
@@ -34,7 +37,8 @@ En tant que Manager, je veux bannir ou réactiver un compte afin d'écarter un c
 **Critères d'acceptation**
 - Statuts : actif, en attente, banni.
 - Un compte banni ne peut plus se connecter et ses sessions sont invalidées.
-- Un Manager ne peut pas se bannir lui-même ni bannir le dernier Manager actif.
+- Un Manager ne peut pas se bannir lui-même ni bannir le dernier Manager actif (contrôle
+  serveur ajouté en F7, `UsersApiTests`).
 
 ### US-E10-4 — Lever un blocage « paiement au retrait »
 
@@ -43,7 +47,7 @@ gérer une exception.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J5 (`POST /manage/customers/{userId}/no-shows/reset`, historisé dans `NoShowResets` ; compteur visible du Manager dans le détail de commande) ; écran à faire.
+**Avancement :** API faite en J5 (`POST /manage/customers/{userId}/no-shows/reset`, historisé dans `NoShowResets` ; compteur visible du Manager dans le détail de commande et sur la fiche utilisateur) ; écran fait (F7, fiche utilisateur).
 
 **Critères d'acceptation**
 - Remet à zéro le compteur de non-venues ; action historisée.

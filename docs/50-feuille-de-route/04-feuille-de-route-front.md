@@ -23,7 +23,7 @@ Statuts : ✅ terminé · 🟡 en cours · ⬜ à faire.
 | **F4 — Temps réel** | Connexion SignalR fiable et visible | US-E07-3, US-E08-1 | coupure réseau rattrapée sans rechargement | 🟡 |
 | **F5 — Comptoir** | Piloter les commandes du jour | E06, US-E05-3 | une commande comptoir saisie en moins de 30 s | 🟡 |
 | **F6 — KDS** | La cuisine prépare sans papier | E07 | file lisible à 2 m, gestes annulables | 🟡 |
-| **F7 — Pilotage** | Statistiques et utilisateurs | US-E09-1→3, US-E10-1→4 | chiffres du jour justes | ⬜ |
+| **F7 — Pilotage** | Statistiques et utilisateurs | US-E09-1→3, US-E10-1→4 | chiffres du jour justes | 🟡 |
 | → **Sortie J5** | | | **service simulé de 30 min sans papier** | |
 | **F8 — PWA client** | Commander, payer, suivre | E04, E05, E08, légal | **parcours 1 et 2 sur iPhone et Android réels (sortie J4)** | ⬜ |
 | **F9 — Qualité** (en continu) | Sûreté, accessibilité, tests de bout en bout | — | axe sans violation, E2E verts en CI | 🟡 |
@@ -195,13 +195,44 @@ et sombre.
   « à remettre » au back-office, coupure réseau réelle 1 min ; tablette en portrait ; axe.
 - **Sortie :** 20 commandes simulées traitées sans papier ni rechargement manuel.
 
-## F7 — Pilotage (E09, E10) — ⬜
+## F7 — Pilotage (E09, E10) — 🟡
 
-- Statistiques : tableau du jour (US-E09-1, déjà amorcé sur le tableau de bord), ventes par
-  produit (US-E09-2), heures de pointe (US-E09-3).
-- Utilisateurs (US-E10-1), création d'un compte Manager (US-E10-2), statut d'un compte
-  (US-E10-3), levée d'un blocage « paiement au retrait » (US-E10-4).
-- **Sortie :** chiffres du jour identiques à ceux de l'API sur un jeu de commandes connu.
+**Fait :**
+- Tableau de bord (US-E09-1) : CA, commandes, panier moyen, comptoir / en ligne, payé en ligne /
+  sur place, commandes par étape (libellés, jamais la couleur seule), TVA du jour par taux ;
+  relu à chaque événement de commande et à chaque reconnexion. Aucun chiffre recalculé côté
+  client.
+- `features/reports` : `/gestion/statistiques`, période jour / semaine / mois / dates libres
+  (résolue par l'API) gardée dans l'adresse (`periode`, `du`, `au`, `tranche`, `jour`).
+  Ventes par produit (seul / dans un menu), menu et supplément (US-E09-2) ; heures de pointe
+  par tranche de 15 ou 30 min, filtre par jour de semaine, barres CSS dans le tableau
+  (commandes, CA, préparation moyenne) (US-E09-3). « Tous les jours » additionne les tranches
+  et pondère la préparation par les commandes : simple mise en forme.
+- `features/staff` : `/gestion/utilisateurs` (recherche nom, e-mail ou téléphone, filtres rôle
+  et statut, pagination serveur) (US-E10-1) ; création d'un compte Manager (US-E10-2, créé
+  « en attente », à activer depuis sa fiche) ; fiche : statut, Activer / Bannir avec
+  confirmation (US-E10-3), compteur de non-venues et « Réautoriser le paiement au retrait »
+  (US-E10-4), commandes du client.
+- API complétée pour F7 : `FilterUsers.StatusId`, recherche sur le téléphone,
+  `UserAdminDetails.NoShowCount` (`GET /users/{id}` renvoie la fiche admin),
+  `GET /manage/customers/{userId}/orders`, refus de bannir son propre compte ou le dernier
+  Manager actif (tests `UsersApiTests`).
+- Identifiants des statuts de compte : `ACCOUNT_STATUS_IDS`
+  (`shared/services/user-management.service.ts`), recopiés de `HardCode.ACCOUNT_*` faute de
+  route listant les statuts.
+
+**Vérifié contre la vraie API (2026-11-23) :** tableau de bord, ventes et heures de pointe du
+mois identiques aux réponses brutes de l'API (une commande comptée) ; liste et fiches
+utilisateurs ; « C'est votre compte » sur sa propre fiche ; thèmes clair et sombre.
+
+**Reste :**
+- **Sortie :** rejouer la comparaison sur un jeu de plusieurs commandes (restaurant ouvert :
+  l'API refuse la saisie comptoir hors horaires) ; le jeu connu est couvert côté API par
+  `StatsApiTests`.
+- Vérifier en navigateur : bannir puis réactiver un client, refus du dernier Manager, levée
+  d'un blocage de non-venues, création d'un Manager puis connexion ; axe sur les trois pages.
+- Statuts de compte : une route de l'API listant les statuts éviterait les identifiants
+  recopiés.
 
 **→ Sortie J5 :** service simulé de 30 minutes (comptoir + en ligne + KDS) sans papier.
 

@@ -174,6 +174,15 @@ public class ManageOrdersController(
     public async Task<ActionResult<Response<OrderDetails>>> DeclarePayment(Guid id, [FromBody] PaymentDeclare dto) =>
         Success(await workflow.DeclarePaymentAsync(id, dto, await CallerAsync()));
 
+    /// <summary>Commandes d'un client, les plus récentes d'abord (fiche client, US-E10-1).</summary>
+    [HttpGet("/manage/customers/{userId:guid}/orders")]
+    public async Task<ActionResult<Response<List<OrderSummary>>>> CustomerOrders(
+        Guid userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var (items, total) = await queries.ListForCustomerAsync(userId, page, pageSize);
+        return new OkObjectResult(new Response<List<OrderSummary>> { Status = 200, Message = "Ok", Data = items, Count = total });
+    }
+
     /// <summary>Lève le blocage du paiement au retrait d'un client.</summary>
     [HttpPost("/manage/customers/{userId:guid}/no-shows/reset")]
     public async Task<ActionResult<Response<object>>> ResetNoShows(Guid userId)
