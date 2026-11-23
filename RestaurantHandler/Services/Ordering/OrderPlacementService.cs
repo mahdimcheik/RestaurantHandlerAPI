@@ -170,18 +170,37 @@ public class OrderPlacementService(
     public async Task EnsurePayOnSiteAllowedAsync(Guid customerId) =>
         await EnsurePayOnSiteAllowedAsync(customerId, await ReadSettingsAsync());
 
+    /// <summary>Modes de paiement proposables, pour l'écran de validation.</summary>
+    public async Task<CheckoutOptions> CheckoutOptionsAsync(Guid customerId)
+    {
+        var blocked = await PayOnSiteBlockAsync(customerId, await ReadSettingsAsync());
+        return new CheckoutOptions
+        {
+            OnlinePaymentEnabled = EnvironmentVariables.SumUpEnabled,
+            CanPayOnSite = blocked is null,
+            PayOnSiteBlockedReason = blocked?.Message,
+        };
+    }
+
     private async Task EnsurePayOnSiteAllowedAsync(Guid customerId, RestaurantSettings settings)
+    {
+        if (await PayOnSiteBlockAsync(customerId, settings) is { } blocked)
+            throw blocked;
+    }
+
+    private async Task<BusinessException?> PayOnSiteBlockAsync(Guid customerId, RestaurantSettings settings)
     {
         var noShows = await db.Users.Where(u => u.Id == customerId).Select(u => u.NoShowCount).FirstOrDefaultAsync();
         if (noShows >= settings.NoShowThreshold)
-            throw new BusinessForbiddenException("Le paiement au retrait n'est plus disponible sur votre compte : payez en ligne.");
+            return new BusinessForbiddenException("Le paiement au retrait n'est plus disponible sur votre compte : payez en ligne.");
 
         var pending = await db.Orders.AnyAsync(o =>
             o.CustomerId == customerId
             && o.PaymentChoice == PaymentChoice.OnSite
             && OrderTransitionPolicy.ActiveStatuses.Contains(o.Status));
-        if (pending)
-            throw new BusinessConflictException("Vous avez déjà une commande à payer au retrait en cours.");
+        return pending
+            ? new BusinessConflictException("Vous avez déjà une commande à payer au retrait en cours.")
+            : null;
     }
 
     private async Task<OrderDetails?> FindExistingAsync(Guid authorId, string idempotencyKey, bool forManager)

@@ -27,6 +27,8 @@ public class OrdersController(
     /// <summary>Prix et contrôles du panier sans rien créer ; 409 avec <c>issues</c> si le panier doit changer.</summary>
     [AllowAnonymous]
     [HttpPost("quote")]
+    [ProducesResponseType(typeof(Response<QuoteResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CartProblemDetails), StatusCodes.Status409Conflict, "application/problem+json")]
     public async Task<ActionResult<Response<QuoteResult>>> Quote([FromBody] QuoteRequest dto) =>
         Success(await carts.QuoteAsync(dto));
 
@@ -38,6 +40,8 @@ public class OrdersController(
     [HttpPost]
     [Authorize(Roles = nameof(RoleEnum.Client))]
     [EnableRateLimiting(RateLimitingSetup.OrderPolicy)]
+    [ProducesResponseType(typeof(Response<OrderDetails>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CartProblemDetails), StatusCodes.Status409Conflict, "application/problem+json")]
     public async Task<ActionResult<Response<OrderDetails>>> Place([FromBody] OrderCreate dto)
     {
         var caller = await CallerAsync();
@@ -54,6 +58,12 @@ public class OrdersController(
             return CreatedWith(order, ex.Message);
         }
     }
+
+    /// <summary>Modes de paiement proposables avant la validation (paiement au retrait bloqué, SumUp coupé).</summary>
+    [HttpGet("checkout-options")]
+    [Authorize(Roles = nameof(RoleEnum.Client))]
+    public async Task<ActionResult<Response<CheckoutOptions>>> CheckoutOptions() =>
+        Success(await placement.CheckoutOptionsAsync((await CallerAsync()).UserId));
 
     /// <summary>Nouvelle tentative de paiement en ligne (après échec ou abandon).</summary>
     [HttpPost("{id:guid}/payment")]

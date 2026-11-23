@@ -232,6 +232,53 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Options_de_validation_annoncent_le_blocage_du_paiement_au_retrait()
+    {
+        async Task<JsonElement> OptionsAsync(HttpClient c)
+        {
+            var response = await c.GetAsync("/orders/checkout-options");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            return await DataAsync(response);
+        }
+
+        var (client, _) = await api.NewClientAsync();
+        var free = await OptionsAsync(client);
+        Assert.True(free.GetProperty("canPayOnSite").GetBoolean());
+        Assert.True(free.GetProperty("onlinePaymentEnabled").GetBoolean());
+        Assert.Equal(JsonValueKind.Null, free.GetProperty("payOnSiteBlockedReason").ValueKind);
+
+        await PlaceAsync(client, Order([ClassicLine()]));
+        var pending = await OptionsAsync(client);
+        Assert.False(pending.GetProperty("canPayOnSite").GetBoolean());
+        Assert.Contains("déjà une commande", pending.GetProperty("payOnSiteBlockedReason").GetString());
+
+        var (blocked, blockedId) = await api.NewClientAsync();
+        await api.WithDbAsync(async db =>
+        {
+            db.Users.Single(u => u.Id == blockedId).NoShowCount = 2;
+            await db.SaveChangesAsync();
+        });
+        var noShows = await OptionsAsync(blocked);
+        Assert.False(noShows.GetProperty("canPayOnSite").GetBoolean());
+        Assert.Contains("payez en ligne", noShows.GetProperty("payOnSiteBlockedReason").GetString());
+
+        Assert.Equal(HttpStatusCode.Unauthorized, (await api.CreateClient().GetAsync("/orders/checkout-options")).StatusCode);
+        var manager = await api.ManagerAsync();
+        Assert.Equal(HttpStatusCode.Forbidden, (await manager.GetAsync("/orders/checkout-options")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Le_refus_de_panier_est_decrit_dans_le_contrat_openapi()
+    {
+        var swagger = await api.CreateClient().GetFromJsonAsync<JsonElement>("/swagger/v1/swagger.json");
+        var schema = swagger.GetProperty("components").GetProperty("schemas").GetProperty("CartProblemDetails");
+        Assert.True(schema.GetProperty("properties").TryGetProperty("issues", out _));
+        var place = swagger.GetProperty("paths").GetProperty("/orders").GetProperty("post").GetProperty("responses");
+        Assert.True(place.TryGetProperty("409", out _));
+        Assert.True(swagger.GetProperty("paths").TryGetProperty("/orders/checkout-options", out _));
+    }
+
+    [Fact]
     public async Task Non_venu_apres_delai_de_grace_incremente_le_compteur()
     {
         var (client, userId) = await api.NewClientAsync();

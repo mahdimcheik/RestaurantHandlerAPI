@@ -10,7 +10,7 @@ savoir quand venir.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`GET /orders/{id}`, `OrderStatusChanged` envoyé au client, 404 pour un autre client) ; page de suivi en J4.
+**Avancement :** API faite en J2 (`GET /orders/{id}`, `OrderStatusChanged` envoyé au client, 404 pour un autre client) ; page de suivi faite (F8a : `/commandes/:id`, temps réel, relecture à la reconnexion).
 
 **Critères d'acceptation**
 - Page de suivi : numéro (en grand), heure de retrait, état (*En attente de paiement / À
