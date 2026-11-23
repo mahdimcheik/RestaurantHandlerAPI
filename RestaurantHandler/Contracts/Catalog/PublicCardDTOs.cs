@@ -7,7 +7,22 @@ public class PublicCard
 {
     [Required] public List<PublicCategory> Categories { get; set; } = [];
     [Required] public List<PublicMenu> Menus { get; set; } = [];
+
+    /// <summary>
+    /// Ingrédients disponibles pour remplacer un ingrédient retirable, quel que soit le produit.
+    /// Surcoût affiché : max(0, prix du remplaçant − prix du remplacé) ; le serveur le recalcule.
+    /// </summary>
+    [Required] public List<PublicReplacement> Replacements { get; set; } = [];
+
     [Required] public OpeningStateDto Opening { get; set; } = new();
+}
+
+public class PublicReplacement
+{
+    [Required] public Guid IngredientId { get; set; }
+    [Required] public string Name { get; set; } = string.Empty;
+    [Required] public int PriceCents { get; set; }
+    public string? ImageUrl { get; set; }
 }
 
 public class PublicCategory
@@ -32,12 +47,12 @@ public class PublicProduct
     [Required] public bool IsAvailable { get; set; }
 
     [Required] public List<PublicIngredient> Ingredients { get; set; } = [];
-    [Required] public List<PublicSupplement> Supplements { get; set; } = [];
 
     /// <summary>Choix à faire avant l'ajout au panier (pain, sauces, taille), dans l'ordre d'affichage.</summary>
     [Required] public List<PublicOptionGroup> OptionGroups { get; set; } = [];
 }
 
+/// <summary>Bornes en unités : un choix pris deux fois (double jambon) compte pour deux.</summary>
 public class PublicOptionGroup
 {
     [Required] public Guid Id { get; set; }
@@ -46,10 +61,13 @@ public class PublicOptionGroup
     [Required] public int MinChoices { get; set; }
     [Required] public int MaxChoices { get; set; }
 
-    /// <summary>Choix inclus ; chacun des suivants coûte <see cref="ExtraChoicePriceCents"/>.</summary>
+    /// <summary>Unités incluses ; chacune des suivantes coûte <see cref="ExtraChoicePriceCents"/>.</summary>
     [Required] public int FreeChoices { get; set; }
 
     [Required] public int ExtraChoicePriceCents { get; set; }
+
+    /// <summary>Nombre de fois qu'un même choix peut être pris ; 1 = cases à cocher.</summary>
+    [Required] public int MaxPerChoice { get; set; }
     [Required] public List<PublicOptionChoice> Choices { get; set; } = [];
 }
 
@@ -68,28 +86,16 @@ public class PublicIngredient
 {
     [Required] public Guid IngredientId { get; set; }
     [Required] public string Name { get; set; } = string.Empty;
+    /// <summary>Retirable et remplaçable par un ingrédient de <see cref="PublicCard.Replacements"/>.</summary>
     [Required] public bool IsRemovable { get; set; }
+
+    /// <summary>Prix de référence, pour afficher le surcoût d'un remplacement.</summary>
+    [Required] public int PriceCents { get; set; }
 
     /// <summary>Retrait imposé par une rupture (« sans tomate — rupture »).</summary>
     [Required] public bool IsForcedRemoved { get; set; }
 
-    /// <summary>Remplaçants disponibles uniquement.</summary>
-    [Required] public List<PublicSubstitution> Substitutions { get; set; } = [];
-}
-
-public class PublicSubstitution
-{
-    [Required] public Guid IngredientId { get; set; }
-    [Required] public string Name { get; set; } = string.Empty;
-    [Required] public int ExtraPriceCents { get; set; }
-}
-
-public class PublicSupplement
-{
-    [Required] public Guid IngredientId { get; set; }
-    [Required] public string Name { get; set; } = string.Empty;
-    [Required] public int PriceCents { get; set; }
-    [Required] public int MaxQuantity { get; set; }
+    public string? ImageUrl { get; set; }
 }
 
 public class PublicMenu

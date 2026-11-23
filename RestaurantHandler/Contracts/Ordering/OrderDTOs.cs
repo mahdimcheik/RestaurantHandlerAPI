@@ -17,6 +17,13 @@ public class CartModificationDto
     [Range(1, 20)] public int Quantity { get; set; } = 1;
 }
 
+/// <summary>Choix dans un groupe d'options ; une quantité de 2 = double (au plus le maximum par choix du groupe).</summary>
+public class CartOptionChoiceDto
+{
+    [Required] public Guid ChoiceId { get; set; }
+    [Range(1, 20)] public int Quantity { get; set; } = 1;
+}
+
 public class CartMenuChoiceDto
 {
     [Required] public Guid SlotId { get; set; }
@@ -24,7 +31,7 @@ public class CartMenuChoiceDto
     public List<CartModificationDto> Modifications { get; set; } = [];
 
     /// <summary>Choix dans les groupes d'options du produit (pain, sauces…).</summary>
-    public List<Guid> OptionChoiceIds { get; set; } = [];
+    public List<CartOptionChoiceDto> OptionChoices { get; set; } = [];
 }
 
 public class CartLineDto
@@ -39,7 +46,7 @@ public class CartLineDto
     public List<CartMenuChoiceDto> Choices { get; set; } = [];
 
     /// <summary>Choix dans les groupes d'options d'un produit (pain, sauces, taille) ; vide pour un menu.</summary>
-    public List<Guid> OptionChoiceIds { get; set; } = [];
+    public List<CartOptionChoiceDto> OptionChoices { get; set; } = [];
 
     public CartLine ToCartLine() =>
         new(
@@ -48,13 +55,15 @@ public class CartLineDto
             Quantity,
             Modifications.Select(ToCart).ToList(),
             Choices
-                .Select(c => new CartMenuChoice(c.SlotId, c.ProductId, c.Modifications.Select(ToCart).ToList(), c.OptionChoiceIds))
+                .Select(c => new CartMenuChoice(c.SlotId, c.ProductId, c.Modifications.Select(ToCart).ToList(), c.OptionChoices.Select(ToCart).ToList()))
                 .ToList(),
-            OptionChoiceIds
+            OptionChoices.Select(ToCart).ToList()
         );
 
     private static CartModification ToCart(CartModificationDto m) =>
         new(m.Type, m.IngredientId, m.SubstituteIngredientId, m.Quantity);
+
+    private static CartOptionChoice ToCart(CartOptionChoiceDto c) => new(c.ChoiceId, c.Quantity);
 }
 
 public class QuoteRequest

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Amazon.Runtime;
+using Amazon.S3;
 using RestaurantHandler.Integrations.SumUp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -25,7 +27,7 @@ public class ApiCollection : ICollectionFixture<ApiFixture>
 /// <summary>
 /// Une base PostgreSQL jetable (Testcontainers) et l'API complète par-dessus. Toutes les variables
 /// sensibles sont fixées ici : le .env local (NoClobber) ne peut pas les remplacer, donc aucun
-/// appel au stockage ou au SMTP réels. Horloge figée : lundi 23/11/2026, 12h00 à Paris.
+/// appel au stockage (remplacé par <see cref="FakeS3"/>) ou au SMTP réels. Horloge figée : lundi 23/11/2026, 12h00 à Paris.
 /// </summary>
 public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
@@ -42,6 +44,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
 
     public TestClock Clock { get; } = new(Monday12h);
     public FakeSumUp SumUp { get; } = new();
+    public FakeS3 Storage { get; } = new();
     public SeededMenu Menu { get; private set; } = null!;
 
     public async Task InitializeAsync()
@@ -97,6 +100,18 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
             services.RemoveAll<TimeProvider>();
             services.AddSingleton<TimeProvider>(Clock);
             services.AddHttpClient<SumUpClient>().ConfigurePrimaryHttpMessageHandler(() => SumUp);
+            services.RemoveAll<IAmazonS3>();
+            services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client(
+                new BasicAWSCredentials("test", "test"),
+                new AmazonS3Config
+                {
+                    ServiceURL = "http://127.0.0.1:1",
+                    AuthenticationRegion = "gra",
+                    ForcePathStyle = true,
+                    UseHttp = true,
+                    HttpClientFactory = Storage.Factory,
+                    MaxErrorRetry = 0,
+                }));
         });
     }
 
@@ -160,7 +175,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
             var burgers = new Category { Name = "Burgers" };
             var steak = new Ingredient { Name = "Steak" };
             var tomate = new Ingredient { Name = "Tomate" };
-            var cheddar = new Ingredient { Name = "Cheddar" };
+            var cheddar = new Ingredient { Name = "Cheddar", PriceCents = 160 };
             var classic = new Product { Category = burgers, Name = "Classic", Kind = ProductKind.Dish, PriceCents = 950, VatRate = 10 };
             var cola = new Product { Category = burgers, Name = "Cola", Kind = ProductKind.Drink, PriceCents = 250, VatRate = 5.5m };
             db.AddRange(burgers, steak, tomate, cheddar, classic, cola);
@@ -169,7 +184,6 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
             db.ProductIngredients.AddRange(
                 new ProductIngredient { ProductId = classic.Id, IngredientId = steak.Id, IsRemovable = false },
                 new ProductIngredient { ProductId = classic.Id, IngredientId = tomate.Id, IsRemovable = true });
-            db.ProductSupplements.Add(new ProductSupplement { ProductId = classic.Id, IngredientId = cheddar.Id, PriceCents = 80, MaxQuantity = 3 });
 
             var menu = new Menu { Name = "Menu Classic", PriceCents = 1290, VatRate = 10 };
             var plat = new MenuSlot { Menu = menu, Label = "Plat", Position = 0, MinChoices = 1, MaxChoices = 1 };

@@ -8,10 +8,25 @@ public sealed record ProductAvailability(bool IsOrderable, IReadOnlyList<Guid> F
     public static readonly ProductAvailability Unavailable = new(false, []);
 }
 
+/// <summary>Groupe d'options tel qu'un produit le propose : bornes du produit, sinon du groupe.</summary>
+public sealed record OfferedOptionGroup(OptionGroup Group, int MinChoices, int MaxChoices, int FreeChoices)
+{
+    public static OfferedOptionGroup From(ProductOptionGroup link)
+    {
+        var group = link.OptionGroup!;
+        return link is { MinChoices: { } min, MaxChoices: { } max, FreeChoices: { } free }
+            ? new(group, min, max, free)
+            : new(group, group.MinChoices, group.MaxChoices, group.FreeChoices);
+    }
+
+    /// <summary>Unités qu'on peut encore choisir : choix proposés × fois max par choix.</summary>
+    public int OfferedUnits => Group.Choices.Count(AvailabilityPolicy.IsOptionChoiceOffered) * Group.MaxPerChoice;
+}
+
 /// <summary>
 /// R6 (docs/20-regles-metier/01-regles-commande.md) sur un graphe de carte déjà chargé :
-/// <c>Product.Category</c>, <c>Product.Ingredients[].Ingredient</c>, substitutions et suppléments
-/// avec leurs ingrédients, <c>Product.OptionGroups[].Choices[].Ingredient</c>,
+/// <c>Product.Category</c>, <c>Product.Ingredients[].Ingredient</c>,
+/// <c>Product.OptionGroups[].OptionGroup.Choices[].Ingredient</c>,
 /// <c>Menu.Slots[].Options[].Product</c> (et le graphe produit ci-dessus).
 /// </summary>
 public static class AvailabilityPolicy
@@ -40,28 +55,22 @@ public static class AvailabilityPolicy
         }
 
         // Un groupe obligatoire sans assez de choix disponibles (plus de pain) rend le produit indisponible.
-        if (ActiveOptionGroups(product).Any(g => g.Choices.Count(IsOptionChoiceOffered) < g.MinChoices))
+        if (ActiveOptionGroups(product).Any(g => g.OfferedUnits < g.MinChoices))
             return ProductAvailability.Unavailable;
 
         return new ProductAvailability(true, forcedRemovals);
     }
 
-    public static IEnumerable<ProductOptionGroup> ActiveOptionGroups(Product product) =>
-        product.OptionGroups.Where(g => g.ArchivedAt is null).OrderBy(g => g.Position);
+    /// <summary>Groupes non archivés proposés sur le produit, dans son ordre d'affichage.</summary>
+    public static IEnumerable<OfferedOptionGroup> ActiveOptionGroups(Product product) =>
+        product.OptionGroups
+            .Where(l => l.OptionGroup is { ArchivedAt: null })
+            .OrderBy(l => l.Position)
+            .Select(OfferedOptionGroup.From);
 
     /// <summary>Non archivé et, s'il est lié à un ingrédient, celui-ci est disponible.</summary>
-    public static bool IsOptionChoiceOffered(ProductOptionChoice choice) =>
+    public static bool IsOptionChoiceOffered(OptionChoice choice) =>
         choice.ArchivedAt is null && (choice.IngredientId is null || IsIngredientAvailable(choice.Ingredient));
-
-    /// <summary>
-    /// Une substitution est proposée si le remplaçant est disponible. Remplacer un ingrédient en
-    /// rupture reste possible : c'est l'alternative naturelle au retrait imposé.
-    /// </summary>
-    public static bool IsSubstitutionOffered(IngredientSubstitution substitution) =>
-        IsIngredientAvailable(substitution.SubstituteIngredient);
-
-    public static bool IsSupplementOffered(ProductSupplement supplement) =>
-        IsIngredientAvailable(supplement.Ingredient);
 
     public static bool IsMenuListed(Menu menu) => menu is { IsActive: true, ArchivedAt: null };
 

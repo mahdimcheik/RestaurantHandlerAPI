@@ -84,6 +84,22 @@ public class MenuService(MainContext db, CatalogImageService images, CatalogChan
         return await GetAsync(id);
     }
 
+    public async Task<MenuDetails> RemoveImageAsync(Guid id, CancellationToken ct)
+    {
+        var menu = await FindAsync(id);
+        var previous = menu.ImageUrl;
+        if (previous is not null)
+        {
+            menu.ImageUrl = null;
+            menu.UpdatedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(ct);
+            await images.DeleteAsync(previous);
+            await changes.CatalogChangedAsync();
+        }
+
+        return await GetAsync(id);
+    }
+
     // ---------- Emplacements ----------
 
     public async Task<MenuDetails> AddSlotAsync(Guid menuId, MenuSlotWrite dto)

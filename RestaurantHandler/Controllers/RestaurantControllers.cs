@@ -82,6 +82,10 @@ public class RestaurantController(RestaurantService restaurant) : ControllerBase
     public async Task<ActionResult<Response<RestaurantSettingsDetails>>> SetLogo(IFormFile file, CancellationToken ct) =>
         Success(await restaurant.SetLogoAsync(file, await RequireCallerAsync(), ct));
 
+    [HttpDelete("settings/logo")]
+    public async Task<ActionResult<Response<RestaurantSettingsDetails>>> RemoveLogo() =>
+        Success(await restaurant.RemoveLogoAsync(await RequireCallerAsync()));
+
     [HttpGet("settings/history")]
     public async Task<ActionResult<Response<List<RestaurantSettingsHistoryItem>>>> GetSettingsHistory([FromQuery] int take = 50) =>
         Success(await restaurant.GetSettingsHistoryAsync(take));

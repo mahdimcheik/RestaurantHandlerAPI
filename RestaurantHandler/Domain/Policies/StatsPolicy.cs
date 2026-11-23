@@ -113,9 +113,12 @@ public static class StatsPolicy
             return p;
         }
 
+        // Suppléments : anciens suppléments par produit, et choix d'options payants liés à un
+        // ingrédient (« Suppléments : Mozzarella »). Un choix offert (sauce incluse) n'en est pas un.
         void AddSupplements(OrderItem item, int multiplier)
         {
-            foreach (var mod in item.Modifications.Where(m => m.Type == ModificationType.Supplement && m.IngredientId is not null))
+            foreach (var mod in item.Modifications.Where(m => m.IngredientId is not null
+                && (m.Type == ModificationType.Supplement || m is { Type: ModificationType.Choice, UnitPriceCents: > 0 })))
             {
                 var ingredientId = mod.IngredientId!.Value;
                 var s = supplements.TryGetValue(ingredientId, out var found)

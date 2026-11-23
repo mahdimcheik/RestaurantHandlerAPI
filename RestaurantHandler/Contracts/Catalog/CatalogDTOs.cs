@@ -95,74 +95,55 @@ public class IngredientWrite
     [Required(ErrorMessage = "Le nom est obligatoire.")]
     [MaxLength(64)]
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>Prix de référence d'une portion, pour le surcoût des remplacements ; 0 par défaut.</summary>
+    [Range(0, 100_000)]
+    public int PriceCents { get; set; }
+
+    /// <summary>Proposé pour remplacer un ingrédient retirable ; faux pour la pâte, le pain…</summary>
+    public bool IsOfferedAsReplacement { get; set; } = true;
 }
 
 public class IngredientDetails
 {
     [Required] public Guid Id { get; set; }
     [Required] public string Name { get; set; } = string.Empty;
+    [Required] public int PriceCents { get; set; }
+    [Required] public bool IsOfferedAsReplacement { get; set; }
     [Required] public bool IsAvailable { get; set; }
     [Required] public bool IsArchived { get; set; }
+    public string? ImageUrl { get; set; }
 }
 
 // ---------- Composition (remplacée en un seul appel) ----------
 
+/// <summary>
+/// Ingrédients du produit. Les suppléments passent par un groupe d'options facultatif
+/// (« Suppléments pizza »), partagé entre produits.
+/// </summary>
 public class CompositionUpdate : IValidatableObject
 {
     [Required]
     public List<CompositionIngredientWrite> Ingredients { get; set; } = [];
 
-    [Required]
-    public List<SupplementWrite> Supplements { get; set; } = [];
-
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (Ingredients.Select(i => i.IngredientId).Distinct().Count() != Ingredients.Count)
             yield return new("Un ingrédient ne figure qu'une fois dans la composition.", [nameof(Ingredients)]);
-        if (Supplements.Select(s => s.IngredientId).Distinct().Count() != Supplements.Count)
-            yield return new("Un supplément ne figure qu'une fois.", [nameof(Supplements)]);
-
-        foreach (var ingredient in Ingredients)
-        {
-            if (ingredient.Substitutions.Any(s => s.SubstituteIngredientId == ingredient.IngredientId))
-                yield return new("Un ingrédient ne peut pas se remplacer lui-même.", [nameof(Ingredients)]);
-            if (ingredient.Substitutions.Select(s => s.SubstituteIngredientId).Distinct().Count()
-                != ingredient.Substitutions.Count)
-                yield return new("Un remplaçant ne figure qu'une fois par ingrédient.", [nameof(Ingredients)]);
-        }
     }
 }
 
 public class CompositionIngredientWrite
 {
     [Required] public Guid IngredientId { get; set; }
+
+    /// <summary>Le client peut le retirer ou le remplacer par un autre ingrédient (R4).</summary>
     public bool IsRemovable { get; set; }
-    public List<SubstitutionWrite> Substitutions { get; set; } = [];
-}
-
-public class SubstitutionWrite
-{
-    [Required] public Guid SubstituteIngredientId { get; set; }
-
-    [Range(0, 100_000)]
-    public int ExtraPriceCents { get; set; }
-}
-
-public class SupplementWrite
-{
-    [Required] public Guid IngredientId { get; set; }
-
-    [Range(0, 100_000)]
-    public int PriceCents { get; set; }
-
-    [Range(1, 20)]
-    public int MaxQuantity { get; set; } = 3;
 }
 
 public class CompositionDetails
 {
     [Required] public List<CompositionIngredientDetails> Ingredients { get; set; } = [];
-    [Required] public List<SupplementDetails> Supplements { get; set; } = [];
 }
 
 public class CompositionIngredientDetails
@@ -171,54 +152,55 @@ public class CompositionIngredientDetails
     [Required] public string Name { get; set; } = string.Empty;
     [Required] public bool IsRemovable { get; set; }
     [Required] public bool IsAvailable { get; set; }
-    [Required] public List<SubstitutionDetails> Substitutions { get; set; } = [];
 }
 
-public class SubstitutionDetails
-{
-    [Required] public Guid SubstituteIngredientId { get; set; }
-    [Required] public string Name { get; set; } = string.Empty;
-    [Required] public int ExtraPriceCents { get; set; }
-    [Required] public bool IsAvailable { get; set; }
-}
-
-public class SupplementDetails
-{
-    [Required] public Guid IngredientId { get; set; }
-    [Required] public string Name { get; set; } = string.Empty;
-    [Required] public int PriceCents { get; set; }
-    [Required] public int MaxQuantity { get; set; }
-    [Required] public bool IsAvailable { get; set; }
-}
-
-// ---------- Groupes d'options (remplacés en un seul appel) ----------
+// ---------- Groupes d'options (partagés entre produits) ----------
 
 /// <summary>
-/// Groupes dans l'ordre d'affichage. Un groupe ou un choix sans <c>Id</c> est créé ; un existant
-/// absent de la liste est archivé (les commandes passées y pointent). Les images s'envoient à
-/// part et sont conservées par ce remplacement.
+/// Groupes d'options proposés sur un produit, dans l'ordre d'affichage. Remplace la liste
+/// entière ; les groupes eux-mêmes se gèrent sous <c>/manage/option-groups</c>.
 /// </summary>
 public class OptionGroupsUpdate : IValidatableObject
 {
     [Required]
-    public List<OptionGroupWrite> Groups { get; set; } = [];
+    public List<ProductOptionGroupWrite> OptionGroups { get; set; } = [];
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        var groupIds = Groups.Where(g => g.Id is not null).Select(g => g.Id).ToList();
-        if (groupIds.Distinct().Count() != groupIds.Count)
-            yield return new("Un groupe ne figure qu'une fois.", [nameof(Groups)]);
-
-        var choiceIds = Groups.SelectMany(g => g.Choices).Where(c => c.Id is not null).Select(c => c.Id).ToList();
-        if (choiceIds.Distinct().Count() != choiceIds.Count)
-            yield return new("Un choix ne figure qu'une fois.", [nameof(Groups)]);
+        if (OptionGroups.Select(g => g.OptionGroupId).Distinct().Count() != OptionGroups.Count)
+            yield return new("Un groupe ne figure qu'une fois.", [nameof(OptionGroups)]);
     }
 }
 
+public class ProductOptionGroupWrite
+{
+    [Required] public Guid OptionGroupId { get; set; }
+
+    /// <summary>Bornes propres au produit (3 ingrédients ici, 5 ailleurs) ; nul = celles du groupe.</summary>
+    public OptionGroupRules? Rules { get; set; }
+}
+
+/// <summary>Nombre d'unités à choisir dans un groupe, et combien sont incluses dans le prix.</summary>
+public class OptionGroupRules : IValidatableObject
+{
+    [Required, Range(0, 20)] public int MinChoices { get; set; }
+    [Required, Range(1, 20)] public int MaxChoices { get; set; } = 1;
+    [Required, Range(0, 20)] public int FreeChoices { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (MinChoices > MaxChoices)
+            yield return new("Le minimum de choix dépasse le maximum.", [nameof(MinChoices)]);
+    }
+}
+
+/// <summary>
+/// Groupe d'options partagé entre produits. Les choix sont remplacés en un seul appel, dans
+/// l'ordre d'affichage : un choix sans identifiant est créé, un choix absent est archivé (les
+/// commandes passées y pointent). Les images s'envoient à part et sont conservées.
+/// </summary>
 public class OptionGroupWrite : IValidatableObject
 {
-    public Guid? Id { get; set; }
-
     [Required(ErrorMessage = "Le libellé est obligatoire.")]
     [MaxLength(64)]
     public string Label { get; set; } = string.Empty;
@@ -236,6 +218,10 @@ public class OptionGroupWrite : IValidatableObject
     [Range(0, 100_000)]
     public int ExtraChoicePriceCents { get; set; }
 
+    /// <summary>Nombre de fois qu'un même choix peut être pris (2 = double jambon) ; 1 = choix distincts.</summary>
+    [Range(1, 10)]
+    public int MaxPerChoice { get; set; } = 1;
+
     [Required]
     [MinLength(1, ErrorMessage = "Un groupe propose au moins un choix.")]
     public List<OptionChoiceWrite> Choices { get; set; } = [];
@@ -244,10 +230,13 @@ public class OptionGroupWrite : IValidatableObject
     {
         if (MinChoices > MaxChoices)
             yield return new("Le minimum de choix dépasse le maximum.", [nameof(MinChoices)]);
-        if (MinChoices > Choices.Count)
+        if (MinChoices > Choices.Count * MaxPerChoice)
             yield return new($"« {Label} » propose moins de choix que le minimum.", [nameof(Choices)]);
         if (Choices.Select(c => c.Name.Trim().ToLowerInvariant()).Distinct().Count() != Choices.Count)
             yield return new($"« {Label} » : un nom de choix ne figure qu'une fois.", [nameof(Choices)]);
+        var choiceIds = Choices.Where(c => c.Id is not null).Select(c => c.Id).ToList();
+        if (choiceIds.Distinct().Count() != choiceIds.Count)
+            yield return new("Un choix ne figure qu'une fois.", [nameof(Choices)]);
     }
 }
 
@@ -271,12 +260,23 @@ public class OptionGroupDetails
     [Required] public Guid Id { get; set; }
     [Required] public string Label { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
+
+    /// <summary>Place dans le produit (détail d'un produit) ; 0 hors d'un produit.</summary>
     [Required] public int Position { get; set; }
     [Required] public int MinChoices { get; set; }
     [Required] public int MaxChoices { get; set; }
     [Required] public int FreeChoices { get; set; }
     [Required] public int ExtraChoicePriceCents { get; set; }
+    [Required] public int MaxPerChoice { get; set; }
+
+    /// <summary>Bornes redéfinies par le produit (détail d'un produit) ; nul = celles du groupe.</summary>
+    public OptionGroupRules? ProductRules { get; set; }
+
     [Required] public List<OptionChoiceDetails> Choices { get; set; } = [];
+    [Required] public bool IsArchived { get; set; }
+
+    /// <summary>Produits non archivés qui proposent ce groupe ; 0 dans le détail d'un produit.</summary>
+    [Required] public int ProductCount { get; set; }
 }
 
 public class OptionChoiceDetails

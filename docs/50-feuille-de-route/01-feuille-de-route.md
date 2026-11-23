@@ -155,6 +155,29 @@ Règle pure `OptionChoicePolicy` (R2/R4/R6, 16 tests), `PUT /manage/products/{id
 ou composant de menu). `InitialCreate` régénérée (32 tables) ; 5 nouveaux tests d'intégration
 (30 au total). Écran back-office et sélection côté client à faire avec les écrans.
 
+**Groupes d'options partagés (API, 2026-11-23) :** un même groupe (« Sauces », « Pain ») sert à
+plusieurs produits : `OptionGroup` / `OptionChoice` sans produit, liaison ordonnée
+`ProductOptionGroup`. Routes `/manage/option-groups` (CRUD, archivage refusé tant qu'un produit
+le propose, images du groupe et des choix) ; `PUT /manage/products/{id}/option-groups` ne prend
+plus que `{ optionGroupIds }`. Carte publique et commande inchangées pour le client.
+`InitialCreate` régénérée ; 4 nouveaux tests d'intégration (34 au total).
+
+**Quantités par choix et bornes par produit (API, 2026-11-23) :** pizzas « 3 ingrédients » et
+« 5 ingrédients » avec un ingrédient pris deux fois. `OptionGroup.MaxPerChoice`, bornes
+facultatives sur `ProductOptionGroup` (`rules` dans `PUT /manage/products/{id}/option-groups`,
+`productRules` dans le détail), panier en `optionChoices: [{ choiceId, quantity }]` au lieu de
+`optionChoiceIds`, `maxPerChoice` dans la carte publique. Migration `OptionChoiceQuantities` ;
+8 nouveaux tests unitaires, 1 test d'intégration (35 au total).
+
+**Remplacements au prix de l'ingrédient (API, 2026-11-23,
+[ADR-0012](../40-decisions/ADR-0012-remplacements-prix-ingredient.md)) :** le Manager ne déclare
+plus de remplaçants ni de suppléments par produit. `Ingredient.PriceCents` et
+`IsOfferedAsReplacement` ; un ingrédient retirable se remplace par tout ingrédient proposé, au
+surcoût `max(0, écart)` ; suppléments en groupe d'options facultatif. `IngredientSubstitution`
+et `ProductSupplement` supprimés (migration `IngredientReplacementPrices`), `replacements` dans
+la carte publique, statistiques des suppléments étendues aux choix payants. 154 tests unitaires,
+36 tests d'intégration.
+
 ## J6 — Mise en service (S10–S12)
 
 - Production : VPS, domaine, TLS, variables, SumUp en mode réel, sauvegardes + test de

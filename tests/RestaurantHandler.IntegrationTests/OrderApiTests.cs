@@ -142,7 +142,7 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
     {
         var (client, _) = await api.NewClientAsync();
         var manager = await api.ManagerAsync();
-        var id = await PlaceAsync(client, Order([ClassicLine(1, new { type = "Supplement", ingredientId = M.Cheddar, quantity = 2 })]));
+        var id = await PlaceAsync(client, Order([ClassicLine(1, new { type = "Replace", ingredientId = M.Tomate, substituteIngredientId = M.Cheddar })]));
 
         async Task<JsonElement> Act(string action, object? body = null)
         {
@@ -312,5 +312,33 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
 
         var kitchen = await DataAsync(await manager.GetAsync("/manage/orders/kitchen"));
         Assert.Contains(kitchen.EnumerateArray(), o => o.GetProperty("customerLabel").GetString() == "Léa");
+    }
+
+    [Fact]
+    public async Task Remplacement_par_n_importe_quel_ingredient_propose_au_prix_de_reference()
+    {
+        var manager = await api.ManagerAsync();
+        var pate = await DataAsync(await manager.PostAsJsonAsync("/manage/ingredients",
+            new { name = $"Pâte {Key()}"[..12], priceCents = 500, isOfferedAsReplacement = false }, ApiFixture.Json));
+        var pateId = pate.GetProperty("id").GetGuid();
+        var (client, _) = await api.NewClientAsync();
+
+        var card = await DataAsync(await client.GetAsync("/menu"));
+        var replacements = card.GetProperty("replacements").EnumerateArray().ToList();
+        Assert.Contains(replacements, r => r.GetProperty("ingredientId").GetGuid() == M.Cheddar && r.GetProperty("priceCents").GetInt32() == 160);
+        Assert.DoesNotContain(replacements, r => r.GetProperty("ingredientId").GetGuid() == pateId);
+
+        async Task<HttpResponseMessage> QuoteAsync(Guid ingredientId, Guid substituteId) =>
+            await client.PostAsJsonAsync("/orders/quote", new
+            {
+                lines = new[] { ClassicLine(1, new { type = "Replace", ingredientId, substituteIngredientId = substituteId }) },
+            }, ApiFixture.Json);
+
+        // Tomate (0) → cheddar (1,60) : la différence est facturée.
+        var cheddar = await QuoteAsync(M.Tomate, M.Cheddar);
+        Assert.Equal(950 + 160, (await DataAsync(cheddar)).GetProperty("totalCents").GetInt32());
+        // Non proposé en remplacement, ou ingrédient non retirable : refusé.
+        Assert.Equal(HttpStatusCode.Conflict, (await QuoteAsync(M.Tomate, pateId)).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await QuoteAsync(M.Steak, M.Cheddar)).StatusCode);
     }
 }

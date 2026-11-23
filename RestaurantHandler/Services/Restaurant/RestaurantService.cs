@@ -238,6 +238,20 @@ public class RestaurantService(
         return ToDetails(settings);
     }
 
+    public async Task<RestaurantSettingsDetails> RemoveLogoAsync(CallerIdentity caller)
+    {
+        var settings = await LoadSettingsAsync();
+        var previous = settings.LogoUrl;
+        if (previous is not null)
+        {
+            settings.LogoUrl = null;
+            await SaveWithHistoryAsync(settings, caller);
+            await images.DeleteAsync(previous);
+        }
+
+        return ToDetails(settings);
+    }
+
     public async Task<List<RestaurantSettingsHistoryItem>> GetSettingsHistoryAsync(int take) =>
         await db.RestaurantSettingsHistory.AsNoTracking()
             .OrderByDescending(h => h.ChangedAt)

@@ -8,14 +8,18 @@ public class OptionChoicePolicyTests
 {
     private readonly CatalogFixture _c = new();
 
-    private PricedCart Price(params CartLine[] lines) => CartPolicy.Price(lines, _c.Products, _c.Menus);
+    private PricedCart Price(params CartLine[] lines) => CartPolicy.Price(lines, _c.Products, _c.Menus, _c.Replacements);
 
-    private static CartLine Product(Guid id, params ProductOptionChoice[] choices) =>
-        new(id, null, 1, [], [], choices.Select(c => c.Id).ToList());
+    private static CartLine Product(Guid id, params OptionChoice[] choices) =>
+        new(id, null, 1, [], [], choices.Select(c => new CartOptionChoice(c.Id)).ToList());
 
-    private ProductOptionChoice Pain(string name) => _c.ChoiceOf(_c.PainGroup, name);
-    private ProductOptionChoice Sauce(string name) => _c.ChoiceOf(_c.SauceGroup, name);
-    private ProductOptionChoice Taille(string name) => _c.ChoiceOf(_c.TailleGroup, name);
+    private static CartLine Quantities(Guid id, params (OptionChoice Choice, int Quantity)[] choices) =>
+        new(id, null, 1, [], [], choices.Select(c => new CartOptionChoice(c.Choice.Id, c.Quantity)).ToList());
+
+    private OptionChoice Pain(string name) => _c.ChoiceOf(_c.PainGroup, name);
+    private OptionChoice Sauce(string name) => _c.ChoiceOf(_c.SauceGroup, name);
+    private OptionChoice Taille(string name) => _c.ChoiceOf(_c.TailleGroup, name);
+    private OptionChoice Garniture(string name) => _c.ChoiceOf(_c.IngredientsGroup, name);
 
     [Fact]
     public void Pain_et_deux_sauces_offertes_au_prix_du_produit_avec_libelles()
@@ -144,7 +148,7 @@ public class OptionChoicePolicyTests
     [Fact]
     public void Grande_taille_ajoute_son_surcout()
     {
-        var cart = Price(new CartLine(_c.Margherita.Id, null, 2, [], [], [Taille("33 cm").Id]));
+        var cart = Price(new CartLine(_c.Margherita.Id, null, 2, [], [], [new CartOptionChoice(Taille("33 cm").Id)]));
 
         Assert.Equal((1000 + 300) * 2, cart.TotalCents);
         var mod = cart.Items[0].Modifications.Single();
@@ -156,7 +160,7 @@ public class OptionChoicePolicyTests
     public void Choix_d_option_par_la_liste_des_modifications_refuse()
     {
         var cart = Price(new CartLine(_c.Kebab.Id, null, 1,
-            [new CartModification(ModificationType.Choice, _c.Baguette.Id)], [], [Pain("Baguette").Id]));
+            [new CartModification(ModificationType.Choice, _c.Baguette.Id)], [], [new CartOptionChoice(Pain("Baguette").Id)]));
 
         Assert.False(cart.IsValid);
     }
@@ -167,7 +171,8 @@ public class OptionChoicePolicyTests
         _c.PlatSlot.Options.Add(new MenuSlotOption { ProductId = _c.Kebab.Id, Product = _c.Kebab });
 
         var ok = Price(new CartLine(null, _c.Menu.Id, 1, [], [
-            new CartMenuChoice(_c.PlatSlot.Id, _c.Kebab.Id, [], [Pain("Pita").Id, Sauce("Blanche").Id, Sauce("Algérienne").Id, Sauce("Samouraï").Id]),
+            new CartMenuChoice(_c.PlatSlot.Id, _c.Kebab.Id, [],
+                new[] { Pain("Pita"), Sauce("Blanche"), Sauce("Algérienne"), Sauce("Samouraï") }.Select(c => new CartOptionChoice(c.Id)).ToList()),
             new CartMenuChoice(_c.BoissonSlot.Id, _c.Cola.Id, []),
         ]));
         var missingBread = Price(new CartLine(null, _c.Menu.Id, 1, [], [
@@ -183,8 +188,91 @@ public class OptionChoicePolicyTests
     [Fact]
     public void Choix_d_option_sur_la_ligne_menu_refuse()
     {
-        var cart = Price(new CartLine(null, _c.Menu.Id, 1, [], [], [Pain("Pita").Id]));
+        var cart = Price(new CartLine(null, _c.Menu.Id, 1, [], [], [new CartOptionChoice(Pain("Pita").Id)]));
 
         Assert.Contains(cart.Issues, i => i.Message == "Un menu se personnalise produit par produit.");
+    }
+
+    [Fact]
+    public void Double_jambon_et_un_oeuf_font_trois_ingredients()
+    {
+        var cart = Price(Quantities(_c.Pizza3.Id, (Garniture("Œuf"), 1), (Garniture("Jambon"), 2)));
+
+        Assert.True(cart.IsValid, string.Join(" ", cart.Issues.Select(i => i.Message)));
+        Assert.Equal(900, cart.TotalCents);
+        var mods = cart.Items.Single().Modifications;
+        Assert.Equal(["Ingrédients : Jambon", "Ingrédients : Œuf"], mods.Select(m => m.LabelSnapshot));
+        Assert.Equal([2, 1], mods.Select(m => m.Quantity));
+    }
+
+    [Fact]
+    public void Trois_fois_le_meme_choix_refuse_au_dela_du_maximum_par_choix()
+    {
+        var cart = Price(Quantities(_c.Pizza3.Id, (Garniture("Jambon"), 3)));
+
+        Assert.False(cart.IsValid);
+        Assert.Contains(cart.Issues, i => i.Message == "Pizza 3 : Jambon entre 1 et 2 fois.");
+    }
+
+    [Fact]
+    public void Quantite_nulle_refusee()
+    {
+        var cart = Price(Quantities(_c.Pizza3.Id, (Garniture("Jambon"), 2), (Garniture("Œuf"), 1), (Garniture("Olives"), 0)));
+
+        Assert.False(cart.IsValid);
+    }
+
+    [Fact]
+    public void Les_unites_comptent_pour_le_minimum_et_le_maximum()
+    {
+        var tooFew = Price(Quantities(_c.Pizza3.Id, (Garniture("Jambon"), 2)));
+        var tooMany = Price(Quantities(_c.Pizza3.Id, (Garniture("Jambon"), 2), (Garniture("Œuf"), 2)));
+
+        Assert.Contains(tooFew.Issues, i => i.Message == "Pizza 3 : choisissez 3 « Ingrédients ».");
+        Assert.Contains(tooMany.Issues, i => i.Message == "Pizza 3 : choisissez 3 « Ingrédients ».");
+    }
+
+    [Fact]
+    public void Un_choix_unique_ne_se_double_pas()
+    {
+        var cart = Price(Quantities(_c.Kebab.Id, (Pain("Baguette"), 1), (Sauce("Blanche"), 2)));
+
+        Assert.Contains(cart.Issues, i => i.Message == "Kebab : Blanche ne se prend qu'une fois.");
+    }
+
+    [Fact]
+    public void Le_produit_redefinit_les_bornes_du_groupe_partage()
+    {
+        var five = Price(Quantities(_c.Pizza5.Id, (Garniture("Jambon"), 2), (Garniture("Œuf"), 2), (Garniture("Olives"), 1)));
+        var three = Price(Quantities(_c.Pizza5.Id, (Garniture("Jambon"), 2), (Garniture("Œuf"), 1)));
+
+        Assert.True(five.IsValid, string.Join(" ", five.Issues.Select(i => i.Message)));
+        Assert.Equal(1100, five.TotalCents);
+        Assert.Contains(three.Issues, i => i.Message == "Pizza 5 : entre 5 et 6 « Ingrédients ».");
+    }
+
+    [Fact]
+    public void Unite_au_dela_des_incluses_facturee_en_scindant_le_choix()
+    {
+        // Ordre de la carte : Jambon ×2, Œuf ×2, Olives ×2 ; la 6e unité (2e olive) est payante.
+        var cart = Price(Quantities(_c.Pizza5.Id, (Garniture("Olives"), 2), (Garniture("Jambon"), 2), (Garniture("Œuf"), 2)));
+
+        Assert.True(cart.IsValid, string.Join(" ", cart.Issues.Select(i => i.Message)));
+        Assert.Equal(1100 + 150, cart.TotalCents);
+        var olives = cart.Items[0].Modifications.Where(m => m.LabelSnapshot == "Ingrédients : Olives").ToList();
+        Assert.Equal([(1, 0), (1, 150)], olives.Select(m => (m.Quantity, m.UnitPriceCents)));
+    }
+
+    [Fact]
+    public void Un_choix_double_suffit_a_garder_le_produit_commandable()
+    {
+        _c.Olives.IsAvailable = false;
+        _c.Oeuf.IsAvailable = false;
+
+        // Jambon seul, 2 fois au plus : 2 unités < 3 exigées.
+        Assert.False(AvailabilityPolicy.ForProduct(_c.Pizza3).IsOrderable);
+
+        _c.Oeuf.IsAvailable = true;
+        Assert.True(AvailabilityPolicy.ForProduct(_c.Pizza3).IsOrderable);
     }
 }

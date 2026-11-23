@@ -61,7 +61,6 @@ public class Product : BaseModel
     public bool IsAvailable { get; set; } = true;
 
     public ICollection<ProductIngredient> Ingredients { get; set; } = new List<ProductIngredient>();
-    public ICollection<ProductSupplement> Supplements { get; set; } = new List<ProductSupplement>();
     public ICollection<ProductOptionGroup> OptionGroups { get; set; } = new List<ProductOptionGroup>();
 }
 
@@ -73,6 +72,19 @@ public class Ingredient : BaseModel
 
     /// <summary>Faux = rupture de stock.</summary>
     public bool IsAvailable { get; set; } = true;
+
+    /// <summary>
+    /// Prix de référence d'une portion, servant uniquement au surcoût d'un remplacement :
+    /// max(0, prix du remplaçant − prix du remplacé). Jamais facturé seul.
+    /// </summary>
+    public int PriceCents { get; set; }
+
+    /// <summary>Faux pour ce qui ne remplace rien (pâte, pain, crème de cuisson) ; vrai par défaut.</summary>
+    public bool IsOfferedAsReplacement { get; set; } = true;
+
+    /// <summary>Clé d'objet de la photo (préfixe public), l'URL est calculée à la lecture.</summary>
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
 }
 
 /// <summary>Composition par défaut d'un produit.</summary>
@@ -84,49 +96,18 @@ public class ProductIngredient
     public Guid IngredientId { get; set; }
     public Ingredient? Ingredient { get; set; }
 
-    /// <summary>Autorise « sans X ».</summary>
+    /// <summary>Autorise « sans X » et le remplacement par un autre ingrédient (R4).</summary>
     public bool IsRemovable { get; set; }
-
-    public ICollection<IngredientSubstitution> Substitutions { get; set; } =
-        new List<IngredientSubstitution>();
-}
-
-/// <summary>Remplacement autorisé d'un ingrédient de la composition d'un produit.</summary>
-public class IngredientSubstitution : BaseModel
-{
-    public Guid ProductId { get; set; }
-    public Guid IngredientId { get; set; }
-    public ProductIngredient? ProductIngredient { get; set; }
-
-    public Guid SubstituteIngredientId { get; set; }
-    public Ingredient? SubstituteIngredient { get; set; }
-
-    public int ExtraPriceCents { get; set; }
-}
-
-/// <summary>Supplément proposé sur un produit, toujours facturé.</summary>
-public class ProductSupplement
-{
-    public Guid ProductId { get; set; }
-    public Product? Product { get; set; }
-
-    public Guid IngredientId { get; set; }
-    public Ingredient? Ingredient { get; set; }
-
-    public int PriceCents { get; set; }
-    public int MaxQuantity { get; set; } = 3;
 }
 
 /// <summary>
-/// Choix dans une liste propre au produit (« Pain », « Sauces », « Taille »), borné par
-/// <see cref="MinChoices"/> et <see cref="MaxChoices"/>. Archivé, jamais supprimé : les lignes de
-/// commande pointent vers ses choix.
+/// Choix dans une liste (« Pain », « Sauces », « Ingrédients »), borné par <see cref="MinChoices"/>
+/// et <see cref="MaxChoices"/> unités : un choix pris deux fois (double jambon) compte pour deux.
+/// Partagé entre produits par <see cref="ProductOptionGroup"/>, qui peut redéfinir les bornes.
+/// Archivé, jamais supprimé : les lignes de commande pointent vers ses choix.
 /// </summary>
-public class ProductOptionGroup : BaseModel
+public class OptionGroup : BaseModel
 {
-    public Guid ProductId { get; set; }
-    public Product? Product { get; set; }
-
     [Required]
     [MaxLength(64)]
     public string Label { get; set; } = string.Empty;
@@ -134,7 +115,6 @@ public class ProductOptionGroup : BaseModel
     [MaxLength(500)]
     public string? ImageUrl { get; set; }
 
-    public int Position { get; set; }
     public int MinChoices { get; set; }
     public int MaxChoices { get; set; } = 1;
 
@@ -143,13 +123,17 @@ public class ProductOptionGroup : BaseModel
 
     public int ExtraChoicePriceCents { get; set; }
 
-    public ICollection<ProductOptionChoice> Choices { get; set; } = new List<ProductOptionChoice>();
+    /// <summary>Nombre de fois qu'un même choix peut être pris ; 1 = choix distincts.</summary>
+    public int MaxPerChoice { get; set; } = 1;
+
+    public ICollection<OptionChoice> Choices { get; set; } = new List<OptionChoice>();
+    public ICollection<ProductOptionGroup> Products { get; set; } = new List<ProductOptionGroup>();
 }
 
-public class ProductOptionChoice : BaseModel
+public class OptionChoice : BaseModel
 {
     public Guid GroupId { get; set; }
-    public ProductOptionGroup? Group { get; set; }
+    public OptionGroup? Group { get; set; }
 
     [Required]
     [MaxLength(64)]
@@ -166,6 +150,26 @@ public class ProductOptionChoice : BaseModel
     public int ExtraPriceCents { get; set; }
 
     public int Position { get; set; }
+}
+
+/// <summary>
+/// Groupe d'options proposé sur un produit, à sa place dans l'ordre d'affichage. Les bornes du
+/// groupe s'appliquent sauf si le produit les redéfinit (même liste « Ingrédients », 3 sur une
+/// pizza, 5 sur une autre) : les trois valeurs sont toutes renseignées ou toutes nulles.
+/// </summary>
+public class ProductOptionGroup
+{
+    public Guid ProductId { get; set; }
+    public Product? Product { get; set; }
+
+    public Guid OptionGroupId { get; set; }
+    public OptionGroup? OptionGroup { get; set; }
+
+    public int Position { get; set; }
+
+    public int? MinChoices { get; set; }
+    public int? MaxChoices { get; set; }
+    public int? FreeChoices { get; set; }
 }
 
 public class Menu : BaseModel

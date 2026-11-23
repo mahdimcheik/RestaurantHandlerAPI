@@ -14,11 +14,12 @@ je veux.
 **Avancement :** Règles et prix côté serveur faits en J2 (`POST /orders/quote`, R2/R4) ; panier en J4.
 
 **Critères d'acceptation**
-- Seuls les ingrédients retirables peuvent être retirés ; seules les substitutions et suppléments
-  définis pour ce produit sont proposés.
-- La quantité d'un supplément ne dépasse pas son maximum.
+- Seuls les ingrédients retirables peuvent être retirés ou remplacés ; un remplacement se fait
+  par un ingrédient proposé en remplacement et disponible, au surcoût
+  `max(0, écart de prix de référence)` affiché avant l'ajout.
+- Les suppléments sont les choix d'un groupe d'options facultatif du produit.
 - Chaque groupe d'options (pain, sauces, taille) reçoit entre son minimum et son maximum de
-  choix distincts et disponibles ([US-E02-9](E02-carte.md#us-e02-9--définir-les-groupes-doptions-dun-produit)).
+  choix distincts et disponibles ([US-E02-9](E02-carte.md#us-e02-9--définir-les-groupes-doptions-et-les-proposer-sur-les-produits)).
 - Le prix de la ligne se met à jour à chaque choix (prix de base + surcoûts).
 - Le panier est conservé sur l'appareil (rechargement, fermeture de l'onglet).
 

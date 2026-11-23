@@ -148,6 +148,7 @@ static void ConfigureServices(IServiceCollection services)
     services.AddScoped<CatalogImageService>();
     services.AddScoped<CategoryService>();
     services.AddScoped<ProductService>();
+    services.AddScoped<OptionGroupService>();
     services.AddScoped<IngredientService>();
     services.AddScoped<MenuService>();
     services.AddScoped<PublicCatalogService>();
