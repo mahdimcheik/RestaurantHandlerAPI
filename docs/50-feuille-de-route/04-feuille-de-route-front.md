@@ -19,8 +19,8 @@ Statuts : ✅ terminé · 🟡 en cours · ⬜ à faire.
 | **F0 — Socle** | Application saine, outillée, client API généré | — | build et tests verts | ✅ |
 | **F1 — Comptes** | Se connecter, créer et gérer un compte | E01 | parcours complets contre la vraie API | 🟡 |
 | **F2 — Gestion de la carte** | Le Manager saisit toute la carte à l'écran | E02 | la vraie carte saisie sans Swagger | 🟡 |
-| **F3 — Ouverture & réglages** | Horaires, fermetures, pause, ruptures, créneaux | E03, US-E10-5 | ouvrir, fermer, mettre en pause depuis la tablette | ⬜ |
-| **F4 — Temps réel** | Connexion SignalR fiable et visible | US-E07-3, US-E08-1 | coupure réseau rattrapée sans rechargement | ⬜ |
+| **F3 — Ouverture & réglages** | Horaires, fermetures, pause, ruptures, créneaux | E03, US-E10-5 | ouvrir, fermer, mettre en pause depuis la tablette | 🟡 |
+| **F4 — Temps réel** | Connexion SignalR fiable et visible | US-E07-3, US-E08-1 | coupure réseau rattrapée sans rechargement | 🟡 |
 | **F5 — Comptoir** | Piloter les commandes du jour | E06, US-E05-3 | une commande comptoir saisie en moins de 30 s | ⬜ |
 | **F6 — KDS** | La cuisine prépare sans papier | E07 | file lisible à 2 m, gestes annulables | ⬜ |
 | **F7 — Pilotage** | Statistiques et utilisateurs | US-E09-1→3, US-E10-1→4 | chiffres du jour justes | ⬜ |
@@ -69,23 +69,62 @@ des emplacements (liste complète envoyée, 409 → rechargement). Bascule de ru
 - Validation à l'écran contre la vraie API (tests unitaires seulement à ce jour).
 - **Sortie :** saisir la vraie carte du restaurant à l'écran (aussi le « reste » de J1).
 
-## F3 — Ouverture & réglages (E03, US-E10-5) — ⬜
+## F3 — Ouverture & réglages (E03, US-E10-5) — 🟡
 
-- Horaires d'ouverture (US-E03-1), fermetures exceptionnelles (US-E03-2).
-- Pause des commandes, gros bouton accessible depuis toute page de gestion (US-E03-3).
-- Écran « Ruptures » unique : produits et ingrédients, une touche par article (US-E03-4).
-- Délai de préparation estimé (US-E03-5), créneaux de retrait (US-E03-6).
-- Paramètres du restaurant : nom, adresse, coordonnées, réglages de commande (US-E10-5).
+**Fait :** feature `features/settings/`.
+- État d'ouverture toujours visible dans la barre du haut de `/gestion` (icône + texte :
+  « Ouvert — ferme à 14:30 », « Fermé — ouvre lundi à 18:30 », « Commandes en pause jusqu'à… »),
+  relu sur `AvailabilityChanged` (portée `opening`), à chaque resynchronisation temps réel et à
+  l'échéance de la prochaine bascule horaire : fin de pause, fermeture, ouverture, que le serveur
+  ne pousse pas (`shared/services/opening-state.service.ts`).
+- Dialogue « Service » depuis toute page de gestion : pause 15 / 30 / 60 min ou jusqu'à reprise,
+  reprise, délai ASAP ajustable par pas de 5 min (US-E03-3, US-E03-5).
+- `/gestion/ouverture` : horaires de la semaine, plusieurs plages par jour, recopie sur les jours
+  suivants (US-E03-1) ; fermetures exceptionnelles en journées entières ou en plage horaire, avec
+  motif, liste des passées, suppression confirmée (US-E03-2).
+- `/gestion/ruptures` : produits actifs et ingrédients, recherche, filtre « seulement les
+  ruptures », une touche par article (US-E03-4).
+- `/gestion/restaurant` : informations (nom, raison sociale, adresse, téléphone, SIRET, TVA),
+  logo, paramètres de service et de créneaux (US-E03-6, US-E10-5), dernières modifications.
+- Heures affichées dans le fuseau du restaurant (`shared/utils/restaurant-time.ts`).
+
+**Reste :**
+- Validation à l'écran contre la vraie API (tests unitaires seulement à ce jour).
+- Commandes programmées touchées par une fermeture (US-E03-2, API en J2).
+- Détail de chaque modification des réglages (l'historique n'affiche que date et auteur).
 - **Sortie :** ouvrir, fermer, mettre en pause et déclarer une rupture depuis la tablette.
 
-## F4 — Temps réel — ⬜
+## F4 — Temps réel — 🟡
 
-- `core/realtime` : connexion SignalR à `/hubs/realtime` (dépendance `@microsoft/signalr`),
-  jeton passé en `access_token`, reconnexion automatique.
-- Rattrapage : relecture REST de l'état à chaque reconnexion et à chaque retour au premier plan
-  (risque R6 sur iOS).
-- Signal d'état de connexion affiché en permanence (couleur + libellé).
-- Le hub ne fait que pousser ; toute action passe par l'API REST.
+**Fait :**
+- `core/realtime/realtime.service.ts` : connexion SignalR unique à `/hubs/realtime`
+  (`@microsoft/signalr`, chargé à la demande hors du bundle initial), ouverte à l'entrée de
+  `/gestion` ; JWT passé en `access_token` et renouvelé s'il expire dans moins de 30 s ;
+  reconnexion sans fin (0, 2, 5, 10 s puis toutes les 30 s), y compris quand la toute première
+  connexion échoue ; connexion rouverte à chaque changement d'utilisateur (les groupes sont
+  attribués par le serveur à la connexion).
+- Événements typés (`realtime-events.ts`) : `Order*`, `PaymentAnomaly`, `AvailabilityChanged`,
+  `Notification` ; le hub ne fait que pousser, toute action passe par l'API REST.
+- Rattrapage : pas de numéro de séquence côté API, donc `resync` à chaque (re)connexion et à
+  chaque retour au premier plan après plus de 5 s d'absence (risque R6) ; chaque écran relit
+  alors son état par REST.
+- État de connexion toujours visible dans la barre du haut (icône + libellé + couleur :
+  « Temps réel connecté », « Reconnexion… », « Hors ligne » dès l'événement `offline` du
+  navigateur) et bandeau d'alerte après 5 s sans connexion (`shared/ui/connection-status`).
+- Branchements : état d'ouverture (portée `opening`), caches de la carte déjà chargés (portée
+  `catalog` : rupture saisie sur une autre tablette), chiffres du jour du tableau de bord (chaque
+  événement de commande). Horaires, fermetures et réglages ne sont pas relus automatiquement :
+  leurs formulaires suivent le cache et perdraient la saisie en cours.
+
+**Vérifié contre la vraie API (2026-11-23) :** connexion WebSocket via le proxy de dev, rupture
+saisie dans un onglet reflétée dans l'autre sans rechargement, indicateur « Hors ligne » et
+bandeau après 5 s sur les événements `offline` / `online` du navigateur.
+
+**Reste :**
+- Vraie coupure réseau d'1 min (DevTools hors ligne) pendant un flux de commandes.
+- Connexion anonyme de la PWA client (carte et état d'ouverture, F8), suivi de commande
+  (US-E08-1, F8), KDS (US-E07-3, F6) : réutiliser `RealtimeService`, `resync` et
+  `ConnectionBanner`.
 - **Sortie :** couper le réseau 1 min pendant un flux de commandes, tout se recale seul.
 
 ## F5 — Comptoir (E06) — ⬜
