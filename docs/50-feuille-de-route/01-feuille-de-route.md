@@ -120,6 +120,8 @@ l'API. **Reste pour la sortie :** le même parcours en sandbox SumUp réel (proc
 
 ## J4 — PWA client (S6–S8)
 
+Détail et avancement des écrans : [feuille de route du front](04-feuille-de-route-front.md) (étape F8).
+
 - Projet Angular PWA (manifest, service worker), client API généré, auth (mot de passe +
   Google).
 - Carte, fiche produit avec personnalisation, composition de menu, panier persistant.
@@ -128,7 +130,9 @@ l'API. **Reste pour la sortie :** le même parcours en sandbox SumUp réel (proc
 - Pages légales (CGV, confidentialité, mentions, lien allergènes).
 - **Sortie :** parcours 1 et 2 complets sur un iPhone et un Android réels.
 
-## J5 — Back-office & KDS (S8–S10) — 🟡 API terminée le 2026-11-22, écrans à faire
+## J5 — Back-office & KDS (S8–S10) — 🟡 API terminée le 2026-11-22, écrans en cours
+
+Détail et avancement des écrans : [feuille de route du front](04-feuille-de-route-front.md) (étapes F2 à F7).
 
 - Back-office tablette : commandes du jour, validation `AValider` (son + badge), saisie
   comptoir rapide, encaissement déclaré, remise, non venu, annulation.
@@ -137,8 +141,9 @@ l'API. **Reste pour la sortie :** le même parcours en sandbox SumUp réel (proc
 - Statistiques : tableau du jour, ventes par produit, heures de pointe (écart M10).
 - **Sortie :** service simulé de 30 minutes (comptoir + en ligne + KDS) sans papier.
 
-**Bilan J5 (API, 2026-11-22) :** J4 sauté pour l'instant, front non créé : seule la partie serveur
-est faite. Règle pure `StatsPolicy` (commande comptée = retirée, ou prête et payée, à son
+**Bilan J5 (API, 2026-11-22) :** J4 sauté pour l'instant ; côté serveur seulement (le front a
+démarré depuis : socle, comptes et gestion de la carte, cf. [feuille de route du
+front](04-feuille-de-route-front.md)). Règle pure `StatsPolicy` (commande comptée = retirée, ou prête et payée, à son
 instant de retrait ; journées en heure de Paris ; 18 tests) et routes Manager
 `/manage/stats/dashboard`, `/products`, `/peak-hours` (US-E09-1 à 3). Écart M10 (index
 `Status + CompletedAt` / `ReadyAt`). Recherche par numéro du jour (`GET /manage/orders?number=`),

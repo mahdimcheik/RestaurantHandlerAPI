@@ -96,8 +96,9 @@ Accompagnement, Boisson) proposant chacun des produits, avec un surcoût par opt
 vendre des formules.
 
 **Priorité :** V1
-**État :** Partielle
-**Avancement :** API faite en J1 (`/manage/menus`, emplacements, options) ; écran en J5.
+**État :** Complète
+**Avancement :** API faite en J1 (`/manage/menus`, emplacements, options) ; écran fait en J5
+(`/gestion/menus`).
 
 **Critères d'acceptation**
 - Chaque emplacement a un libellé, une position unique dans le menu, un minimum et un maximum

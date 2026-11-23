@@ -61,6 +61,7 @@ de données restaurant. Elle remplace intégralement l'ancienne documentation.
 
 ### 50 — Feuille de route
 - [Feuille de route](50-feuille-de-route/01-feuille-de-route.md)
+- [Feuille de route du front](50-feuille-de-route/04-feuille-de-route-front.md)
 - [Questions ouvertes](50-feuille-de-route/02-questions-ouvertes.md)
 - [Risques et dette](50-feuille-de-route/03-risques-dette.md)
 
