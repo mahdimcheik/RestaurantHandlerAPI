@@ -10,7 +10,7 @@ dans le bon ordre.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** File faite en J2 (`GET /manage/orders/kitchen`, tri et visibilité des commandes programmées) ; écran en J5.
+**Avancement :** File faite en J2 (`GET /manage/orders/kitchen`, tri et visibilité des commandes programmées) ; écran `/cuisine` fait (F6 : deux colonnes, personnalisations mises en évidence, carillon), à éprouver en service simulé.
 
 **Critères d'acceptation**
 - Affiche les commandes `Confirmée` et `En préparation`, en colonnes ou en cartes.
@@ -29,7 +29,7 @@ tenir le client et le comptoir informés.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`start`, `ready`, `undo` sous 10 s, historique) ; écran en J5.
+**Avancement :** API faite en J2 (`start`, `ready`, `undo` sous 10 s, historique) ; écran fait (F6 : une touche par étape, annulation proposée 9 s).
 
 **Critères d'acceptation**
 - `Confirmée → En préparation → Prête`, une touche par transition.
@@ -44,7 +44,7 @@ perdre aucune commande.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** côté serveur, la resynchronisation complète passe par `GET /manage/orders/kitchen` et une transition refusée renvoie une erreur explicite ; bandeau et refus hors ligne à faire dans l'écran.
+**Avancement :** côté serveur, la resynchronisation complète passe par `GET /manage/orders/kitchen` et une transition refusée renvoie une erreur explicite ; écran fait (F6 : bandeau rouge, relecture complète à chaque reconnexion, geste hors ligne refusé visiblement).
 
 **Critères d'acceptation**
 - Un bandeau rouge signale la perte de connexion.

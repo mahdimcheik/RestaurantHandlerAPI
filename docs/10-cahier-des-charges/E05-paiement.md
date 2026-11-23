@@ -50,7 +50,7 @@ par quel moyen afin de savoir ce qui reste à encaisser.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`POST /manage/orders/{id}/payments`, paiement mixte, auteur, garde avant `Retirée`) ; écran en J5.
+**Avancement :** API faite en J2 (`POST /manage/orders/{id}/payments`, paiement mixte, auteur, garde avant `Retirée`) ; écran fait (F5 : une touche par moyen, paiement mixte).
 
 **Critères d'acceptation**
 - Moyens enregistrables : carte (terminal), espèces, autre ; **plusieurs** moyens et montants
@@ -67,7 +67,7 @@ annulation ou une erreur.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J3 : remboursement total automatique à l'annulation (client ou Manager) et pour un paiement arrivé sur une commande qui ne l'attendait plus ; `POST /manage/orders/{id}/refund` pour relancer ou décider (non-venue) ; échec signalé en anomalie.
+**Avancement :** API faite en J3 : remboursement total automatique à l'annulation (client ou Manager) et pour un paiement arrivé sur une commande qui ne l'attendait plus ; `POST /manage/orders/{id}/refund` pour relancer ou décider (non-venue) ; échec signalé en anomalie ; bouton « Rembourser » au back-office fait (F5).
 
 **Critères d'acceptation**
 - Le remboursement est total en V1, déclenché via l'API SumUp, et tracé (`Refunded`).

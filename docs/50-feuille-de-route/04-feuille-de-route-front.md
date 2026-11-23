@@ -21,8 +21,8 @@ Statuts : ✅ terminé · 🟡 en cours · ⬜ à faire.
 | **F2 — Gestion de la carte** | Le Manager saisit toute la carte à l'écran | E02 | la vraie carte saisie sans Swagger | 🟡 |
 | **F3 — Ouverture & réglages** | Horaires, fermetures, pause, ruptures, créneaux | E03, US-E10-5 | ouvrir, fermer, mettre en pause depuis la tablette | 🟡 |
 | **F4 — Temps réel** | Connexion SignalR fiable et visible | US-E07-3, US-E08-1 | coupure réseau rattrapée sans rechargement | 🟡 |
-| **F5 — Comptoir** | Piloter les commandes du jour | E06, US-E05-3 | une commande comptoir saisie en moins de 30 s | ⬜ |
-| **F6 — KDS** | La cuisine prépare sans papier | E07 | file lisible à 2 m, gestes annulables | ⬜ |
+| **F5 — Comptoir** | Piloter les commandes du jour | E06, US-E05-3 | une commande comptoir saisie en moins de 30 s | 🟡 |
+| **F6 — KDS** | La cuisine prépare sans papier | E07 | file lisible à 2 m, gestes annulables | 🟡 |
 | **F7 — Pilotage** | Statistiques et utilisateurs | US-E09-1→3, US-E10-1→4 | chiffres du jour justes | ⬜ |
 | → **Sortie J5** | | | **service simulé de 30 min sans papier** | |
 | **F8 — PWA client** | Commander, payer, suivre | E04, E05, E08, légal | **parcours 1 et 2 sur iPhone et Android réels (sortie J4)** | ⬜ |
@@ -127,25 +127,72 @@ bandeau après 5 s sur les événements `offline` / `online` du navigateur.
   `ConnectionBanner`.
 - **Sortie :** couper le réseau 1 min pendant un flux de commandes, tout se recale seul.
 
-## F5 — Comptoir (E06) — ⬜
+## F5 — Comptoir (E06) — 🟡
 
-- Commandes du jour, filtrées par statut, recherche par numéro du jour (US-E06-2).
-- Validation des commandes « à payer au retrait » `AValider` : son + badge (US-E06-3).
-- Saisie comptoir rapide, optimisée tablette d'une main (US-E06-1).
-- Encaissement déclaré, paiement mixte (US-E05-3) ; remise (US-E06-4).
-- Client non venu (US-E06-5), annulation côté restaurant avec motif (US-E06-6), remboursement
-  en ligne déclenché par l'API (US-E05-4).
-- 409 → rechargement et message ; aucun total calculé côté client (règle R2).
-- **Sortie :** une commande comptoir saisie et encaissée en moins de 30 s.
+**Fait (feature `features/ordering`, sous `/gestion`) :**
+- Saisie comptoir `/gestion/comptoir` (US-E06-1) : catégories en onglets, produits et menus en
+  tuiles, ticket à côté. Un produit sans choix obligatoire s'ajoute en une touche ; un choix
+  obligatoire unique s'ajoute à la deuxième touche (les options facultatives restent sous
+  « Personnaliser »). Personnalisation : « Sans X », remplacement par un ingrédient proposé
+  ([ADR-0012](../40-decisions/ADR-0012-remplacements-prix-ingredient.md)), options dans leurs
+  bornes ; menus emplacement par emplacement. Prénom et note facultatifs. Total et totaux de
+  ligne par le devis `POST /orders/quote` (R2). Clé d'idempotence dans le corps, gardée pour un
+  nouvel essai. Après l'envoi : numéro du jour en très grand et encaissement en une touche.
+- Commandes du jour `/gestion/commandes` (US-E06-2) : jour précédent / suivant, filtres par étape
+  (à valider, en cours, prêtes, à encaisser, closes) avec leurs nombres, canal, recherche par
+  numéro du jour ; à valider en tête, closes en bas ; relue à chaque événement de commande et à
+  chaque `resync` ; bandeau sur `PaymentAnomaly`.
+- Détail `/gestion/commandes/:id` : lignes, personnalisations, note, TVA, paiements, historique ;
+  gestes selon le statut (masquage seulement) : accepter / refuser avec motif (US-E06-3),
+  encaisser (US-E05-3 : une touche par moyen = tout le reste, paiement mixte par montant),
+  remettre si payée (US-E06-4), client non venu après retrait + délai de grâce (US-E06-5),
+  annuler avec motif (US-E06-6), rembourser une commande close payée en ligne (US-E05-4).
+  409 → relecture et message.
+- Commandes à valider (US-E06-3) : nombre en badge sur « Commandes » dans le menu, annonce aux
+  lecteurs d'écran, carillon Web Audio à chaque arrivée (coupable dans la barre du haut,
+  réglage propre à l'appareil) — `shared/services/approval-alert.service.ts`.
+- Statut partagé `shared/ui/order-status` (icône + libellé, réutilisable au KDS).
 
-## F6 — KDS (E07) — ⬜
+**Vérifié contre la vraie API (2026-11-23) :** commande comptoir pizza + taille saisie, envoyée
+et payée en espèces en 4 touches ; détail (TVA, paiement, historique) et liste à jour.
 
-- Route `/cuisine`, plein écran, contraste élevé, lisible à 2 m (US-E07-1).
-- File triée par heure de retrait, gestes « en préparation » / « prête », annulation du dernier
-  geste (US-E07-2).
-- Son à l'arrivée d'une commande ; statut = couleur **et** libellé.
-- Résistance aux coupures : indicateur F4, resynchronisation, écran jamais figé en silence
-  (US-E07-3).
+**Reste :**
+- Vérifier en navigateur : commande en ligne « au retrait » (carillon, badge, accepter /
+  refuser), paiement mixte, remise, non-venue, annulation, 409 à deux onglets ; rendu tablette
+  en portrait ; contrôle axe des trois écrans, thèmes clair et sombre.
+- **Sortie :** une commande comptoir saisie et encaissée en moins de 30 s (atteint sur un
+  produit simple, à confirmer sur une tablette réelle).
+
+## F6 — KDS (E07) — 🟡
+
+**Fait (feature `features/kitchen`, route `/cuisine` plein écran, `managerGuard`, lien
+« Cuisine » dans le menu du back-office) :**
+- File `GET /manage/orders/kitchen` en deux colonnes, « À préparer » (`Confirmée`) et « En
+  préparation », dans l'ordre de l'API (heure de retrait puis validation) avec leur nombre
+  (US-E07-1). Bon : numéro du jour en très grand, heure de retrait (« dès que possible » si
+  ASAP), canal, prénom, statut (icône + libellé), lignes avec quantités, composants des menus,
+  personnalisations mises en évidence par type (retrait en capitales soulignées, supplément
+  « + … ×2 », remplacement, choix), note client encadrée.
+- Relue à chaque événement de commande, à chaque `resync` (reconnexion, retour au premier plan)
+  et chaque minute (une commande programmée entre dans la file sans événement) ; la dernière
+  file connue reste affichée si une relecture échoue.
+- Une touche par étape : « Commencer », « Prête » ; pas de mise à jour optimiste. Barre
+  « N° 12 : Prête — Annuler (9 s) » après chaque geste, proposée 9 s (marge sous les 10 s du
+  serveur), refus du serveur affiché (US-E07-2).
+- Carillon (Web Audio partagé avec les commandes à valider, `shared/utils/chime.ts`) à
+  l'arrivée d'une commande jamais vue, coupable, réglage propre à l'appareil ; annonce aux
+  lecteurs d'écran.
+- Coupures (US-E07-3) : `ConnectionStatus` et bandeau rouge `ConnectionBanner` ; geste tenté
+  sans réseau refusé par un message visible (« le geste n'a pas été enregistré ») ; 409 →
+  relecture et message.
+
+**Vérifié contre la vraie API (2026-11-23) :** file affichée ; Commencer, puis Annuler ;
+geste fait dans un deuxième onglet KDS répercuté seul dans le premier (SignalR) ; thèmes clair
+et sombre.
+
+**Reste :**
+- Vérifier : arrivée d'une nouvelle commande pendant l'ouverture (carillon), « Prête » →
+  « à remettre » au back-office, coupure réseau réelle 1 min ; tablette en portrait ; axe.
 - **Sortie :** 20 commandes simulées traitées sans papier ni rechargement manuel.
 
 ## F7 — Pilotage (E09, E10) — ⬜

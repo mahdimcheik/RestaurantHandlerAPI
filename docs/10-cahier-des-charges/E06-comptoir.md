@@ -7,7 +7,7 @@ l'envoyer en cuisine.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`POST /manage/orders/counter`, non bloquée par la pause) ; écran tactile en J5.
+**Avancement :** API faite en J2 (`POST /manage/orders/counter`, non bloquée par la pause) ; écran tactile fait (F5, `/gestion/comptoir`), à valider sur tablette réelle.
 
 **Critères d'acceptation**
 - Interface tactile optimisée tablette : catégories en tuiles, personnalisation en deux
@@ -28,7 +28,7 @@ En tant que Manager, je veux une liste des commandes du jour filtrable par statu
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`GET /manage/orders`, filtres statut / canal / payée, détail avec historique) ; écran en J5.
+**Avancement :** API faite en J2 (`GET /manage/orders`, filtres statut / canal / payée, détail avec historique) ; écran fait (F5, `/gestion/commandes`).
 
 **Critères d'acceptation**
 - Mise à jour en temps réel.
@@ -42,7 +42,7 @@ de ne préparer que des commandes crédibles.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (accepter, refuser avec motif, refus automatique Hangfire après `ApprovalTimeoutMinutes`, temps réel) ; son et badge en J5.
+**Avancement :** API faite en J2 (accepter, refuser avec motif, refus automatique Hangfire après `ApprovalTimeoutMinutes`, temps réel) ; son, badge et gestes faits (F5).
 
 **Critères d'acceptation**
 - Les commandes `À valider` sont mises en évidence (son + badge) dans le back-office.
@@ -58,7 +58,7 @@ En tant que Manager, je veux marquer une commande comme retirée afin de clore s
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`complete`, refusé si non payée) ; recherche par numéro faite en J5 (`GET /manage/orders?number=`) ; écran à faire.
+**Avancement :** API faite en J2 (`complete`, refusé si non payée) ; recherche par numéro faite en J5 (`GET /manage/orders?number=`) ; écran fait (F5).
 
 **Critères d'acceptation**
 - Possible uniquement depuis `Prête` et si la commande est payée.
@@ -71,7 +71,7 @@ clore la commande et de suivre les abus.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`no-show` après retrait + délai de grâce, compteur client) ; écran en J5.
+**Avancement :** API faite en J2 (`no-show` après retrait + délai de grâce, compteur client) ; écran fait (F5).
 
 **Critères d'acceptation**
 - Possible depuis `Prête` après l'heure de retrait + délai de grâce.
@@ -86,7 +86,7 @@ En tant que Manager, je veux annuler une commande avec un motif afin de gérer u
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (annulation Manager avec motif à tout statut non final) ; remboursement en ligne en J3.
+**Avancement :** API faite en J2 (annulation Manager avec motif à tout statut non final) ; remboursement en ligne en J3 ; écran fait (F5).
 
 **Critères d'acceptation**
 - Possible à tout statut avant `Retirée` ; motif obligatoire ; historisé.
