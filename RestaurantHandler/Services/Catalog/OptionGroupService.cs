@@ -97,6 +97,15 @@ public class OptionGroupService(MainContext db, CatalogImageService images, Cata
         return await GetAsync(id);
     }
 
+    public async Task<OptionGroupDetails> RemoveImageAsync(Guid id, CancellationToken ct)
+    {
+        var group = await db.OptionGroups.FirstOrDefaultAsync(g => g.Id == id && g.ArchivedAt == null, ct)
+            ?? throw new ResourceNotFoundException("Groupe d'options introuvable.");
+
+        await ClearImageAsync(group.ImageUrl, () => group.ImageUrl = null, () => group.UpdatedAt = DateTimeOffset.UtcNow, ct);
+        return await GetAsync(id);
+    }
+
     public async Task<OptionGroupDetails> SetChoiceImageAsync(Guid id, Guid choiceId, IFormFile file, CancellationToken ct)
     {
         var choice = await db.OptionChoices
@@ -105,6 +114,17 @@ public class OptionGroupService(MainContext db, CatalogImageService images, Cata
             ?? throw new ResourceNotFoundException("Choix introuvable.");
 
         await ReplaceImageAsync(choice.ImageUrl, key => choice.ImageUrl = key, () => choice.UpdatedAt = DateTimeOffset.UtcNow, file, ct);
+        return await GetAsync(id);
+    }
+
+    public async Task<OptionGroupDetails> RemoveChoiceImageAsync(Guid id, Guid choiceId, CancellationToken ct)
+    {
+        var choice = await db.OptionChoices
+            .FirstOrDefaultAsync(c => c.Id == choiceId && c.GroupId == id && c.ArchivedAt == null
+                && c.Group!.ArchivedAt == null, ct)
+            ?? throw new ResourceNotFoundException("Choix introuvable.");
+
+        await ClearImageAsync(choice.ImageUrl, () => choice.ImageUrl = null, () => choice.UpdatedAt = DateTimeOffset.UtcNow, ct);
         return await GetAsync(id);
     }
 
@@ -210,6 +230,18 @@ public class OptionGroupService(MainContext db, CatalogImageService images, Cata
     {
         var key = await images.StoreAsync(file, ct);
         set(key);
+        touch();
+        await db.SaveChangesAsync(ct);
+        await images.DeleteAsync(previous);
+        await changes.CatalogChangedAsync();
+    }
+
+    private async Task ClearImageAsync(string? previous, Action clear, Action touch, CancellationToken ct)
+    {
+        if (previous is null)
+            return;
+
+        clear();
         touch();
         await db.SaveChangesAsync(ct);
         await images.DeleteAsync(previous);

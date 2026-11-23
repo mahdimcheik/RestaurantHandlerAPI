@@ -98,6 +98,22 @@ public class CategoryService(MainContext db, CatalogImageService images, Catalog
         return ToDetails(category, await CountActiveProductsAsync(id));
     }
 
+    public async Task<CategoryDetails> RemoveImageAsync(Guid id, CancellationToken ct)
+    {
+        var category = await FindAsync(id);
+        var previous = category.ImageUrl;
+        if (previous is not null)
+        {
+            category.ImageUrl = null;
+            category.UpdatedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(ct);
+            await images.DeleteAsync(previous);
+            await changes.CatalogChangedAsync();
+        }
+
+        return ToDetails(category, await CountActiveProductsAsync(id));
+    }
+
     private async Task<Category> FindAsync(Guid id) =>
         await db.Categories.FirstOrDefaultAsync(c => c.Id == id && c.ArchivedAt == null)
         ?? throw new ResourceNotFoundException("Catégorie introuvable.");

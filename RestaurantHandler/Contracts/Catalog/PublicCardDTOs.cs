@@ -22,6 +22,7 @@ public class PublicReplacement
     [Required] public Guid IngredientId { get; set; }
     [Required] public string Name { get; set; } = string.Empty;
     [Required] public int PriceCents { get; set; }
+    public string? ImageUrl { get; set; }
 }
 
 public class PublicCategory
@@ -93,6 +94,8 @@ public class PublicIngredient
 
     /// <summary>Retrait imposé par une rupture (« sans tomate — rupture »).</summary>
     [Required] public bool IsForcedRemoved { get; set; }
+
+    public string? ImageUrl { get; set; }
 }
 
 public class PublicMenu

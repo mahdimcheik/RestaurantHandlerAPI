@@ -81,6 +81,10 @@ public class Ingredient : BaseModel
 
     /// <summary>Faux pour ce qui ne remplace rien (pâte, pain, crème de cuisson) ; vrai par défaut.</summary>
     public bool IsOfferedAsReplacement { get; set; } = true;
+
+    /// <summary>Clé d'objet de la photo (préfixe public), l'URL est calculée à la lecture.</summary>
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
 }
 
 /// <summary>Composition par défaut d'un produit.</summary>

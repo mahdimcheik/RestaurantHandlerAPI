@@ -27,7 +27,7 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 |---|---|---|
 | `Category` | Rubrique de carte | nom unique, `Position`, `IsActive` |
 | `Product` | Plat / boisson / dessert | `Kind`, `PriceCents`, `VatRate`, `Position`, `IsActive`, `IsAvailable` (rupture) |
-| `Ingredient` | Ingrédient | nom unique, `IsAvailable` (rupture), `PriceCents` (référence pour les remplacements, ≥ 0), `IsOfferedAsReplacement` |
+| `Ingredient` | Ingrédient | nom unique, `IsAvailable` (rupture), `PriceCents` (référence pour les remplacements, ≥ 0), `IsOfferedAsReplacement`, `ImageUrl` |
 | `ProductIngredient` | Composition | PK (produit, ingrédient), `IsRemovable` (retirable et remplaçable) |
 | `OptionGroup` | Groupe d'options partagé entre produits (pain, sauces, taille) | `Label` unique (non archivé), `ImageUrl`, `Min/MaxChoices` et `FreeChoices` (en unités), `ExtraChoicePriceCents`, `MaxPerChoice` (≥ 1, fois qu'un même choix peut être pris) ; archivé, refusé tant qu'un produit le propose |
 | `OptionChoice` | Choix d'un groupe | nom unique par groupe (non archivé), `ImageUrl`, `IngredientId?` (rupture), `ExtraPriceCents`, `Position` ; archivé |

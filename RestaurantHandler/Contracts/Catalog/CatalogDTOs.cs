@@ -112,6 +112,7 @@ public class IngredientDetails
     [Required] public bool IsOfferedAsReplacement { get; set; }
     [Required] public bool IsAvailable { get; set; }
     [Required] public bool IsArchived { get; set; }
+    public string? ImageUrl { get; set; }
 }
 
 // ---------- Composition (remplacée en un seul appel) ----------

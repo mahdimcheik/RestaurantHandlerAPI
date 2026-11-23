@@ -107,6 +107,22 @@ public class ProductService(MainContext db, CatalogImageService images, CatalogC
         return await GetAsync(id);
     }
 
+    public async Task<ProductDetails> RemoveImageAsync(Guid id, CancellationToken ct)
+    {
+        var product = await FindAsync(id);
+        var previous = product.ImageUrl;
+        if (previous is not null)
+        {
+            product.ImageUrl = null;
+            product.UpdatedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(ct);
+            await images.DeleteAsync(previous);
+            await changes.CatalogChangedAsync();
+        }
+
+        return await GetAsync(id);
+    }
+
     /// <summary>
     /// Remplace la composition entière. Les lignes existantes sont mises à jour sur place plutôt
     /// que supprimées puis recréées, pour ne jamais suivre deux entités de même clé.

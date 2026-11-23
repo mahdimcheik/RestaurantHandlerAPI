@@ -6,22 +6,15 @@ using RestaurantHandler.Models;
 namespace RestaurantHandler.Services;
 
 /// <summary>Ingrédients (US-E02-4) et leurs ruptures (US-E03-4).</summary>
-public class IngredientService(MainContext db, CatalogChangeNotifier changes)
+public class IngredientService(MainContext db, CatalogImageService images, CatalogChangeNotifier changes)
 {
-    public Task<List<IngredientDetails>> ListAsync(bool includeArchived) =>
-        db.Ingredients.AsNoTracking()
+    public async Task<List<IngredientDetails>> ListAsync(bool includeArchived) =>
+        (await db.Ingredients.AsNoTracking()
             .Where(i => includeArchived || i.ArchivedAt == null)
             .OrderBy(i => i.Name)
-            .Select(i => new IngredientDetails
-            {
-                Id = i.Id,
-                Name = i.Name,
-                PriceCents = i.PriceCents,
-                IsOfferedAsReplacement = i.IsOfferedAsReplacement,
-                IsAvailable = i.IsAvailable,
-                IsArchived = i.ArchivedAt != null,
-            })
-            .ToListAsync();
+            .ToListAsync())
+        .Select(ToDetails)
+        .ToList();
 
     public async Task<IngredientDetails> CreateAsync(IngredientWrite dto)
     {
@@ -66,6 +59,37 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
             ingredient.IsAvailable = isAvailable;
             ingredient.UpdatedAt = DateTimeOffset.UtcNow;
             await db.SaveChangesAsync();
+            await changes.CatalogChangedAsync();
+        }
+
+        return ToDetails(ingredient);
+    }
+
+    public async Task<IngredientDetails> SetImageAsync(Guid id, IFormFile file, CancellationToken ct)
+    {
+        var ingredient = await FindAsync(id);
+        var key = await images.StoreAsync(file, ct);
+        var previous = ingredient.ImageUrl;
+
+        ingredient.ImageUrl = key;
+        ingredient.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+        await images.DeleteAsync(previous);
+        await changes.CatalogChangedAsync();
+
+        return ToDetails(ingredient);
+    }
+
+    public async Task<IngredientDetails> RemoveImageAsync(Guid id, CancellationToken ct)
+    {
+        var ingredient = await FindAsync(id);
+        var previous = ingredient.ImageUrl;
+        if (previous is not null)
+        {
+            ingredient.ImageUrl = null;
+            ingredient.UpdatedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(ct);
+            await images.DeleteAsync(previous);
             await changes.CatalogChangedAsync();
         }
 
@@ -117,7 +141,7 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
             throw new BusinessConflictException($"L'ingrédient « {name} » existe déjà.");
     }
 
-    private static IngredientDetails ToDetails(Ingredient i) =>
+    private IngredientDetails ToDetails(Ingredient i) =>
         new()
         {
             Id = i.Id,
@@ -126,5 +150,6 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
             IsOfferedAsReplacement = i.IsOfferedAsReplacement,
             IsAvailable = i.IsAvailable,
             IsArchived = i.ArchivedAt != null,
+            ImageUrl = images.Url(i.ImageUrl),
         };
 }

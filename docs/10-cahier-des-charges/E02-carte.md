@@ -47,20 +47,22 @@ catégorie, prix TTC, taux de TVA, position) afin de tenir la carte à jour.
 - Le prix est saisi en euros et stocké en centimes ; il est ≥ 0.
 - Le taux de TVA est choisi dans une liste fermée (5,5 %, 10 %, 20 %) — cf.
   [conformité](../20-regles-metier/04-conformite-legale.md).
-- La photo passe par le stockage objet (taille et format validés).
+- La photo passe par le stockage objet (taille et format validés) ; elle peut être retirée
+  (`DELETE …/image`, comme pour les catégories, menus, groupes, choix et le logo).
 - Un changement de prix ne modifie aucune commande existante (snapshot).
 - Un produit utilisé dans des commandes n'est jamais supprimé, seulement **archivé**.
 
 ### US-E02-4 — Gérer les ingrédients
 
 En tant que Manager, je veux gérer la liste des ingrédients (nom, prix de référence, proposé en
-remplacement) afin de décrire les compositions et de chiffrer les remplacements.
+remplacement, photo) afin de décrire les compositions et de chiffrer les remplacements.
 
 **Priorité :** V1
 **État :** Partielle
 **Avancement :** API faite en J1 (`/manage/ingredients`) ; écran back-office fait (client,
 `/gestion/ingredients` : ajout, recherche, modification du nom, du prix et de la case « proposé
-en remplacement », rupture, archivage ; création rapide depuis la fiche produit).
+en remplacement », photo (envoi, retrait, vignette dans la liste), rupture, archivage ; création
+rapide depuis la fiche produit).
 
 **Critères d'acceptation**
 - Le nom est unique.
@@ -68,6 +70,8 @@ en remplacement », rupture, archivage ; création rapide depuis la fiche produi
 - Le prix de référence (≥ 0, 0 par défaut) sert uniquement au surcoût des remplacements
   ([ADR-0012](../40-decisions/ADR-0012-remplacements-prix-ingredient.md)).
 - « Proposé en remplacement » (vrai par défaut) se décoche pour la pâte, le pain…
+- Photo facultative (`POST`/`DELETE /manage/ingredients/{id}/image`, même contrôle et format
+  que les produits), affichée sur la carte publique avec la composition et les remplacements.
 
 ### US-E02-5 — Définir la composition d'un produit
 

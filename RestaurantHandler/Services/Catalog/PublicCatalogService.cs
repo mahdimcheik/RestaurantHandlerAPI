@@ -60,8 +60,10 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
         var replacements = await db.Ingredients.AsNoTracking()
             .Where(i => i.ArchivedAt == null && i.IsAvailable && i.IsOfferedAsReplacement)
             .OrderBy(i => i.Name)
-            .Select(i => new PublicReplacement { IngredientId = i.Id, Name = i.Name, PriceCents = i.PriceCents })
+            .Select(i => new PublicReplacement { IngredientId = i.Id, Name = i.Name, PriceCents = i.PriceCents, ImageUrl = i.ImageUrl })
             .ToListAsync(ct);
+        foreach (var replacement in replacements)
+            replacement.ImageUrl = images.Url(replacement.ImageUrl);
 
         return new PublicCard
         {
@@ -103,6 +105,7 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
                     IsRemovable = pi.IsRemovable,
                     PriceCents = pi.Ingredient!.PriceCents,
                     IsForcedRemoved = availability.ForcedRemovalIngredientIds.Contains(pi.IngredientId),
+                    ImageUrl = images.Url(pi.Ingredient!.ImageUrl),
                 })
                 .ToList(),
             OptionGroups = AvailabilityPolicy.ActiveOptionGroups(p)

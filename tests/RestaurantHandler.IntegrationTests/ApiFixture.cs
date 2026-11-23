@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Amazon.Runtime;
+using Amazon.S3;
 using RestaurantHandler.Integrations.SumUp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -25,7 +27,7 @@ public class ApiCollection : ICollectionFixture<ApiFixture>
 /// <summary>
 /// Une base PostgreSQL jetable (Testcontainers) et l'API complète par-dessus. Toutes les variables
 /// sensibles sont fixées ici : le .env local (NoClobber) ne peut pas les remplacer, donc aucun
-/// appel au stockage ou au SMTP réels. Horloge figée : lundi 23/11/2026, 12h00 à Paris.
+/// appel au stockage (remplacé par <see cref="FakeS3"/>) ou au SMTP réels. Horloge figée : lundi 23/11/2026, 12h00 à Paris.
 /// </summary>
 public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
@@ -42,6 +44,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
 
     public TestClock Clock { get; } = new(Monday12h);
     public FakeSumUp SumUp { get; } = new();
+    public FakeS3 Storage { get; } = new();
     public SeededMenu Menu { get; private set; } = null!;
 
     public async Task InitializeAsync()
@@ -97,6 +100,18 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
             services.RemoveAll<TimeProvider>();
             services.AddSingleton<TimeProvider>(Clock);
             services.AddHttpClient<SumUpClient>().ConfigurePrimaryHttpMessageHandler(() => SumUp);
+            services.RemoveAll<IAmazonS3>();
+            services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client(
+                new BasicAWSCredentials("test", "test"),
+                new AmazonS3Config
+                {
+                    ServiceURL = "http://127.0.0.1:1",
+                    AuthenticationRegion = "gra",
+                    ForcePathStyle = true,
+                    UseHttp = true,
+                    HttpClientFactory = Storage.Factory,
+                    MaxErrorRetry = 0,
+                }));
         });
     }
 

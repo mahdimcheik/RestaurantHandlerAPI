@@ -42,6 +42,10 @@ public class CategoriesController(CategoryService categories) : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<Response<CategoryDetails>>> SetImage(Guid id, IFormFile file, CancellationToken ct) =>
         Success(await categories.SetImageAsync(id, file, ct));
+
+    [HttpDelete("{id:guid}/image")]
+    public async Task<ActionResult<Response<CategoryDetails>>> RemoveImage(Guid id, CancellationToken ct) =>
+        Success(await categories.RemoveImageAsync(id, ct));
 }
 
 [ApiController]
@@ -101,6 +105,10 @@ public class ProductsController(ProductService products) : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<Response<ProductDetails>>> SetImage(Guid id, IFormFile file, CancellationToken ct) =>
         Success(await products.SetImageAsync(id, file, ct));
+
+    [HttpDelete("{id:guid}/image")]
+    public async Task<ActionResult<Response<ProductDetails>>> RemoveImage(Guid id, CancellationToken ct) =>
+        Success(await products.RemoveImageAsync(id, ct));
 }
 
 [ApiController]
@@ -139,6 +147,10 @@ public class OptionGroupsController(OptionGroupService groups) : ControllerBase
     public async Task<ActionResult<Response<OptionGroupDetails>>> SetImage(Guid id, IFormFile file, CancellationToken ct) =>
         Success(await groups.SetImageAsync(id, file, ct));
 
+    [HttpDelete("{id:guid}/image")]
+    public async Task<ActionResult<Response<OptionGroupDetails>>> RemoveImage(Guid id, CancellationToken ct) =>
+        Success(await groups.RemoveImageAsync(id, ct));
+
     [HttpPost("{id:guid}/choices/{choiceId:guid}/image")]
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<Response<OptionGroupDetails>>> SetChoiceImage(
@@ -147,6 +159,10 @@ public class OptionGroupsController(OptionGroupService groups) : ControllerBase
         IFormFile file,
         CancellationToken ct
     ) => Success(await groups.SetChoiceImageAsync(id, choiceId, file, ct));
+
+    [HttpDelete("{id:guid}/choices/{choiceId:guid}/image")]
+    public async Task<ActionResult<Response<OptionGroupDetails>>> RemoveChoiceImage(Guid id, Guid choiceId, CancellationToken ct) =>
+        Success(await groups.RemoveChoiceImageAsync(id, choiceId, ct));
 }
 
 [ApiController]
@@ -172,6 +188,15 @@ public class IngredientsController(IngredientService ingredients) : ControllerBa
     [HttpPut("{id:guid}/availability")]
     public async Task<ActionResult<Response<IngredientDetails>>> SetAvailability(Guid id, [FromBody] AvailabilityUpdate dto) =>
         Success(await ingredients.SetAvailabilityAsync(id, dto.IsAvailable));
+
+    [HttpPost("{id:guid}/image")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<Response<IngredientDetails>>> SetImage(Guid id, IFormFile file, CancellationToken ct) =>
+        Success(await ingredients.SetImageAsync(id, file, ct));
+
+    [HttpDelete("{id:guid}/image")]
+    public async Task<ActionResult<Response<IngredientDetails>>> RemoveImage(Guid id, CancellationToken ct) =>
+        Success(await ingredients.RemoveImageAsync(id, ct));
 
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<Response<object>>> Archive(Guid id)
@@ -218,6 +243,10 @@ public class MenusController(MenuService menus) : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<Response<MenuDetails>>> SetImage(Guid id, IFormFile file, CancellationToken ct) =>
         Success(await menus.SetImageAsync(id, file, ct));
+
+    [HttpDelete("{id:guid}/image")]
+    public async Task<ActionResult<Response<MenuDetails>>> RemoveImage(Guid id, CancellationToken ct) =>
+        Success(await menus.RemoveImageAsync(id, ct));
 
     [HttpPost("{id:guid}/slots")]
     public async Task<ActionResult<Response<MenuDetails>>> AddSlot(Guid id, [FromBody] MenuSlotWrite dto) =>
