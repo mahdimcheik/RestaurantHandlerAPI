@@ -5,7 +5,7 @@ namespace RestaurantHandler.Models.Filters;
 /// </summary>
 public class FilterUsers
 {
-    /// <summary>Recherche sur le prénom et/ou le nom de l'utilisateur.</summary>
+    /// <summary>Recherche sur le prénom et/ou le nom, l'e-mail ou le téléphone de l'utilisateur.</summary>
     public string? Name { get; set; }
 
     /// <summary>Filtre sur un rôle (forme historique, cumulée avec <see cref="RoleIds"/>).</summary>
@@ -13,6 +13,9 @@ public class FilterUsers
 
     /// <summary>Utilisateurs portant au moins un de ces rôles.</summary>
     public List<Guid>? RoleIds { get; set; }
+
+    /// <summary>Filtre sur un statut de compte (actif, en attente, banni).</summary>
+    public Guid? StatusId { get; set; }
 
     /// <summary>Comptes créés à partir de cette date (incluse).</summary>
     public DateTimeOffset? CreatedFrom { get; set; }

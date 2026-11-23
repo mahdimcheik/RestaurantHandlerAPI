@@ -17,7 +17,7 @@ En tant que gérant, je veux voir l'activité du jour en direct afin de piloter 
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J5 (`GET /manage/stats/dashboard`) ; écran à faire avec le front.
+**Avancement :** API faite en J5 (`GET /manage/stats/dashboard`) ; écran fait (F7, tableau de bord du back-office, relu en temps réel).
 
 **Critères d'acceptation**
 - Indicateurs : CA TTC, nombre de commandes, panier moyen (CA / commandes), répartition
@@ -32,7 +32,7 @@ d'ajuster la carte.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J5 (`GET /manage/stats/products` (jour, semaine, mois, plage libre ≤ 366 jours)) ; écran à faire avec le front.
+**Avancement :** API faite en J5 (`GET /manage/stats/products` (jour, semaine, mois, plage libre ≤ 366 jours)) ; écran fait (F7, `/gestion/statistiques`).
 
 **Critères d'acceptation**
 - Période : jour, semaine, mois, ou dates libres.
@@ -46,7 +46,7 @@ de semaine afin d'organiser les équipes.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J5 (`GET /manage/stats/peak-hours` (tranches de 15 ou 30 min, temps moyen de préparation)) ; écran à faire avec le front.
+**Avancement :** API faite en J5 (`GET /manage/stats/peak-hours` (tranches de 15 ou 30 min, temps moyen de préparation)) ; écran fait (F7, `/gestion/statistiques`, filtre par jour de semaine).
 
 **Critères d'acceptation**
 - Histogramme par tranche de 15 ou 30 min sur une période choisie.

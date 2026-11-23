@@ -54,11 +54,15 @@ public class OrderQueryService(MainContext db, TimeProvider clock)
         };
     }
 
-    public async Task<(List<OrderSummary> Items, int Total)> ListMineAsync(CallerIdentity caller, int page, int pageSize)
+    public Task<(List<OrderSummary> Items, int Total)> ListMineAsync(CallerIdentity caller, int page, int pageSize) =>
+        ListForCustomerAsync(caller.UserId, page, pageSize);
+
+    /// <summary>Commandes d'un client, les plus récentes d'abord (fiche client côté Manager).</summary>
+    public async Task<(List<OrderSummary> Items, int Total)> ListForCustomerAsync(Guid customerId, int page, int pageSize)
     {
         pageSize = Math.Clamp(pageSize, 1, 50);
         page = Math.Max(page, 1);
-        var query = db.Orders.AsNoTracking().Include(o => o.Customer).Where(o => o.CustomerId == caller.UserId);
+        var query = db.Orders.AsNoTracking().Include(o => o.Customer).Where(o => o.CustomerId == customerId);
 
         var total = await query.CountAsync();
         var orders = await query.OrderByDescending(o => o.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();

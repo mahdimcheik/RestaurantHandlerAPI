@@ -29,8 +29,9 @@ public class UserManagementService
 
     /// <summary>
     /// Modifie manuellement le statut du compte d'un utilisateur (actif, en attente, banni).
+    /// Un Manager ne peut ni écarter son propre compte ni le dernier Manager actif.
     /// </summary>
-    public async Task<Response<UserDetails>> SetUserAccountStatusAsync(Guid userId, Guid statusId)
+    public async Task<Response<UserDetails>> SetUserAccountStatusAsync(Guid userId, Guid statusId, Guid callerId)
     {
         if (!AllowedAccountStatuses.Contains(statusId))
         {
@@ -51,6 +52,36 @@ public class UserManagementService
                 Status = 404,
                 Message = "Utilisateur non trouvé",
             };
+        }
+
+        if (statusId != HardCode.ACCOUNT_ACTIVE)
+        {
+            if (userId == callerId)
+            {
+                return new Response<UserDetails>
+                {
+                    Status = 400,
+                    Message = "Vous ne pouvez pas changer le statut de votre propre compte",
+                };
+            }
+
+            var isManager = await _context.UserRoles.AnyAsync(ur =>
+                ur.UserId == userId && ur.RoleId == HardCode.ROLE_MANAGER
+            );
+            var otherActiveManager = await _context.Users.AnyAsync(u =>
+                u.Id != userId
+                && u.ArchivedAt == null
+                && u.StatusId == HardCode.ACCOUNT_ACTIVE
+                && _context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == HardCode.ROLE_MANAGER)
+            );
+            if (isManager && !otherActiveManager)
+            {
+                return new Response<UserDetails>
+                {
+                    Status = 400,
+                    Message = "Impossible d'écarter le dernier Manager actif",
+                };
+            }
         }
 
         user.StatusId = statusId;

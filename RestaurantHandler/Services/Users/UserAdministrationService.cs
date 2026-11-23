@@ -29,15 +29,32 @@ public class UserAdministrationService
     }
 
     /// <summary>
-    /// Utilisateur par identifiant (forme historique de UsersService, côté admin).
+    /// Fiche d'un utilisateur côté Manager : rôles, statut, date d'inscription et compteur de
+    /// non-venues.
     /// </summary>
-    public Task<Response<UserDetails>> GetUserByIdAsync(Guid id) =>
-        _profileService.GetProfileByIdAsync(
-            id,
-            includeRoles: true,
-            includeStatus: true,
-            onlyActive: true
-        );
+    public async Task<Response<UserAdminDetails>> GetUserByIdAsync(Guid id)
+    {
+        var user = await _context
+            .Users.Include(u => u.Status)
+            .FirstOrDefaultAsync(u => u.Id == id && u.ArchivedAt == null);
+        if (user is null)
+        {
+            return new Response<UserAdminDetails> { Status = 404, Message = "Utilisateur non trouvé" };
+        }
+
+        if (user.ImgUrl is not null)
+        {
+            user.ImgUrl = _storage.Url(user.ImgUrl);
+        }
+
+        var roles = await CheckUser.GetRoles(user, _context, _userManager);
+        return new Response<UserAdminDetails>
+        {
+            Status = 200,
+            Message = "Utilisateur récupéré avec succès",
+            Data = new UserAdminDetails(user, roles),
+        };
+    }
 
     /// <summary>
     /// Récupère la liste paginée des utilisateurs avec filtres (rôles, date de création, nom).
@@ -55,6 +72,9 @@ public class UserAdministrationService
             query = query.Where(u => _context.UserRoles.Any(ur => ur.UserId == u.Id && roleIds.Contains(ur.RoleId)));
         }
 
+        if (filters.StatusId is { } statusId)
+            query = query.Where(u => u.StatusId == statusId);
+
         if (filters.CreatedFrom is { } from)
             query = query.Where(u => u.CreatedAt >= from);
         if (filters.CreatedTo is { } to)
@@ -67,6 +87,7 @@ public class UserAdministrationService
                 (u.FirstName.ToLower() + " " + u.LastName.ToLower()).Contains(name)
                 || (u.LastName.ToLower() + " " + u.FirstName.ToLower()).Contains(name)
                 || u.Email.ToLower().Contains(name)
+                || (u.PhoneNumber != null && u.PhoneNumber.Replace(" ", "").Contains(name.Replace(" ", "")))
             );
         }
 
@@ -137,7 +158,7 @@ public class UserAdministrationService
         await _userManager.AddToRoleAsync(newUser, role.Name);
         await transaction.CommitAsync();
 
-        var created = await GetUserByIdAsync(newUser.Id);
+        var created = AsDetails(await GetUserByIdAsync(newUser.Id));
         if (created.Status == 200)
         {
             created.Status = 201;
@@ -168,11 +189,19 @@ public class UserAdministrationService
 
         await _context.SaveChangesAsync();
 
-        var updated = await GetUserByIdAsync(user.Id);
+        var updated = AsDetails(await GetUserByIdAsync(user.Id));
         if (updated.Status == 200)
         {
             updated.Message = "Utilisateur mis à jour avec succès";
         }
         return updated;
     }
+
+    private static Response<UserDetails> AsDetails(Response<UserAdminDetails> response) =>
+        new()
+        {
+            Status = response.Status,
+            Message = response.Message,
+            Data = response.Data,
+        };
 }
