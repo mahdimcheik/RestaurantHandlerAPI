@@ -41,6 +41,7 @@ public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
     public void Configure(EntityTypeBuilder<Ingredient> builder)
     {
         builder.HasIndex(i => i.Name).IsUnique().HasFilter("\"ArchivedAt\" IS NULL");
+        builder.ToTable(t => t.HasCheckConstraint("CK_Ingredients_PriceCents", "\"PriceCents\" >= 0"));
     }
 }
 
@@ -64,63 +65,6 @@ public class ProductIngredientConfiguration : IEntityTypeConfiguration<ProductIn
     }
 }
 
-public class IngredientSubstitutionConfiguration : IEntityTypeConfiguration<IngredientSubstitution>
-{
-    public void Configure(EntityTypeBuilder<IngredientSubstitution> builder)
-    {
-        builder.ToTable(t =>
-        {
-            t.HasCheckConstraint("CK_IngredientSubstitutions_ExtraPriceCents", "\"ExtraPriceCents\" >= 0");
-            t.HasCheckConstraint(
-                "CK_IngredientSubstitutions_DifferentIngredient",
-                "\"SubstituteIngredientId\" <> \"IngredientId\""
-            );
-        });
-
-        builder
-            .HasIndex(s => new { s.ProductId, s.IngredientId, s.SubstituteIngredientId })
-            .IsUnique();
-        builder.HasIndex(s => s.SubstituteIngredientId);
-
-        builder
-            .HasOne(s => s.ProductIngredient)
-            .WithMany(pi => pi.Substitutions)
-            .HasForeignKey(s => new { s.ProductId, s.IngredientId })
-            .OnDelete(DeleteBehavior.Cascade);
-        builder
-            .HasOne(s => s.SubstituteIngredient)
-            .WithMany()
-            .HasForeignKey(s => s.SubstituteIngredientId)
-            .OnDelete(DeleteBehavior.Restrict);
-    }
-}
-
-public class ProductSupplementConfiguration : IEntityTypeConfiguration<ProductSupplement>
-{
-    public void Configure(EntityTypeBuilder<ProductSupplement> builder)
-    {
-        builder.ToTable(t =>
-        {
-            t.HasCheckConstraint("CK_ProductSupplements_PriceCents", "\"PriceCents\" >= 0");
-            t.HasCheckConstraint("CK_ProductSupplements_MaxQuantity", "\"MaxQuantity\" >= 1");
-        });
-
-        builder.HasKey(ps => new { ps.ProductId, ps.IngredientId });
-        builder.HasIndex(ps => ps.IngredientId);
-
-        builder
-            .HasOne(ps => ps.Product)
-            .WithMany(p => p.Supplements)
-            .HasForeignKey(ps => ps.ProductId)
-            .OnDelete(DeleteBehavior.Cascade);
-        builder
-            .HasOne(ps => ps.Ingredient)
-            .WithMany()
-            .HasForeignKey(ps => ps.IngredientId)
-            .OnDelete(DeleteBehavior.Restrict);
-    }
-}
-
 public class OptionGroupConfiguration : IEntityTypeConfiguration<OptionGroup>
 {
     public void Configure(EntityTypeBuilder<OptionGroup> builder)
@@ -133,6 +77,7 @@ public class OptionGroupConfiguration : IEntityTypeConfiguration<OptionGroup>
             );
             t.HasCheckConstraint("CK_OptionGroups_FreeChoices", "\"FreeChoices\" >= 0");
             t.HasCheckConstraint("CK_OptionGroups_ExtraChoicePriceCents", "\"ExtraChoicePriceCents\" >= 0");
+            t.HasCheckConstraint("CK_OptionGroups_MaxPerChoice", "\"MaxPerChoice\" >= 1");
         });
 
         // Un libellé archivé peut être réutilisé.
@@ -171,6 +116,11 @@ public class ProductOptionGroupConfiguration : IEntityTypeConfiguration<ProductO
     {
         builder.HasKey(l => new { l.ProductId, l.OptionGroupId });
         builder.HasIndex(l => new { l.ProductId, l.Position });
+        builder.ToTable(t => t.HasCheckConstraint(
+            "CK_ProductOptionGroups_Choices",
+            "(\"MinChoices\" IS NULL AND \"MaxChoices\" IS NULL AND \"FreeChoices\" IS NULL) OR "
+                + "(\"MinChoices\" >= 0 AND \"MaxChoices\" >= 1 AND \"MinChoices\" <= \"MaxChoices\" AND \"FreeChoices\" >= 0)"
+        ));
         builder.HasIndex(l => l.OptionGroupId);
 
         builder

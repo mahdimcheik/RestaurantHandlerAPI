@@ -36,12 +36,23 @@ public class StatsApiTests(ApiFixture api) : IAsyncLifetime
         var manager = await api.ManagerAsync();
         api.Clock.SetUtcNow(Thursday12h);
 
+        // Suppléments par un groupe d'options facultatif, choix payant lié à l'ingrédient.
+        var supplements = await DataAsync(await manager.PostAsJsonAsync("/manage/option-groups", new
+        {
+            label = $"Suppléments {Guid.NewGuid():N}"[..20], minChoices = 0, maxChoices = 3, freeChoices = 0,
+            choices = new[] { new { name = "Cheddar", ingredientId = M.Cheddar, extraPriceCents = 80 } },
+        }, ApiFixture.Json));
+        var groupId = supplements.GetProperty("id").GetGuid();
+        var cheddarChoice = supplements.GetProperty("choices")[0].GetProperty("id").GetGuid();
+        await DataAsync(await manager.PutAsJsonAsync($"/manage/products/{M.Classic}/option-groups",
+            new { optionGroups = new[] { new { optionGroupId = groupId } } }, ApiFixture.Json));
+
         // Retirée : Classic + cheddar, 12 min de préparation.
         var classic = await CounterAsync(manager, new
         {
             productId = M.Classic,
             quantity = 1,
-            modifications = new[] { new { type = "Supplement", ingredientId = M.Cheddar, quantity = 1 } },
+            optionChoices = new[] { new { choiceId = cheddarChoice, quantity = 1 } },
         });
         var classicId = classic.GetProperty("id").GetGuid();
         await ActAsync(manager, classicId, "payments", new { method = "OnSiteCash" });

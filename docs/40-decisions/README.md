@@ -19,5 +19,6 @@ celles encore valides pour le socle ont été reprises et adaptées : 0001 à 00
 | [0009](ADR-0009-compte-client-obligatoire.md) | Compte client obligatoire pour commander en ligne | Accepté |
 | [0010](ADR-0010-paiement-retrait-validation-manager.md) | Paiement au retrait soumis à validation Manager | Accepté |
 | [0011](ADR-0011-francais-uniquement.md) | Français uniquement, carte sans traductions | Accepté |
+| [0012](ADR-0012-remplacements-prix-ingredient.md) | Remplacements au prix de référence de l'ingrédient, suppléments en groupe d'options | Accepté |
 
 Format : `**Statut**`, `**Date**`, puis *Contexte*, *Décision*, *Conséquences*.

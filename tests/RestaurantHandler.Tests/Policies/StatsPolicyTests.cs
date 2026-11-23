@@ -168,6 +168,25 @@ public class StatsPolicyTests
     }
 
     [Fact]
+    public void Un_choix_d_option_payant_lie_a_un_ingredient_compte_comme_supplement()
+    {
+        var line = ProductLine(Classic, "Classic", 950);
+        line.Modifications.Add(new OrderItemModification
+        {
+            Type = ModificationType.Choice, IngredientId = Cheddar, LabelSnapshot = "Suppléments : Cheddar", Quantity = 2, UnitPriceCents = 80,
+        });
+        line.Modifications.Add(new OrderItemModification
+        {
+            Type = ModificationType.Choice, IngredientId = Guid.NewGuid(), LabelSnapshot = "Sauces : Blanche", Quantity = 1, UnitPriceCents = 0,
+        });
+
+        var report = StatsPolicy.Products(Day, [Counted(Paris(12), lines: [line])]);
+
+        var cheddar = Assert.Single(report.Supplements);
+        Assert.Equal((Cheddar, 2, 160), (cheddar.IngredientId, cheddar.Quantity, cheddar.RevenueCents));
+    }
+
+    [Fact]
     public void Le_nom_affiche_est_le_dernier_snapshot()
     {
         var orders = new[]

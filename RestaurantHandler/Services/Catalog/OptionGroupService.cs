@@ -108,8 +108,14 @@ public class OptionGroupService(MainContext db, CatalogImageService images, Cata
         return await GetAsync(id);
     }
 
-    /// <summary>Détail d'un groupe ; <paramref name="position"/> est sa place dans un produit.</summary>
-    public static OptionGroupDetails ToDetails(OptionGroup g, CatalogImageService images, int position = 0, int productCount = 0) =>
+    /// <summary>Détail d'un groupe ; <paramref name="position"/> et <paramref name="productRules"/> le situent dans un produit.</summary>
+    public static OptionGroupDetails ToDetails(
+        OptionGroup g,
+        CatalogImageService images,
+        int position = 0,
+        int productCount = 0,
+        OptionGroupRules? productRules = null
+    ) =>
         new()
         {
             Id = g.Id,
@@ -120,6 +126,8 @@ public class OptionGroupService(MainContext db, CatalogImageService images, Cata
             MaxChoices = g.MaxChoices,
             FreeChoices = g.FreeChoices,
             ExtraChoicePriceCents = g.ExtraChoicePriceCents,
+            MaxPerChoice = g.MaxPerChoice,
+            ProductRules = productRules,
             IsArchived = g.ArchivedAt != null,
             ProductCount = productCount,
             Choices = g.Choices
@@ -155,6 +163,18 @@ public class OptionGroupService(MainContext db, CatalogImageService images, Cata
         group.MaxChoices = dto.MaxChoices;
         group.FreeChoices = dto.FreeChoices ?? dto.MaxChoices;
         group.ExtraChoicePriceCents = dto.ExtraChoicePriceCents;
+        group.MaxPerChoice = dto.MaxPerChoice;
+
+        // Les produits qui redéfinissent le minimum doivent pouvoir encore l'atteindre.
+        var capacity = dto.Choices.Count * dto.MaxPerChoice;
+        var blocked = await db.ProductOptionGroups
+            .Where(l => l.OptionGroupId == group.Id && l.MinChoices > capacity && l.Product!.ArchivedAt == null)
+            .OrderBy(l => l.Product!.Name)
+            .Select(l => l.Product!.Name)
+            .ToListAsync();
+        if (blocked.Count > 0)
+            throw new BusinessRuleException(
+                $"« {label} » propose moins de choix que le minimum demandé par : {string.Join(", ", blocked.Take(5))}.");
 
         var now = DateTimeOffset.UtcNow;
         var choices = group.Choices.Where(c => c.ArchivedAt == null).ToDictionary(c => c.Id);

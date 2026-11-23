@@ -160,7 +160,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
             var burgers = new Category { Name = "Burgers" };
             var steak = new Ingredient { Name = "Steak" };
             var tomate = new Ingredient { Name = "Tomate" };
-            var cheddar = new Ingredient { Name = "Cheddar" };
+            var cheddar = new Ingredient { Name = "Cheddar", PriceCents = 160 };
             var classic = new Product { Category = burgers, Name = "Classic", Kind = ProductKind.Dish, PriceCents = 950, VatRate = 10 };
             var cola = new Product { Category = burgers, Name = "Cola", Kind = ProductKind.Drink, PriceCents = 250, VatRate = 5.5m };
             db.AddRange(burgers, steak, tomate, cheddar, classic, cola);
@@ -169,7 +169,6 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
             db.ProductIngredients.AddRange(
                 new ProductIngredient { ProductId = classic.Id, IngredientId = steak.Id, IsRemovable = false },
                 new ProductIngredient { ProductId = classic.Id, IngredientId = tomate.Id, IsRemovable = true });
-            db.ProductSupplements.Add(new ProductSupplement { ProductId = classic.Id, IngredientId = cheddar.Id, PriceCents = 80, MaxQuantity = 3 });
 
             var menu = new Menu { Name = "Menu Classic", PriceCents = 1290, VatRate = 10 };
             var plat = new MenuSlot { Menu = menu, Label = "Plat", Position = 0, MinChoices = 1, MaxChoices = 1 };

@@ -63,7 +63,7 @@ plus commandé.
 **Critères d'acceptation**
 - Un ingrédient indisponible rend indisponible tout produit dont il est un ingrédient **non
   retirable**.
-- Un ingrédient indisponible disparaît des suppléments et des substitutions proposés.
+- Un ingrédient indisponible disparaît des remplacements proposés et grise les choix d'options qui lui sont liés (suppléments compris).
 - Un ingrédient indisponible **retirable** laisse le produit commandable : le retrait est
   imposé et affiché (« sans tomate — rupture ») — tranché le 2026-11-22 (question 10).
 - Un produit peut être marqué indisponible directement (ex. plus de pain spécial).

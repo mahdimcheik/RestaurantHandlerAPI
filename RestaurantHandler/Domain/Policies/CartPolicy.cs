@@ -4,11 +4,14 @@ namespace RestaurantHandler.Domain.Policies;
 
 public sealed record CartModification(ModificationType Type, Guid IngredientId, Guid? SubstituteIngredientId = null, int Quantity = 1);
 
+/// <summary>Choix dans un groupe d'options, pris <paramref name="Quantity"/> fois (double jambon = 2).</summary>
+public sealed record CartOptionChoice(Guid ChoiceId, int Quantity = 1);
+
 public sealed record CartMenuChoice(
     Guid SlotId,
     Guid ProductId,
     IReadOnlyList<CartModification> Modifications,
-    IReadOnlyList<Guid>? OptionChoiceIds = null
+    IReadOnlyList<CartOptionChoice>? OptionChoices = null
 );
 
 /// <summary>Ce que le client veut ; jamais un prix (R2).</summary>
@@ -18,7 +21,7 @@ public sealed record CartLine(
     int Quantity,
     IReadOnlyList<CartModification> Modifications,
     IReadOnlyList<CartMenuChoice> Choices,
-    IReadOnlyList<Guid>? OptionChoiceIds = null
+    IReadOnlyList<CartOptionChoice>? OptionChoices = null
 );
 
 /// <summary>Écart sur une ligne du panier (index dans la requête) ; la commande est refusée.</summary>
@@ -32,8 +35,8 @@ public sealed record PricedCart(IReadOnlyList<OrderItem> Items, int TotalCents, 
 /// <summary>
 /// Construit les lignes de commande à partir du panier et de la carte en vigueur : disponibilité
 /// (R6), personnalisations (R4), menus (R5), snapshots (R3) et prix (R2). La carte attendue est
-/// le graphe complet (composition, substitutions, suppléments, groupes d'options, catégorie ; menus avec emplacements
-/// non archivés et options reliées à leurs produits).
+/// le graphe complet (composition, suppléments, groupes d'options, catégorie ; menus avec emplacements
+/// non archivés et options reliées à leurs produits), plus les ingrédients demandés en remplacement.
 /// </summary>
 public static class CartPolicy
 {
@@ -43,9 +46,11 @@ public static class CartPolicy
     public static PricedCart Price(
         IReadOnlyList<CartLine> lines,
         IReadOnlyDictionary<Guid, Product> products,
-        IReadOnlyDictionary<Guid, Menu> menus
+        IReadOnlyDictionary<Guid, Menu> menus,
+        IReadOnlyDictionary<Guid, Ingredient> replacements
     )
     {
+        var catalog = new CartCatalog(products, menus, replacements);
         var issues = new List<CartIssue>();
         var items = new List<OrderItem>();
 
@@ -67,8 +72,8 @@ public static class CartPolicy
 
             OrderItem? item = (line.ProductId, line.MenuId) switch
             {
-                ({ } productId, null) => BuildProduct(productId, line.Modifications, line.OptionChoiceIds ?? [], products, report),
-                (null, { } menuId) => BuildMenu(menuId, line, products, menus, report),
+                ({ } productId, null) => BuildProduct(productId, line.Modifications, line.OptionChoices ?? [], catalog, report),
+                (null, { } menuId) => BuildMenu(menuId, line, catalog, report),
                 _ => Fail(report, "Une ligne désigne soit un produit, soit un menu."),
             };
 
@@ -92,14 +97,13 @@ public static class CartPolicy
     private static OrderItem? BuildMenu(
         Guid menuId,
         CartLine line,
-        IReadOnlyDictionary<Guid, Product> products,
-        IReadOnlyDictionary<Guid, Menu> menus,
+        CartCatalog catalog,
         Action<string> report
     )
     {
-        if (line.Modifications.Count > 0 || line.OptionChoiceIds is { Count: > 0 })
+        if (line.Modifications.Count > 0 || line.OptionChoices is { Count: > 0 })
             return Fail(report, "Un menu se personnalise produit par produit.");
-        if (!menus.TryGetValue(menuId, out var menu) || !AvailabilityPolicy.IsMenuListed(menu))
+        if (!catalog.Menus.TryGetValue(menuId, out var menu) || !AvailabilityPolicy.IsMenuListed(menu))
             return Fail(report, "Ce menu n'est plus proposé.");
 
         var item = new OrderItem
@@ -140,8 +144,8 @@ public static class CartPolicy
                 var component = BuildProduct(
                     choice.ProductId,
                     choice.Modifications,
-                    choice.OptionChoiceIds ?? [],
-                    products,
+                    choice.OptionChoices ?? [],
+                    catalog,
                     m => report($"{menu.Name} : {m}")
                 );
                 if (component is null)
@@ -165,12 +169,12 @@ public static class CartPolicy
     private static OrderItem? BuildProduct(
         Guid productId,
         IReadOnlyList<CartModification> modifications,
-        IReadOnlyList<Guid> optionChoiceIds,
-        IReadOnlyDictionary<Guid, Product> products,
+        IReadOnlyList<CartOptionChoice> optionChoices,
+        CartCatalog catalog,
         Action<string> report
     )
     {
-        if (!products.TryGetValue(productId, out var product))
+        if (!catalog.Products.TryGetValue(productId, out var product))
             return Fail(report, "Produit introuvable.");
 
         var availability = AvailabilityPolicy.ForProduct(product);
@@ -187,7 +191,6 @@ public static class CartPolicy
 
         var ok = true;
         var touched = new HashSet<Guid>();
-        var supplements = new HashSet<Guid>();
 
         foreach (var mod in modifications)
         {
@@ -223,51 +226,33 @@ public static class CartPolicy
 
                 case ModificationType.Replace:
                 {
-                    var substitution = product.Ingredients
-                        .FirstOrDefault(pi => pi.IngredientId == mod.IngredientId)?
-                        .Substitutions.FirstOrDefault(s => s.SubstituteIngredientId == mod.SubstituteIngredientId);
-                    if (substitution is null)
+                    var component = product.Ingredients.FirstOrDefault(pi => pi.IngredientId == mod.IngredientId);
+                    var substitute = mod.SubstituteIngredientId is { } substituteId
+                        ? catalog.Replacements.GetValueOrDefault(substituteId)
+                        : null;
+                    if (component is null || !component.IsRemovable)
+                        error = "cet ingrédient ne peut pas être remplacé.";
+                    else if (substitute is not { ArchivedAt: null, IsOfferedAsReplacement: true }
+                        || substitute.Id == mod.IngredientId)
                         error = "ce remplacement n'est pas proposé.";
-                    else if (!AvailabilityPolicy.IsSubstitutionOffered(substitution))
-                        error = $"{substitution.SubstituteIngredient?.Name} est en rupture.";
+                    else if (!AvailabilityPolicy.IsIngredientAvailable(substitute))
+                        error = $"{substitute.Name} est en rupture.";
                     else
-                    {
-                        var original = product.Ingredients.First(pi => pi.IngredientId == mod.IngredientId).Ingredient?.Name;
                         built = new OrderItemModification
                         {
                             Type = ModificationType.Replace,
                             IngredientId = mod.IngredientId,
-                            SubstituteIngredientId = substitution.SubstituteIngredientId,
-                            LabelSnapshot = $"{original} → {substitution.SubstituteIngredient?.Name}",
+                            SubstituteIngredientId = substitute.Id,
+                            LabelSnapshot = $"{component.Ingredient?.Name} → {substitute.Name}",
                             Quantity = 1,
-                            UnitPriceCents = substitution.ExtraPriceCents,
+                            UnitPriceCents = ReplacementPolicy.ExtraPriceCents(component.Ingredient, substitute),
                         };
-                    }
                     break;
                 }
 
                 case ModificationType.Supplement:
-                {
-                    var supplement = product.Supplements.FirstOrDefault(s => s.IngredientId == mod.IngredientId);
-                    if (!supplements.Add(mod.IngredientId))
-                        error = "un supplément ne figure qu'une fois (utilisez la quantité).";
-                    else if (supplement is null)
-                        error = "ce supplément n'est pas proposé.";
-                    else if (!AvailabilityPolicy.IsSupplementOffered(supplement))
-                        error = $"le supplément {supplement.Ingredient?.Name} est en rupture.";
-                    else if (mod.Quantity < 1 || mod.Quantity > supplement.MaxQuantity)
-                        error = $"supplément {supplement.Ingredient?.Name} : quantité entre 1 et {supplement.MaxQuantity}.";
-                    else
-                        built = new OrderItemModification
-                        {
-                            Type = ModificationType.Supplement,
-                            IngredientId = mod.IngredientId,
-                            LabelSnapshot = $"+ {supplement.Ingredient?.Name}",
-                            Quantity = mod.Quantity,
-                            UnitPriceCents = supplement.PriceCents,
-                        };
+                    error = "un supplément passe par les groupes d'options du produit.";
                     break;
-                }
             }
 
             if (error is not null)
@@ -289,7 +274,7 @@ public static class CartPolicy
             ok = false;
         }
 
-        var choices = OptionChoicePolicy.Build(product, optionChoiceIds, report);
+        var choices = OptionChoicePolicy.Build(product, optionChoices, report);
         if (choices is null)
             ok = false;
         else
@@ -302,6 +287,24 @@ public static class CartPolicy
 
         return ok ? item : null;
     }
+}
+
+/// <summary>Carte chargée pour un panier : produits, menus et ingrédients demandés en remplacement.</summary>
+internal sealed record CartCatalog(
+    IReadOnlyDictionary<Guid, Product> Products,
+    IReadOnlyDictionary<Guid, Menu> Menus,
+    IReadOnlyDictionary<Guid, Ingredient> Replacements
+);
+
+/// <summary>
+/// Remplacement d'un ingrédient retirable (R4) : par n'importe quel ingrédient disponible et
+/// proposé en remplacement, au
+/// surcoût max(0, prix du remplaçant − prix du remplacé). Ne fait jamais baisser le prix.
+/// </summary>
+public static class ReplacementPolicy
+{
+    public static int ExtraPriceCents(Ingredient? original, Ingredient substitute) =>
+        Math.Max(0, substitute.PriceCents - (original?.PriceCents ?? 0));
 }
 
 /// <summary>Montants d'une ligne à partir des snapshots (R2) : seule source de calcul, à la validation comme à la relecture.</summary>

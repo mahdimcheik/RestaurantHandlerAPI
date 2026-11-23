@@ -22,8 +22,6 @@ public class CartService(MainContext db)
             .Where(p => productIds.Contains(p.Id))
             .Include(p => p.Category)
             .Include(p => p.Ingredients).ThenInclude(pi => pi.Ingredient)
-            .Include(p => p.Ingredients).ThenInclude(pi => pi.Substitutions).ThenInclude(s => s.SubstituteIngredient)
-            .Include(p => p.Supplements).ThenInclude(s => s.Ingredient)
             .Include(p => p.OptionGroups).ThenInclude(l => l.OptionGroup)
             .ThenInclude(g => g!.Choices.Where(c => c.ArchivedAt == null)).ThenInclude(c => c.Ingredient)
             .AsSplitQuery()
@@ -34,7 +32,16 @@ public class CartService(MainContext db)
             .ThenInclude(s => s.Options)
             .ToDictionaryAsync(m => m.Id);
 
-        return CartPolicy.Price(cartLines, products, menus);
+        var substituteIds = cartLines
+            .SelectMany(l => l.Modifications.Concat(l.Choices.SelectMany(c => c.Modifications)))
+            .Where(m => m.Type == ModificationType.Replace && m.SubstituteIngredientId is not null)
+            .Select(m => m.SubstituteIngredientId!.Value)
+            .ToHashSet();
+        var replacements = await db.Ingredients
+            .Where(i => substituteIds.Contains(i.Id))
+            .ToDictionaryAsync(i => i.Id);
+
+        return CartPolicy.Price(cartLines, products, menus, replacements);
     }
 
     /// <summary>Prix et contrôles sans rien créer : le panier peut s'afficher à jour avant validation.</summary>

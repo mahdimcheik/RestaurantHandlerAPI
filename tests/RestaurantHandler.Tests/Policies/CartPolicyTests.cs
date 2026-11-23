@@ -7,7 +7,7 @@ public class CartPolicyTests
 {
     private readonly CatalogFixture _c = new();
 
-    private PricedCart Price(params CartLine[] lines) => CartPolicy.Price(lines, _c.Products, _c.Menus);
+    private PricedCart Price(params CartLine[] lines) => CartPolicy.Price(lines, _c.Products, _c.Menus, _c.Replacements);
 
     private static CartLine Product(Guid id, int qty = 1, params CartModification[] mods) => new(id, null, qty, mods, []);
 
@@ -27,15 +27,32 @@ public class CartPolicyTests
     }
 
     [Fact]
-    public void Personnalisations_R2_retrait_gratuit_remplacement_et_supplement_payants()
+    public void Remplacement_au_meme_prix_gratuit()
     {
-        var cart = Price(Product(_c.Classic.Id, 2,
-            new CartModification(ModificationType.Replace, _c.Tomate.Id, _c.Salade.Id),
-            new CartModification(ModificationType.Supplement, _c.Cheddar.Id, Quantity: 2)));
+        var cart = Price(Product(_c.Classic.Id, 2, new CartModification(ModificationType.Replace, _c.Tomate.Id, _c.Salade.Id)));
 
-        // (950 + 30 + 2 × 80) × 2
-        Assert.Equal(2280, cart.TotalCents);
-        Assert.Equal(["Tomate → Salade", "+ Cheddar"], cart.Items[0].Modifications.Select(m => m.LabelSnapshot));
+        Assert.Equal(1900, cart.TotalCents);
+        Assert.Equal("Tomate → Salade", cart.Items[0].Modifications.Single().LabelSnapshot);
+    }
+
+    [Fact]
+    public void Remplacement_par_plus_cher_facture_la_difference()
+    {
+        var cart = Price(Product(_c.Classic.Id, 2, new CartModification(ModificationType.Replace, _c.Tomate.Id, _c.Saumon.Id)));
+
+        // (950 + (330 − 30)) × 2
+        Assert.Equal(2500, cart.TotalCents);
+        Assert.Equal(300, cart.Items[0].Modifications.Single().UnitPriceCents);
+    }
+
+    [Fact]
+    public void Remplacement_par_moins_cher_ne_baisse_pas_le_prix()
+    {
+        _c.Salade.PriceCents = 10;
+
+        var cart = Price(Product(_c.Classic.Id, 1, new CartModification(ModificationType.Replace, _c.Tomate.Id, _c.Salade.Id)));
+
+        Assert.Equal(950, cart.TotalCents);
     }
 
     [Fact]
@@ -50,18 +67,25 @@ public class CartPolicyTests
     [Theory]
     [InlineData("retrait-non-retirable")]
     [InlineData("retrait-et-remplacement")]
+    [InlineData("remplacement-non-retirable")]
+    [InlineData("remplacement-par-lui-meme")]
     [InlineData("remplacement-inconnu")]
-    [InlineData("supplement-au-dela-du-max")]
-    [InlineData("supplement-inconnu")]
+    [InlineData("remplacement-non-propose")]
+    [InlineData("remplacement-archive")]
+    [InlineData("supplement-hors-groupe")]
     public void Personnalisation_invalide_R4_refusee(string cas)
     {
+        _c.Cheddar.ArchivedAt = cas == "remplacement-archive" ? DateTimeOffset.UtcNow : null;
         CartModification[] mods = cas switch
         {
             "retrait-non-retirable" => [new(ModificationType.Remove, _c.Steak.Id)],
             "retrait-et-remplacement" => [new(ModificationType.Remove, _c.Tomate.Id), new(ModificationType.Replace, _c.Tomate.Id, _c.Salade.Id)],
-            "remplacement-inconnu" => [new(ModificationType.Replace, _c.Tomate.Id, _c.Cheddar.Id)],
-            "supplement-au-dela-du-max" => [new(ModificationType.Supplement, _c.Cheddar.Id, Quantity: 4)],
-            _ => [new(ModificationType.Supplement, _c.Salade.Id)],
+            "remplacement-non-retirable" => [new(ModificationType.Replace, _c.Steak.Id, _c.Saumon.Id)],
+            "remplacement-par-lui-meme" => [new(ModificationType.Replace, _c.Tomate.Id, _c.Tomate.Id)],
+            "remplacement-inconnu" => [new(ModificationType.Replace, _c.Tomate.Id, Guid.NewGuid())],
+            "remplacement-non-propose" => [new(ModificationType.Replace, _c.Tomate.Id, _c.Pate.Id)],
+            "remplacement-archive" => [new(ModificationType.Replace, _c.Tomate.Id, _c.Cheddar.Id)],
+            _ => [new(ModificationType.Supplement, _c.Cheddar.Id)],
         };
 
         var cart = Price(Product(_c.Classic.Id, 1, mods));
@@ -93,25 +117,25 @@ public class CartPolicyTests
     }
 
     [Fact]
-    public void Supplement_ou_remplacant_en_rupture_refuse()
+    public void Remplacant_en_rupture_refuse()
     {
-        _c.Cheddar.IsAvailable = false;
         _c.Salade.IsAvailable = false;
 
-        Assert.False(Price(Product(_c.Classic.Id, 1, new CartModification(ModificationType.Supplement, _c.Cheddar.Id))).IsValid);
-        Assert.False(Price(Product(_c.Classic.Id, 1, new CartModification(ModificationType.Replace, _c.Tomate.Id, _c.Salade.Id))).IsValid);
+        var cart = Price(Product(_c.Classic.Id, 1, new CartModification(ModificationType.Replace, _c.Tomate.Id, _c.Salade.Id)));
+
+        Assert.Contains(cart.Issues, i => i.Message == "Classic : Salade est en rupture.");
     }
 
     [Fact]
     public void Menu_R5_surcout_option_et_personnalisation_du_composant()
     {
         var cart = Price(MenuLine(2,
-            new CartMenuChoice(_c.PlatSlot.Id, _c.Classic.Id, [new(ModificationType.Supplement, _c.Cheddar.Id)]),
+            new CartMenuChoice(_c.PlatSlot.Id, _c.Classic.Id, [new(ModificationType.Replace, _c.Tomate.Id, _c.Cheddar.Id)]),
             new CartMenuChoice(_c.BoissonSlot.Id, _c.GrandCola.Id, [])));
 
         Assert.True(cart.IsValid);
-        // (1290 + 0 + 80 + 100) × 2
-        Assert.Equal(2940, cart.TotalCents);
+        // (1290 + (80 − 30) + 100) × 2
+        Assert.Equal(2880, cart.TotalCents);
         var menu = cart.Items.Single();
         Assert.Equal(2, menu.Children.Count);
         Assert.All(menu.Children, c => Assert.Equal(10m, c.VatRate));

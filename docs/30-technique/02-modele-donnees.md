@@ -27,15 +27,13 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 |---|---|---|
 | `Category` | Rubrique de carte | nom unique, `Position`, `IsActive` |
 | `Product` | Plat / boisson / dessert | `Kind`, `PriceCents`, `VatRate`, `Position`, `IsActive`, `IsAvailable` (rupture) |
-| `Ingredient` | Ingrédient | nom unique, `IsAvailable` (rupture) |
-| `ProductIngredient` | Composition | PK (produit, ingrédient), `IsRemovable` |
-| `IngredientSubstitution` | Remplacement autorisé | FK composite vers la composition, `ExtraPriceCents` |
-| `ProductSupplement` | Supplément payant | PK (produit, ingrédient), `PriceCents`, `MaxQuantity` |
-| `OptionGroup` | Groupe d'options partagé entre produits (pain, sauces, taille) | `Label` unique (non archivé), `ImageUrl`, `Min/MaxChoices`, `FreeChoices`, `ExtraChoicePriceCents` ; archivé, refusé tant qu'un produit le propose |
+| `Ingredient` | Ingrédient | nom unique, `IsAvailable` (rupture), `PriceCents` (référence pour les remplacements, ≥ 0), `IsOfferedAsReplacement` |
+| `ProductIngredient` | Composition | PK (produit, ingrédient), `IsRemovable` (retirable et remplaçable) |
+| `OptionGroup` | Groupe d'options partagé entre produits (pain, sauces, taille) | `Label` unique (non archivé), `ImageUrl`, `Min/MaxChoices` et `FreeChoices` (en unités), `ExtraChoicePriceCents`, `MaxPerChoice` (≥ 1, fois qu'un même choix peut être pris) ; archivé, refusé tant qu'un produit le propose |
 | `OptionChoice` | Choix d'un groupe | nom unique par groupe (non archivé), `ImageUrl`, `IngredientId?` (rupture), `ExtraPriceCents`, `Position` ; archivé |
 | `Menu` | Formule | `PriceCents`, `VatRate`, `Position`, `ImageUrl`, `IsActive` |
 | `MenuSlot` | Emplacement | `Label`, position unique par menu, `Min/MaxChoices` |
-| `ProductOptionGroup` | Groupe proposé sur un produit | PK (produit, groupe), `Position` (ordre dans le produit) ; supprimé avec le produit, jamais avec le groupe |
+| `ProductOptionGroup` | Groupe proposé sur un produit | PK (produit, groupe), `Position` (ordre dans le produit), `Min/Max/FreeChoices?` propres au produit (tous nuls = ceux du groupe) ; supprimé avec le produit, jamais avec le groupe |
 | `MenuSlotOption` | Produit proposé | PK (emplacement, produit), `ExtraPriceCents` |
 
 ## Restaurant

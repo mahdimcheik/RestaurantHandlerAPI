@@ -80,12 +80,13 @@ public class OptionGroupApiTests(ApiFixture api) : IAsyncLifetime
 
     private static async Task<JsonElement> LinkAsync(HttpClient manager, Guid productId, params Guid[] groupIds) =>
         await OkDataAsync(await manager.PutAsJsonAsync(
-            $"/manage/products/{productId}/option-groups", new { optionGroupIds = groupIds }, ApiFixture.Json));
+            $"/manage/products/{productId}/option-groups",
+            new { optionGroups = groupIds.Select(optionGroupId => new { optionGroupId }) }, ApiFixture.Json));
 
     private static object OrderWith(Guid productId, params Guid[] choiceIds) => new
     {
         idempotencyKey = Guid.NewGuid().ToString("N"),
-        lines = new[] { new { productId, quantity = 1, optionChoiceIds = choiceIds } },
+        lines = new[] { new { productId, quantity = 1, optionChoices = choiceIds.Select(choiceId => new { choiceId }) } },
         pickupMode = "Asap",
         paymentChoice = "OnSite",
     };
@@ -230,7 +231,7 @@ public class OptionGroupApiTests(ApiFixture api) : IAsyncLifetime
         await LinkAsync(manager, kebab.ProductId, saucesId);
         var archived = await manager.DeleteAsync($"/manage/option-groups/{kebab.PainGroup}");
         var relink = await manager.PutAsJsonAsync(
-            $"/manage/products/{kebab.ProductId}/option-groups", new { optionGroupIds = new[] { kebab.PainGroup } }, ApiFixture.Json);
+            $"/manage/products/{kebab.ProductId}/option-groups", new { optionGroups = new[] { new { optionGroupId = kebab.PainGroup } } }, ApiFixture.Json);
 
         Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
         Assert.True(archived.IsSuccessStatusCode, await archived.Content.ReadAsStringAsync());
@@ -251,5 +252,67 @@ public class OptionGroupApiTests(ApiFixture api) : IAsyncLifetime
         }, ApiFixture.Json);
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Pizzas_3_et_5_partagent_les_ingredients_et_acceptent_un_double()
+    {
+        var manager = await api.ManagerAsync();
+        var suffix = Guid.NewGuid().ToString("N")[..6];
+        var group = await OkDataAsync(await manager.PostAsJsonAsync("/manage/option-groups", new
+        {
+            label = $"Ingrédients {suffix}", minChoices = 3, maxChoices = 3, freeChoices = 3, maxPerChoice = 2,
+            choices = new[] { new { name = "Jambon" }, new { name = "Œuf" }, new { name = "Olives" } },
+        }, ApiFixture.Json));
+        var groupId = group.GetProperty("id").GetGuid();
+        Guid Choice(int index) => group.GetProperty("choices")[index].GetProperty("id").GetGuid();
+        var (jambon, oeuf, olives) = (Choice(0), Choice(1), Choice(2));
+
+        var pizza3 = await CreateProductAsync(manager, $"Pizza 3 {suffix}");
+        var pizza5 = await CreateProductAsync(manager, $"Pizza 5 {suffix}");
+        await LinkAsync(manager, pizza3, groupId);
+        var details = await OkDataAsync(await manager.PutAsJsonAsync($"/manage/products/{pizza5}/option-groups", new
+        {
+            optionGroups = new[] { new { optionGroupId = groupId, rules = new { minChoices = 5, maxChoices = 5, freeChoices = 5 } } },
+        }, ApiFixture.Json));
+        Assert.Equal(5, details.GetProperty("optionGroups")[0].GetProperty("productRules").GetProperty("minChoices").GetInt32());
+
+        var (client, _) = await api.NewClientAsync();
+        var card = await OkDataAsync(await client.GetAsync("/menu"));
+        var products = card.GetProperty("categories").EnumerateArray().SelectMany(c => c.GetProperty("products").EnumerateArray()).ToList();
+        int Min(Guid id) => products.Single(p => p.GetProperty("id").GetGuid() == id).GetProperty("optionGroups")[0].GetProperty("minChoices").GetInt32();
+        Assert.Equal((3, 5), (Min(pizza3), Min(pizza5)));
+
+        object Order(Guid productId, params (Guid ChoiceId, int Quantity)[] choices) => new
+        {
+            idempotencyKey = Guid.NewGuid().ToString("N"),
+            lines = new[] { new { productId, quantity = 1, optionChoices = choices.Select(c => new { choiceId = c.ChoiceId, quantity = c.Quantity }) } },
+            pickupMode = "Asap",
+            paymentChoice = "OnSite",
+        };
+
+        var ok = await client.PostAsJsonAsync("/orders", Order(pizza3, (jambon, 2), (oeuf, 1)), ApiFixture.Json);
+        var order = await OkDataAsync(ok);
+        var mods = order.GetProperty("items")[0].GetProperty("modifications").EnumerateArray()
+            .Select(m => (m.GetProperty("label").GetString(), m.GetProperty("quantity").GetInt32()));
+        Assert.Equal([($"Ingrédients {suffix} : Jambon", 2), ($"Ingrédients {suffix} : Œuf", 1)], mods);
+
+        // Une seule commande au retrait en cours par client : les autres paniers passent par le devis.
+        async Task<string> QuoteAsync(Guid productId, params (Guid ChoiceId, int Quantity)[] choices) =>
+            await (await client.PostAsJsonAsync("/orders/quote", Order(productId, choices), ApiFixture.Json)).Content.ReadAsStringAsync();
+
+        Assert.Contains("Jambon entre 1 et 2 fois", await QuoteAsync(pizza3, (jambon, 3)));
+        Assert.Contains("choisissez 3", await QuoteAsync(pizza3, (jambon, 2), (oeuf, 2), (olives, 1)));
+        var fiveOnPizza5 = await client.PostAsJsonAsync("/orders/quote", Order(pizza5, (jambon, 2), (oeuf, 2), (olives, 1)), ApiFixture.Json);
+        Assert.Equal(800, (await OkDataAsync(fiveOnPizza5)).GetProperty("totalCents").GetInt32());
+
+        // Retirer un choix rendrait le minimum de la pizza 5 inatteignable (2 choix × 2 < 5).
+        var shrink = await manager.PutAsJsonAsync($"/manage/option-groups/{groupId}", new
+        {
+            label = $"Ingrédients {suffix}", minChoices = 3, maxChoices = 3, freeChoices = 3, maxPerChoice = 2,
+            choices = new[] { new { id = jambon, name = "Jambon" }, new { id = oeuf, name = "Œuf" } },
+        }, ApiFixture.Json);
+        Assert.False(shrink.IsSuccessStatusCode);
+        Assert.Contains("Pizza 5", await shrink.Content.ReadAsStringAsync());
     }
 }

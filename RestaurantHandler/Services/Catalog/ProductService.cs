@@ -116,15 +116,11 @@ public class ProductService(MainContext db, CatalogImageService images, CatalogC
         var product = await WithComposition(db.Products).FirstOrDefaultAsync(p => p.Id == id && p.ArchivedAt == null)
             ?? throw new ResourceNotFoundException("Produit introuvable.");
 
-        var referenced = dto.Ingredients.Select(i => i.IngredientId)
-            .Concat(dto.Ingredients.SelectMany(i => i.Substitutions).Select(s => s.SubstituteIngredientId))
-            .Concat(dto.Supplements.Select(s => s.IngredientId))
-            .ToHashSet();
+        var referenced = dto.Ingredients.Select(i => i.IngredientId).ToHashSet();
         var known = await db.Ingredients.Where(i => referenced.Contains(i.Id) && i.ArchivedAt == null).CountAsync();
         if (known != referenced.Count)
             throw new BusinessRuleException("Un ingrédient de la composition est introuvable ou archivé.");
 
-        // Composition
         var wanted = dto.Ingredients.ToDictionary(i => i.IngredientId);
         foreach (var removed in product.Ingredients.Where(pi => !wanted.ContainsKey(pi.IngredientId)).ToList())
             db.ProductIngredients.Remove(removed);
@@ -138,45 +134,6 @@ public class ProductService(MainContext db, CatalogImageService images, CatalogC
                 product.Ingredients.Add(component);
             }
             component.IsRemovable = item.IsRemovable;
-
-            var wantedSubs = item.Substitutions.ToDictionary(s => s.SubstituteIngredientId);
-            foreach (var removed in component.Substitutions.Where(s => !wantedSubs.ContainsKey(s.SubstituteIngredientId)).ToList())
-                db.IngredientSubstitutions.Remove(removed);
-            foreach (var sub in item.Substitutions)
-            {
-                var existing = component.Substitutions.FirstOrDefault(s => s.SubstituteIngredientId == sub.SubstituteIngredientId);
-                if (existing is null)
-                {
-                    component.Substitutions.Add(new IngredientSubstitution
-                    {
-                        ProductId = id,
-                        IngredientId = item.IngredientId,
-                        SubstituteIngredientId = sub.SubstituteIngredientId,
-                        ExtraPriceCents = sub.ExtraPriceCents,
-                    });
-                }
-                else
-                {
-                    existing.ExtraPriceCents = sub.ExtraPriceCents;
-                    existing.UpdatedAt = DateTimeOffset.UtcNow;
-                }
-            }
-        }
-
-        // Suppléments
-        var wantedSupplements = dto.Supplements.ToDictionary(s => s.IngredientId);
-        foreach (var removed in product.Supplements.Where(s => !wantedSupplements.ContainsKey(s.IngredientId)).ToList())
-            db.ProductSupplements.Remove(removed);
-        foreach (var item in dto.Supplements)
-        {
-            var supplement = product.Supplements.FirstOrDefault(s => s.IngredientId == item.IngredientId);
-            if (supplement is null)
-            {
-                supplement = new ProductSupplement { ProductId = id, IngredientId = item.IngredientId };
-                product.Supplements.Add(supplement);
-            }
-            supplement.PriceCents = item.PriceCents;
-            supplement.MaxQuantity = item.MaxQuantity;
         }
 
         product.UpdatedAt = DateTimeOffset.UtcNow;
@@ -196,20 +153,36 @@ public class ProductService(MainContext db, CatalogImageService images, CatalogC
             .FirstOrDefaultAsync(p => p.Id == id && p.ArchivedAt == null)
             ?? throw new ResourceNotFoundException("Produit introuvable.");
 
-        var wanted = dto.OptionGroupIds;
-        var known = await db.OptionGroups.CountAsync(g => wanted.Contains(g.Id) && g.ArchivedAt == null);
-        if (known != wanted.Count)
+        var wanted = dto.OptionGroups.Select(g => g.OptionGroupId).ToList();
+        var groups = await db.OptionGroups
+            .Where(g => wanted.Contains(g.Id) && g.ArchivedAt == null)
+            .Select(g => new { g.Id, g.Label, Capacity = g.Choices.Count(c => c.ArchivedAt == null) * g.MaxPerChoice })
+            .ToDictionaryAsync(g => g.Id);
+        if (groups.Count != wanted.Count)
             throw new BusinessRuleException("Un groupe d'options est introuvable ou archivé.");
+        foreach (var write in dto.OptionGroups.Where(g => g.Rules is not null))
+        {
+            var group = groups[write.OptionGroupId];
+            if (write.Rules!.MinChoices > group.Capacity)
+                throw new BusinessRuleException($"« {group.Label} » propose moins de choix que le minimum.");
+        }
 
         var links = product.OptionGroups.ToDictionary(l => l.OptionGroupId);
         foreach (var removed in links.Values.Where(l => !wanted.Contains(l.OptionGroupId)))
             db.ProductOptionGroups.Remove(removed);
-        for (var position = 0; position < wanted.Count; position++)
+        for (var position = 0; position < dto.OptionGroups.Count; position++)
         {
-            if (links.TryGetValue(wanted[position], out var link))
-                link.Position = position;
-            else
-                product.OptionGroups.Add(new ProductOptionGroup { ProductId = id, OptionGroupId = wanted[position], Position = position });
+            var write = dto.OptionGroups[position];
+            if (!links.TryGetValue(write.OptionGroupId, out var link))
+            {
+                link = new ProductOptionGroup { ProductId = id, OptionGroupId = write.OptionGroupId };
+                product.OptionGroups.Add(link);
+            }
+
+            link.Position = position;
+            link.MinChoices = write.Rules?.MinChoices;
+            link.MaxChoices = write.Rules?.MaxChoices;
+            link.FreeChoices = write.Rules?.FreeChoices;
         }
 
         product.UpdatedAt = DateTimeOffset.UtcNow;
@@ -222,8 +195,6 @@ public class ProductService(MainContext db, CatalogImageService images, CatalogC
     private static IQueryable<Product> WithComposition(IQueryable<Product> query) =>
         query
             .Include(p => p.Ingredients).ThenInclude(pi => pi.Ingredient)
-            .Include(p => p.Ingredients).ThenInclude(pi => pi.Substitutions).ThenInclude(s => s.SubstituteIngredient)
-            .Include(p => p.Supplements).ThenInclude(s => s.Ingredient)
             .Include(p => p.OptionGroups).ThenInclude(l => l.OptionGroup)
             .ThenInclude(g => g!.Choices.Where(c => c.ArchivedAt == null)).ThenInclude(c => c.Ingredient)
             .AsSplitQuery();
@@ -276,32 +247,18 @@ public class ProductService(MainContext db, CatalogImageService images, CatalogC
                         Name = pi.Ingredient?.Name ?? string.Empty,
                         IsRemovable = pi.IsRemovable,
                         IsAvailable = pi.Ingredient?.IsAvailable ?? false,
-                        Substitutions = pi.Substitutions
-                            .OrderBy(s => s.SubstituteIngredient?.Name)
-                            .Select(s => new SubstitutionDetails
-                            {
-                                SubstituteIngredientId = s.SubstituteIngredientId,
-                                Name = s.SubstituteIngredient?.Name ?? string.Empty,
-                                ExtraPriceCents = s.ExtraPriceCents,
-                                IsAvailable = s.SubstituteIngredient?.IsAvailable ?? false,
-                            })
-                            .ToList(),
-                    })
-                    .ToList(),
-                Supplements = p.Supplements
-                    .OrderBy(s => s.Ingredient?.Name)
-                    .Select(s => new SupplementDetails
-                    {
-                        IngredientId = s.IngredientId,
-                        Name = s.Ingredient?.Name ?? string.Empty,
-                        PriceCents = s.PriceCents,
-                        MaxQuantity = s.MaxQuantity,
-                        IsAvailable = s.Ingredient?.IsAvailable ?? false,
                     })
                     .ToList(),
             },
-            OptionGroups = AvailabilityPolicy.ActiveOptionGroups(p)
-                .Select((g, position) => OptionGroupService.ToDetails(g, images, position))
+            OptionGroups = p.OptionGroups
+                .Where(l => l.OptionGroup is { ArchivedAt: null })
+                .OrderBy(l => l.Position)
+                .Select((l, position) => OptionGroupService.ToDetails(l.OptionGroup!, images, position, productRules: RulesOf(l)))
                 .ToList(),
         };
+
+    private static OptionGroupRules? RulesOf(ProductOptionGroup link) =>
+        link is { MinChoices: { } min, MaxChoices: { } max, FreeChoices: { } free }
+            ? new OptionGroupRules { MinChoices = min, MaxChoices = max, FreeChoices = free }
+            : null;
 }

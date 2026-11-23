@@ -26,6 +26,7 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
         {
             Categories = card.Categories,
             Menus = card.Menus,
+            Replacements = card.Replacements,
             Opening = await restaurant.GetOpeningStateAsync(),
         };
     }
@@ -42,8 +43,6 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
         var products = await db.Products
             .Where(p => p.ArchivedAt == null && p.IsActive)
             .Include(p => p.Ingredients).ThenInclude(pi => pi.Ingredient)
-            .Include(p => p.Ingredients).ThenInclude(pi => pi.Substitutions).ThenInclude(s => s.SubstituteIngredient)
-            .Include(p => p.Supplements).ThenInclude(s => s.Ingredient)
             .Include(p => p.OptionGroups).ThenInclude(l => l.OptionGroup)
             .ThenInclude(g => g!.Choices.Where(c => c.ArchivedAt == null)).ThenInclude(c => c.Ingredient)
             .AsSplitQuery()
@@ -58,6 +57,11 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
             .ToListAsync(ct);
 
         var listed = products.Where(AvailabilityPolicy.IsListed).ToList();
+        var replacements = await db.Ingredients.AsNoTracking()
+            .Where(i => i.ArchivedAt == null && i.IsAvailable && i.IsOfferedAsReplacement)
+            .OrderBy(i => i.Name)
+            .Select(i => new PublicReplacement { IngredientId = i.Id, Name = i.Name, PriceCents = i.PriceCents })
+            .ToListAsync(ct);
 
         return new PublicCard
         {
@@ -73,6 +77,7 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
                 .Where(c => c.Products.Count > 0)
                 .ToList(),
             Menus = menus.Select(ToPublic).ToList(),
+            Replacements = replacements,
         };
     }
 
@@ -96,41 +101,22 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
                     IngredientId = pi.IngredientId,
                     Name = pi.Ingredient!.Name,
                     IsRemovable = pi.IsRemovable,
+                    PriceCents = pi.Ingredient!.PriceCents,
                     IsForcedRemoved = availability.ForcedRemovalIngredientIds.Contains(pi.IngredientId),
-                    Substitutions = pi.Substitutions
-                        .Where(AvailabilityPolicy.IsSubstitutionOffered)
-                        .OrderBy(s => s.SubstituteIngredient!.Name)
-                        .Select(s => new PublicSubstitution
-                        {
-                            IngredientId = s.SubstituteIngredientId,
-                            Name = s.SubstituteIngredient!.Name,
-                            ExtraPriceCents = s.ExtraPriceCents,
-                        })
-                        .ToList(),
-                })
-                .ToList(),
-            Supplements = p.Supplements
-                .Where(AvailabilityPolicy.IsSupplementOffered)
-                .OrderBy(s => s.Ingredient!.Name)
-                .Select(s => new PublicSupplement
-                {
-                    IngredientId = s.IngredientId,
-                    Name = s.Ingredient!.Name,
-                    PriceCents = s.PriceCents,
-                    MaxQuantity = s.MaxQuantity,
                 })
                 .ToList(),
             OptionGroups = AvailabilityPolicy.ActiveOptionGroups(p)
-                .Select(g => new PublicOptionGroup
+                .Select(o => new PublicOptionGroup
                 {
-                    Id = g.Id,
-                    Label = g.Label,
-                    ImageUrl = images.Url(g.ImageUrl),
-                    MinChoices = g.MinChoices,
-                    MaxChoices = g.MaxChoices,
-                    FreeChoices = g.FreeChoices,
-                    ExtraChoicePriceCents = g.ExtraChoicePriceCents,
-                    Choices = g.Choices
+                    Id = o.Group.Id,
+                    Label = o.Group.Label,
+                    ImageUrl = images.Url(o.Group.ImageUrl),
+                    MinChoices = o.MinChoices,
+                    MaxChoices = o.MaxChoices,
+                    FreeChoices = o.FreeChoices,
+                    ExtraChoicePriceCents = o.Group.ExtraChoicePriceCents,
+                    MaxPerChoice = o.Group.MaxPerChoice,
+                    Choices = o.Group.Choices
                         .Where(c => c.ArchivedAt is null)
                         .OrderBy(c => c.Position).ThenBy(c => c.Name)
                         .Select(c => new PublicOptionChoice

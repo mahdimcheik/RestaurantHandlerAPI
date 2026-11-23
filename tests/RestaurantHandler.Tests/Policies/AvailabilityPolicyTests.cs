@@ -8,17 +8,12 @@ public class AvailabilityPolicyTests
     private readonly Category _burgers = new() { Id = Guid.NewGuid(), Name = "Burgers" };
     private readonly Ingredient _steak = new() { Id = Guid.NewGuid(), Name = "Steak" };
     private readonly Ingredient _tomate = new() { Id = Guid.NewGuid(), Name = "Tomate" };
-    private readonly Ingredient _cheddar = new() { Id = Guid.NewGuid(), Name = "Cheddar" };
-    private readonly Ingredient _salade = new() { Id = Guid.NewGuid(), Name = "Salade" };
 
     private Product Burger()
     {
         var p = new Product { Id = Guid.NewGuid(), Name = "Classic", Category = _burgers, CategoryId = _burgers.Id };
         p.Ingredients.Add(new ProductIngredient { ProductId = p.Id, IngredientId = _steak.Id, Ingredient = _steak, IsRemovable = false });
-        var tomate = new ProductIngredient { ProductId = p.Id, IngredientId = _tomate.Id, Ingredient = _tomate, IsRemovable = true };
-        tomate.Substitutions.Add(new IngredientSubstitution { SubstituteIngredientId = _salade.Id, SubstituteIngredient = _salade });
-        p.Ingredients.Add(tomate);
-        p.Supplements.Add(new ProductSupplement { IngredientId = _cheddar.Id, Ingredient = _cheddar, PriceCents = 50 });
+        p.Ingredients.Add(new ProductIngredient { ProductId = p.Id, IngredientId = _tomate.Id, Ingredient = _tomate, IsRemovable = true });
         return p;
     }
 
@@ -70,18 +65,6 @@ public class AvailabilityPolicyTests
         _steak.ArchivedAt = DateTimeOffset.UtcNow;
 
         Assert.False(AvailabilityPolicy.ForProduct(Burger()).IsOrderable);
-    }
-
-    [Fact]
-    public void Supplement_et_substitution_en_rupture_ne_sont_plus_proposes()
-    {
-        var burger = Burger();
-        _cheddar.IsAvailable = false;
-        _salade.IsAvailable = false;
-
-        Assert.False(AvailabilityPolicy.IsSupplementOffered(burger.Supplements.Single()));
-        Assert.False(AvailabilityPolicy.IsSubstitutionOffered(
-            burger.Ingredients.Single(i => i.IngredientId == _tomate.Id).Substitutions.Single()));
     }
 
     [Theory]

@@ -16,6 +16,8 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
             {
                 Id = i.Id,
                 Name = i.Name,
+                PriceCents = i.PriceCents,
+                IsOfferedAsReplacement = i.IsOfferedAsReplacement,
                 IsAvailable = i.IsAvailable,
                 IsArchived = i.ArchivedAt != null,
             })
@@ -26,20 +28,29 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
         var name = dto.Name.Trim();
         await EnsureNameFreeAsync(name, null);
 
-        var ingredient = new Ingredient { Name = name };
+        var ingredient = new Ingredient
+        {
+            Name = name,
+            PriceCents = dto.PriceCents,
+            IsOfferedAsReplacement = dto.IsOfferedAsReplacement,
+        };
         db.Ingredients.Add(ingredient);
         await db.SaveChangesAsync();
+        await changes.CatalogChangedAsync();
 
         return ToDetails(ingredient);
     }
 
-    public async Task<IngredientDetails> RenameAsync(Guid id, IngredientWrite dto)
+    /// <summary>Nom, prix de référence et proposition en remplacement.</summary>
+    public async Task<IngredientDetails> UpdateAsync(Guid id, IngredientWrite dto)
     {
         var ingredient = await FindAsync(id);
         var name = dto.Name.Trim();
         await EnsureNameFreeAsync(name, id);
 
         ingredient.Name = name;
+        ingredient.PriceCents = dto.PriceCents;
+        ingredient.IsOfferedAsReplacement = dto.IsOfferedAsReplacement;
         ingredient.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync();
         await changes.CatalogChangedAsync();
@@ -62,7 +73,7 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
     }
 
     /// <summary>
-    /// Refusé tant qu'un produit non archivé l'utilise (composition, remplacement, supplément) ou
+    /// Refusé tant qu'un produit non archivé l'a dans sa composition ou
     /// qu'un choix d'un groupe d'options non archivé y est lié, même si le groupe ne sert à aucun produit.
     /// </summary>
     public async Task ArchiveAsync(Guid id)
@@ -71,8 +82,7 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
 
         var users = await db.Products.AsNoTracking()
             .Where(p => p.ArchivedAt == null
-                && (p.Ingredients.Any(pi => pi.IngredientId == id || pi.Substitutions.Any(s => s.SubstituteIngredientId == id))
-                    || p.Supplements.Any(s => s.IngredientId == id)))
+                && p.Ingredients.Any(pi => pi.IngredientId == id))
             .OrderBy(p => p.Name)
             .Select(p => p.Name)
             .Take(5)
@@ -93,6 +103,7 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
 
         ingredient.ArchivedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync();
+        await changes.CatalogChangedAsync();
     }
 
     private async Task<Ingredient> FindAsync(Guid id) =>
@@ -107,5 +118,13 @@ public class IngredientService(MainContext db, CatalogChangeNotifier changes)
     }
 
     private static IngredientDetails ToDetails(Ingredient i) =>
-        new() { Id = i.Id, Name = i.Name, IsAvailable = i.IsAvailable, IsArchived = i.ArchivedAt != null };
+        new()
+        {
+            Id = i.Id,
+            Name = i.Name,
+            PriceCents = i.PriceCents,
+            IsOfferedAsReplacement = i.IsOfferedAsReplacement,
+            IsAvailable = i.IsAvailable,
+            IsArchived = i.ArchivedAt != null,
+        };
 }

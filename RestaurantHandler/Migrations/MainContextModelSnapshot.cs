@@ -231,10 +231,16 @@ namespace RestaurantHandler.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsOfferedAsReplacement")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
+
+                    b.Property<int>("PriceCents")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -245,48 +251,9 @@ namespace RestaurantHandler.Migrations
                         .IsUnique()
                         .HasFilter("\"ArchivedAt\" IS NULL");
 
-                    b.ToTable("Ingredients");
-                });
-
-            modelBuilder.Entity("RestaurantHandler.Models.IngredientSubstitution", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("ArchivedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("ExtraPriceCents")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("IngredientId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("SubstituteIngredientId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SubstituteIngredientId");
-
-                    b.HasIndex("ProductId", "IngredientId", "SubstituteIngredientId")
-                        .IsUnique();
-
-                    b.ToTable("IngredientSubstitutions", t =>
+                    b.ToTable("Ingredients", t =>
                         {
-                            t.HasCheckConstraint("CK_IngredientSubstitutions_DifferentIngredient", "\"SubstituteIngredientId\" <> \"IngredientId\"");
-
-                            t.HasCheckConstraint("CK_IngredientSubstitutions_ExtraPriceCents", "\"ExtraPriceCents\" >= 0");
+                            t.HasCheckConstraint("CK_Ingredients_PriceCents", "\"PriceCents\" >= 0");
                         });
                 });
 
@@ -605,6 +572,9 @@ namespace RestaurantHandler.Migrations
                     b.Property<int>("MaxChoices")
                         .HasColumnType("integer");
 
+                    b.Property<int>("MaxPerChoice")
+                        .HasColumnType("integer");
+
                     b.Property<int>("MinChoices")
                         .HasColumnType("integer");
 
@@ -624,6 +594,8 @@ namespace RestaurantHandler.Migrations
                             t.HasCheckConstraint("CK_OptionGroups_ExtraChoicePriceCents", "\"ExtraChoicePriceCents\" >= 0");
 
                             t.HasCheckConstraint("CK_OptionGroups_FreeChoices", "\"FreeChoices\" >= 0");
+
+                            t.HasCheckConstraint("CK_OptionGroups_MaxPerChoice", "\"MaxPerChoice\" >= 1");
                         });
                 });
 
@@ -1099,6 +1071,15 @@ namespace RestaurantHandler.Migrations
                     b.Property<Guid>("OptionGroupId")
                         .HasColumnType("uuid");
 
+                    b.Property<int?>("FreeChoices")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MaxChoices")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MinChoices")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Position")
                         .HasColumnType("integer");
 
@@ -1108,32 +1089,9 @@ namespace RestaurantHandler.Migrations
 
                     b.HasIndex("ProductId", "Position");
 
-                    b.ToTable("ProductOptionGroups");
-                });
-
-            modelBuilder.Entity("RestaurantHandler.Models.ProductSupplement", b =>
-                {
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("IngredientId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("MaxQuantity")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PriceCents")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ProductId", "IngredientId");
-
-                    b.HasIndex("IngredientId");
-
-                    b.ToTable("ProductSupplements", t =>
+                    b.ToTable("ProductOptionGroups", t =>
                         {
-                            t.HasCheckConstraint("CK_ProductSupplements_MaxQuantity", "\"MaxQuantity\" >= 1");
-
-                            t.HasCheckConstraint("CK_ProductSupplements_PriceCents", "\"PriceCents\" >= 0");
+                            t.HasCheckConstraint("CK_ProductOptionGroups_Choices", "(\"MinChoices\" IS NULL AND \"MaxChoices\" IS NULL AND \"FreeChoices\" IS NULL) OR (\"MinChoices\" >= 0 AND \"MaxChoices\" >= 1 AND \"MinChoices\" <= \"MaxChoices\" AND \"FreeChoices\" >= 0)");
                         });
                 });
 
@@ -1629,25 +1587,6 @@ namespace RestaurantHandler.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RestaurantHandler.Models.IngredientSubstitution", b =>
-                {
-                    b.HasOne("RestaurantHandler.Models.Ingredient", "SubstituteIngredient")
-                        .WithMany()
-                        .HasForeignKey("SubstituteIngredientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantHandler.Models.ProductIngredient", "ProductIngredient")
-                        .WithMany("Substitutions")
-                        .HasForeignKey("ProductId", "IngredientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ProductIngredient");
-
-                    b.Navigation("SubstituteIngredient");
-                });
-
             modelBuilder.Entity("RestaurantHandler.Models.MenuSlot", b =>
                 {
                     b.HasOne("RestaurantHandler.Models.Menu", "Menu")
@@ -1893,25 +1832,6 @@ namespace RestaurantHandler.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("RestaurantHandler.Models.ProductSupplement", b =>
-                {
-                    b.HasOne("RestaurantHandler.Models.Ingredient", "Ingredient")
-                        .WithMany()
-                        .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantHandler.Models.Product", "Product")
-                        .WithMany("Supplements")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ingredient");
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("RestaurantHandler.Models.RefreshToken", b =>
                 {
                     b.HasOne("RestaurantHandler.Models.UserApp", "User")
@@ -1986,13 +1906,6 @@ namespace RestaurantHandler.Migrations
                     b.Navigation("Ingredients");
 
                     b.Navigation("OptionGroups");
-
-                    b.Navigation("Supplements");
-                });
-
-            modelBuilder.Entity("RestaurantHandler.Models.ProductIngredient", b =>
-                {
-                    b.Navigation("Substitutions");
                 });
 
             modelBuilder.Entity("RestaurantHandler.Models.RoleApp", b =>

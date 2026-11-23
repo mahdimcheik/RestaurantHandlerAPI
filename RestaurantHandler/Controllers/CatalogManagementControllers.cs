@@ -165,8 +165,8 @@ public class IngredientsController(IngredientService ingredients) : ControllerBa
         CreatedWith(await ingredients.CreateAsync(dto));
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<Response<IngredientDetails>>> Rename(Guid id, [FromBody] IngredientWrite dto) =>
-        Success(await ingredients.RenameAsync(id, dto));
+    public async Task<ActionResult<Response<IngredientDetails>>> Update(Guid id, [FromBody] IngredientWrite dto) =>
+        Success(await ingredients.UpdateAsync(id, dto));
 
     /// <summary>Rupture d'ingrédient (US-E03-4).</summary>
     [HttpPut("{id:guid}/availability")]
