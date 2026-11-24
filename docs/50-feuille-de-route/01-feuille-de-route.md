@@ -11,15 +11,15 @@ d'API stable.
 
 ## Vue d'ensemble
 
-| Jalon | Semaines | Objectif | Critère de sortie |
-|---|---|---|---|
-| **J0 — Socle propre** | S1 | Base saine pour le restaurant | build vert, doc validée, aucun reliquat inutile |
-| **J1 — Carte & ouverture** | S2–S3 | Le Manager saisit toute la carte et les horaires par l'API | carte réelle du restaurant saisie via Swagger |
-| **J2 — Commande** | S3–S5 | Le cœur : calcul, validation, créneaux, états | tests unitaires R1–R10 + transitions verts |
-| **J3 — Paiement SumUp** | S5–S6 | Paiement en ligne sûr, encaissements déclarés | paiement sandbox de bout en bout, rejeu de webhook sans effet |
-| **J4 — PWA client** | S6–S8 | Le client commande et suit sa commande | parcours click & collect complet sur mobile |
-| **J5 — Back-office & KDS** | S8–S10 | Le restaurant pilote le service | service simulé de 30 min sans papier |
-| **J6 — Mise en service** | S10–S12 | Ouvrir en production | recette terrain signée, sauvegarde restaurée, ouverture |
+| Jalon                      | Semaines | Objectif                                                   | Critère de sortie                                             |
+| -------------------------- | -------- | ---------------------------------------------------------- | ------------------------------------------------------------- |
+| **J0 — Socle propre**      | S1       | Base saine pour Greenadine                                 | build vert, doc validée, aucun reliquat inutile               |
+| **J1 — Carte & ouverture** | S2–S3    | Le Manager saisit toute la carte et les horaires par l'API | carte réelle du restaurant saisie via Swagger                 |
+| **J2 — Commande**          | S3–S5    | Le cœur : calcul, validation, créneaux, états              | tests unitaires R1–R10 + transitions verts                    |
+| **J3 — Paiement SumUp**    | S5–S6    | Paiement en ligne sûr, encaissements déclarés              | paiement sandbox de bout en bout, rejeu de webhook sans effet |
+| **J4 — PWA client**        | S6–S8    | Le client commande et suit sa commande                     | parcours click & collect complet sur mobile                   |
+| **J5 — Back-office & KDS** | S8–S10   | Greenadine pilote le service                               | service simulé de 30 min sans papier                          |
+| **J6 — Mise en service**   | S10–S12  | Ouvrir en production                                       | recette terrain signée, sauvegarde restaurée, ouverture       |
 
 **Jalon de décision G0 (avant la fin de J2)** : réponses de l'expert-comptable sur les
 questions 1–3 et 8 ([questions ouvertes](02-questions-ouvertes.md)). Un « non » sur la

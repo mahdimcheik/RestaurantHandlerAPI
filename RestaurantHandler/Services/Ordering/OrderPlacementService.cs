@@ -38,40 +38,65 @@ public class OrderPlacementService(
         if (dto.PaymentChoice == PaymentChoice.OnSite)
             await EnsurePayOnSiteAllowedAsync(caller.UserId, settings);
         else if (!EnvironmentVariables.SumUpEnabled)
-            throw new BusinessConflictException("Le paiement en ligne est indisponible : choisissez le paiement au retrait.");
+            throw new BusinessConflictException(
+                "Le paiement en ligne est indisponible : choisissez le paiement au retrait."
+            );
 
-        var (order, created) = await CreateUnderLockAsync(caller.UserId, dto.IdempotencyKey, async now =>
-        {
-            var schedule = await restaurant.GetScheduleAsync();
-            var opening = OpeningPolicy.Compute(now, schedule.Hours, schedule.Closures, settings.IsPaused, settings.PausedUntil);
-            if (OpeningPolicy.IsPauseActive(settings.IsPaused, settings.PausedUntil, now))
-                throw new BusinessConflictException("Les commandes en ligne sont momentanément en pause. Réessayez dans quelques minutes.");
+        var (order, created) = await CreateUnderLockAsync(
+            caller.UserId,
+            dto.IdempotencyKey,
+            async now =>
+            {
+                var schedule = await restaurant.GetScheduleAsync();
+                var opening = OpeningPolicy.Compute(
+                    now,
+                    schedule.Hours,
+                    schedule.Closures,
+                    settings.IsPaused,
+                    settings.PausedUntil
+                );
+                if (OpeningPolicy.IsPauseActive(settings.IsPaused, settings.PausedUntil, now))
+                    throw new BusinessConflictException(
+                        "Les commandes en ligne sont momentanément en pause. Réessayez dans quelques minutes."
+                    );
 
-            DateTimeOffset pickupAt;
-            if (dto.PickupMode == PickupMode.Asap)
-            {
-                if (opening.Status != OpeningStatus.Open)
-                    throw new BusinessConflictException("Le restaurant est fermé : choisissez un créneau.");
-                pickupAt = now.AddMinutes(settings.AsapDelayMinutes);
-            }
-            else
-            {
-                var slot = (await restaurant.SlotsWithOccupancyAsync(now, schedule, settings)).FirstOrDefault(s => s.Start == dto.SlotStart)
-                    ?? throw new BusinessConflictException("Ce créneau n'est plus disponible : choisissez-en un autre.");
-                pickupAt = slot.Start;
-            }
+                DateTimeOffset pickupAt;
+                if (dto.PickupMode == PickupMode.Asap)
+                {
+                    if (opening.Status != OpeningStatus.Open)
+                        throw new BusinessConflictException(
+                            "Greenadine est fermé : choisissez un créneau."
+                        );
+                    pickupAt = now.AddMinutes(settings.AsapDelayMinutes);
+                }
+                else
+                {
+                    var slot =
+                        (
+                            await restaurant.SlotsWithOccupancyAsync(now, schedule, settings)
+                        ).FirstOrDefault(s => s.Start == dto.SlotStart)
+                        ?? throw new BusinessConflictException(
+                            "Ce créneau n'est plus disponible : choisissez-en un autre."
+                        );
+                    pickupAt = slot.Start;
+                }
 
-            return new Order
-            {
-                CustomerId = caller.UserId,
-                Channel = OrderChannel.Online,
-                Status = dto.PaymentChoice == PaymentChoice.OnSite ? OrderStatus.AwaitingApproval : OrderStatus.PendingPayment,
-                PickupMode = dto.PickupMode,
-                PickupAt = pickupAt,
-                PaymentChoice = dto.PaymentChoice,
-                CustomerNote = Clean(dto.CustomerNote),
-            };
-        }, cart);
+                return new Order
+                {
+                    CustomerId = caller.UserId,
+                    Channel = OrderChannel.Online,
+                    Status =
+                        dto.PaymentChoice == PaymentChoice.OnSite
+                            ? OrderStatus.AwaitingApproval
+                            : OrderStatus.PendingPayment,
+                    PickupMode = dto.PickupMode,
+                    PickupAt = pickupAt,
+                    PaymentChoice = dto.PaymentChoice,
+                    CustomerNote = Clean(dto.CustomerNote),
+                };
+            },
+            cart
+        );
 
         if (!created)
             return await LoadDetailsAsync(order.Id, false);
@@ -99,25 +124,36 @@ public class OrderPlacementService(
             throw new CartRejectedException(cart.Issues);
 
         var settings = await ReadSettingsAsync();
-        var (order, created) = await CreateUnderLockAsync(caller.UserId, dto.IdempotencyKey, async now =>
-        {
-            var schedule = await restaurant.GetScheduleAsync();
-            var opening = OpeningPolicy.Compute(now, schedule.Hours, schedule.Closures, settings.IsPaused, settings.PausedUntil);
-            if (opening.Status == OpeningStatus.Closed)
-                throw new BusinessConflictException("Le restaurant est fermé.");
-
-            return new Order
+        var (order, created) = await CreateUnderLockAsync(
+            caller.UserId,
+            dto.IdempotencyKey,
+            async now =>
             {
-                Channel = OrderChannel.Counter,
-                Status = OrderStatus.Confirmed,
-                ConfirmedAt = now,
-                PickupMode = PickupMode.Asap,
-                PickupAt = now.AddMinutes(settings.AsapDelayMinutes),
-                PaymentChoice = PaymentChoice.OnSite,
-                CustomerFirstName = Clean(dto.CustomerFirstName),
-                CustomerNote = Clean(dto.CustomerNote),
-            };
-        }, cart);
+                var schedule = await restaurant.GetScheduleAsync();
+                var opening = OpeningPolicy.Compute(
+                    now,
+                    schedule.Hours,
+                    schedule.Closures,
+                    settings.IsPaused,
+                    settings.PausedUntil
+                );
+                if (opening.Status == OpeningStatus.Closed)
+                    throw new BusinessConflictException("Greenadine est fermé.");
+
+                return new Order
+                {
+                    Channel = OrderChannel.Counter,
+                    Status = OrderStatus.Confirmed,
+                    ConfirmedAt = now,
+                    PickupMode = PickupMode.Asap,
+                    PickupAt = now.AddMinutes(settings.AsapDelayMinutes),
+                    PaymentChoice = PaymentChoice.OnSite,
+                    CustomerFirstName = Clean(dto.CustomerFirstName),
+                    CustomerNote = Clean(dto.CustomerNote),
+                };
+            },
+            cart
+        );
 
         if (created)
             await notifier.CreatedAsync(order);
@@ -128,12 +164,19 @@ public class OrderPlacementService(
     /// Sous verrou : rejeu idempotent, contrôles d'ouverture et de créneau (via
     /// <paramref name="prepare"/>), numéro du jour, lignes, historique.
     /// </summary>
-    private async Task<(Order Order, bool Created)> CreateUnderLockAsync(Guid authorId, string idempotencyKey, Func<DateTimeOffset, Task<Order>> prepare, PricedCart cart)
+    private async Task<(Order Order, bool Created)> CreateUnderLockAsync(
+        Guid authorId,
+        string idempotencyKey,
+        Func<DateTimeOffset, Task<Order>> prepare,
+        PricedCart cart
+    )
     {
         await using var transaction = await db.Database.BeginTransactionAsync();
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock({0})", PlacementLockKey);
 
-        var existing = await db.Orders.FirstOrDefaultAsync(o => o.CreatedByUserId == authorId && o.IdempotencyKey == idempotencyKey);
+        var existing = await db.Orders.FirstOrDefaultAsync(o =>
+            o.CreatedByUserId == authorId && o.IdempotencyKey == idempotencyKey
+        );
         if (existing is not null)
             return (existing, false);
 
@@ -143,7 +186,13 @@ public class OrderPlacementService(
         order.IdempotencyKey = idempotencyKey;
         order.CreatedAt = now;
         order.ServiceDate = DateOnly.FromDateTime(RestaurantClock.ToLocal(order.PickupAt));
-        order.DailyNumber = (await db.Orders.Where(o => o.ServiceDate == order.ServiceDate).MaxAsync(o => (int?)o.DailyNumber) ?? 0) + 1;
+        order.DailyNumber =
+            (
+                await db
+                    .Orders.Where(o => o.ServiceDate == order.ServiceDate)
+                    .MaxAsync(o => (int?)o.DailyNumber)
+                ?? 0
+            ) + 1;
         order.TotalCents = cart.TotalCents;
 
         // Les composants de menu sont rattachés à la commande en plus de leur ligne parente.
@@ -159,7 +208,14 @@ public class OrderPlacementService(
             }
         }
 
-        order.StatusHistory.Add(new OrderStatusHistory { Status = order.Status, ChangedByUserId = authorId, ChangedAt = now });
+        order.StatusHistory.Add(
+            new OrderStatusHistory
+            {
+                Status = order.Status,
+                ChangedByUserId = authorId,
+                ChangedAt = now,
+            }
+        );
         db.Orders.Add(order);
         await db.SaveChangesAsync();
         await transaction.CommitAsync();
@@ -188,25 +244,40 @@ public class OrderPlacementService(
             throw blocked;
     }
 
-    private async Task<BusinessException?> PayOnSiteBlockAsync(Guid customerId, RestaurantSettings settings)
+    private async Task<BusinessException?> PayOnSiteBlockAsync(
+        Guid customerId,
+        RestaurantSettings settings
+    )
     {
-        var noShows = await db.Users.Where(u => u.Id == customerId).Select(u => u.NoShowCount).FirstOrDefaultAsync();
+        var noShows = await db
+            .Users.Where(u => u.Id == customerId)
+            .Select(u => u.NoShowCount)
+            .FirstOrDefaultAsync();
         if (noShows >= settings.NoShowThreshold)
-            return new BusinessForbiddenException("Le paiement au retrait n'est plus disponible sur votre compte : payez en ligne.");
+            return new BusinessForbiddenException(
+                "Le paiement au retrait n'est plus disponible sur votre compte : payez en ligne."
+            );
 
         var pending = await db.Orders.AnyAsync(o =>
             o.CustomerId == customerId
             && o.PaymentChoice == PaymentChoice.OnSite
-            && OrderTransitionPolicy.ActiveStatuses.Contains(o.Status));
+            && OrderTransitionPolicy.ActiveStatuses.Contains(o.Status)
+        );
         return pending
-            ? new BusinessConflictException("Vous avez déjà une commande à payer au retrait en cours.")
+            ? new BusinessConflictException(
+                "Vous avez déjà une commande à payer au retrait en cours."
+            )
             : null;
     }
 
-    private async Task<OrderDetails?> FindExistingAsync(Guid authorId, string idempotencyKey, bool forManager)
+    private async Task<OrderDetails?> FindExistingAsync(
+        Guid authorId,
+        string idempotencyKey,
+        bool forManager
+    )
     {
-        var id = await db.Orders
-            .Where(o => o.CreatedByUserId == authorId && o.IdempotencyKey == idempotencyKey)
+        var id = await db
+            .Orders.Where(o => o.CreatedByUserId == authorId && o.IdempotencyKey == idempotencyKey)
             .Select(o => (Guid?)o.Id)
             .FirstOrDefaultAsync();
         return id is null ? null : await LoadDetailsAsync(id.Value, forManager);
@@ -214,13 +285,18 @@ public class OrderPlacementService(
 
     private async Task<OrderDetails> LoadDetailsAsync(Guid id, bool forManager)
     {
-        var order = await OrderQueryService.WithDetails(db.Orders.AsNoTrackingWithIdentityResolution()).FirstAsync(o => o.Id == id);
+        var order = await OrderQueryService
+            .WithDetails(db.Orders.AsNoTrackingWithIdentityResolution())
+            .FirstAsync(o => o.Id == id);
         return OrderMapping.ToDetails(order, forManager);
     }
 
     private async Task<RestaurantSettings> ReadSettingsAsync() =>
-        await db.RestaurantSettings.AsNoTracking().FirstOrDefaultAsync(s => s.Id == RestaurantSettings.SingletonId)
+        await db
+            .RestaurantSettings.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == RestaurantSettings.SingletonId)
         ?? new RestaurantSettings();
 
-    private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? Clean(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

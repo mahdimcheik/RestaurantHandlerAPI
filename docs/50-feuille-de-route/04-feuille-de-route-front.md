@@ -36,7 +36,7 @@ Statuts : ✅ terminé · 🟡 en cours · ⬜ à faire.
 - Cache des données qui changent peu : `shared/services/store.service.ts` (`Cached<T>`).
 - Styles globaux par classes (`src/styles/`), thèmes clair / sombre / système, sélecteur de thème.
 - Intercepteurs : jeton en mémoire + renouvellement sur 401, `Idempotency-Key`, XSRF.
-- Proxy de dev même origine (`proxy.conf.mjs`, `API_URL`), i18n `@angular/localize`, tests Vitest.
+- Proxy de dev même origine (`proxy.conf.mjs`, `API_URL`), tests Vitest (i18n `@angular/localize` retirée le 2026-11-24 : textes en français écrits en clair, ADR-0011).
 
 ## F1 — Comptes (E01) — 🟡
 
@@ -278,6 +278,29 @@ restaurant fermé, commande créée et suivi ouvert ; annulation depuis un deuxi
 répercutée seule dans le premier (SignalR) ; compte Manager refusé à la validation ; thèmes
 clair et sombre.
 
+**Fait (refonte de la carte au nouveau design, 2026-11-24) :**
+- `/commander` reprend le style de l'accueil et de `/a-propos` (surface `.brand`, fond ondulé,
+  barre du haut `site-topbar`) ; classe `.brand-ui` (`_order-page.scss`) : les composants de
+  l'ancien style posés sur un parfum en prennent l'encre et le fond.
+- Rubriques dans un rail vertical à gauche (onglets ARIA verticaux, image de la catégorie ou
+  icône, « Menus » en premier) : une seule rubrique affichée à la fois, en cartes.
+- Téléphone : bandeau fixe en bas (nombre d'articles et total du devis) qui ouvre le détail de
+  la commande dans une feuille. Grand écran (≥ 64rem) : détail toujours affiché dans une
+  colonne collée à droite, de hauteur fixe. Dans la colonne comme dans la feuille, seules les
+  lignes défilent : TVA, total et « Valider ma commande » restent en bas. Détail commun `features/shop/components/cart-summary`, aussi utilisé
+  par `/panier` ; devis unique `data-access/cart-quote.ts`.
+- Fiches produit et menu en routes enfants de `/commander`, affichées dans un dialogue par-dessus
+  la carte (adresses inchangées ; Échap, Fermer, clic sur le fond et Retour du navigateur
+  referment ; navigation sans défilement de la carte).
+- Vérifié contre la vraie API (2026-11-24, Chrome, 390, 800 et 1280 px) : rubriques, ajout avec
+  taille obligatoire et prix du devis, détail à droite et feuille du bas, « Modifier » rouvre la
+  ligne, Échap et Fermer referment sans faire défiler la carte, adresse de fiche ouverte
+  directement. axe-core 4.14 (WCAG 2.2 AA + bonnes pratiques) : 0 violation sur la carte (grand
+  écran et téléphone, autre rubrique, menu de la barre ouvert), fiche produit ouverte, feuille
+  « Votre commande » ouverte et `/panier`, après avoir foncé l'encre du parfum 1 (`#281d3c`,
+  4,78:1 même sur les lignes du fond `.waves`) et placé le bandeau d'activation dans une région
+  nommée.
+
 **Fait (F8b) :**
 - Historique `/commandes` (US-E08-3) : plus récente en premier, pages de 20, statut en termes
   client ; lien « Mes commandes » dans l'en-tête pour un client connecté.
@@ -306,6 +329,17 @@ en état normal ; seul `/api/menu` dans le cache de données (commandes et état
 absents) ; serveur arrêté, la carte se rouvre depuis le cache. Historique et accueil contre la
 vraie API. Le service worker ne se teste pas avec `ng serve` (fichiers servis différents des
 empreintes de `ngsw.json` : état dégradé) : servir `dist/`.
+
+**Nouveau design — accueil (2026-11-24, en cours) :** premier écran de `/` remplacé par un
+carrousel plein écran (`features/home/components/hero-carousel`, géométrie pure dans
+`hero-geometry.ts`) : cinq coupes sur un anneau tournant, fond et encre par parfum (jetons
+`--flavour-N-*`, contraste AA de 4,68 à 8,73), titre au nom du restaurant, « Commander »,
+bouton pause (WCAG 2.2.2), pause d'office avec `prefers-reduced-motion`. Barre du haut du
+nouveau design (`shared/ui/site-topbar` : menu, panier) à la place de l'en-tête sur l'accueil
+(`data: { header: false }`). Contenu fixe. Reste : images définitives dans
+`public/images/home/`, polices auto-hébergées (`@fontsource/dela-gothic-one`,
+`@fontsource/archivo`), rendu vérifié dans le navigateur, nombre d'articles sur le bouton
+panier (déplacer `CartStore` dans `shared`).
 
 **Reste :**
 - Acceptation par le Manager puis cuisine jusqu'à « Prête » vue côté client ; parcours 1 avec

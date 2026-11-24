@@ -11,6 +11,7 @@ client.
 fiche et `GET /manage/customers/{userId}/orders` ajoutés en F7 ; écran `/gestion/utilisateurs`.
 
 **Critères d'acceptation**
+
 - Recherche par nom, e-mail, téléphone ; filtre par rôle et statut.
 - La fiche client montre ses commandes et son compteur de non-venues.
 
@@ -23,6 +24,7 @@ un nouvel équipier.
 **État :** Implémentée
 
 **Critères d'acceptation**
+
 - Seul un Manager crée un Manager (`POST /Users`) ; le compte créé est « en attente » jusqu'à
   son activation depuis sa fiche.
 - Le compte Manager initial est créé au démarrage depuis `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
@@ -35,6 +37,7 @@ En tant que Manager, je veux bannir ou réactiver un compte afin d'écarter un c
 **État :** Implémentée
 
 **Critères d'acceptation**
+
 - Statuts : actif, en attente, banni.
 - Un compte banni ne peut plus se connecter et ses sessions sont invalidées.
 - Un Manager ne peut pas se bannir lui-même ni bannir le dernier Manager actif (contrôle
@@ -50,9 +53,10 @@ gérer une exception.
 **Avancement :** API faite en J5 (`POST /manage/customers/{userId}/no-shows/reset`, historisé dans `NoShowResets` ; compteur visible du Manager dans le détail de commande et sur la fiche utilisateur) ; écran fait (F7, fiche utilisateur).
 
 **Critères d'acceptation**
+
 - Remet à zéro le compteur de non-venues ; action historisée.
 
-### US-E10-5 — Paramétrer le restaurant
+### US-E10-5 — Paramétrer Greenadine
 
 En tant que Manager, je veux renseigner les informations du restaurant afin qu'elles
 apparaissent sur la PWA et les reçus.
@@ -62,6 +66,7 @@ apparaissent sur la PWA et les reçus.
 **Avancement :** API faite en J1 (`/manage/restaurant/settings`, logo, historique) ; écran en J5.
 
 **Critères d'acceptation**
+
 - Nom commercial, raison sociale, adresse, téléphone, SIRET, n° de TVA intracommunautaire,
   logo.
 - Paramètres de service : délai ASAP, durée et capacité des créneaux, délai de validation

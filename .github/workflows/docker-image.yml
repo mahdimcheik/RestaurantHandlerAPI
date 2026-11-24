@@ -29,7 +29,7 @@ jobs:
 
       - name: Build the Docker image
         run: |
-          docker build . --file RestaurantHandler/Dockerfile \
+          docker build . --fiGreenadineHandler/Dockerfile \
             --build-arg APP_VERSION=${{ steps.version.outputs.version }} \
             --tag mahdimcheik/restauranthandler:${{ steps.version.outputs.version }} \
             --tag mahdimcheik/restauranthandler:latest

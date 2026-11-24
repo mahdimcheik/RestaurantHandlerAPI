@@ -4,23 +4,23 @@ Deux rôles : `Client` (défaut, seul rôle attribuable publiquement) et `Manage
 personnel). L'autorisation est déclarée **sur l'opération**, avec **refus par défaut**
 (politique de repli exigeant une session ; cf. [ADR-0001](../40-decisions/ADR-0001-archi-backend.md)).
 
-| Fonction | Anonyme | Client | Manager |
-|---|:-:|:-:|:-:|
-| Consulter carte, horaires, état d'ouverture, créneaux | ✅ | ✅ | ✅ |
-| S'inscrire, se connecter, réinitialiser son mot de passe | ✅ | — | — |
-| Gérer son profil, supprimer son compte | — | ✅ | ✅ |
-| Valider une commande en ligne | — | ✅ | — |
-| Payer en ligne, annuler sa commande (avant préparation) | — | ✅ (les siennes) | — |
-| Suivre une commande, voir son historique et ses reçus | — | ✅ (les siennes) | ✅ (toutes) |
-| Saisir une commande comptoir | — | — | ✅ |
-| Accepter / refuser une commande à payer au retrait | — | — | ✅ |
-| Faire avancer une commande (KDS), remettre, déclarer non venu | — | — | ✅ |
-| Marquer payée sur place, rembourser, annuler côté restaurant | — | — | ✅ |
-| Gérer la carte, les ruptures, les horaires, la pause | — | — | ✅ |
-| Paramétrer le restaurant | — | — | ✅ |
-| Consulter les statistiques | — | — | ✅ |
-| Gérer les comptes, créer un Manager, bannir | — | — | ✅ |
-| Tableau de bord Hangfire | — | — | ✅ |
+| Fonction                                                      | Anonyme |      Client      |   Manager   |
+| ------------------------------------------------------------- | :-----: | :--------------: | :---------: |
+| Consulter carte, horaires, état d'ouverture, créneaux         |   ✅    |        ✅        |     ✅      |
+| S'inscrire, se connecter, réinitialiser son mot de passe      |   ✅    |        —         |      —      |
+| Gérer son profil, supprimer son compte                        |    —    |        ✅        |     ✅      |
+| Valider une commande en ligne                                 |    —    |        ✅        |      —      |
+| Payer en ligne, annuler sa commande (avant préparation)       |    —    | ✅ (les siennes) |      —      |
+| Suivre une commande, voir son historique et ses reçus         |    —    | ✅ (les siennes) | ✅ (toutes) |
+| Saisir une commande comptoir                                  |    —    |        —         |     ✅      |
+| Accepter / refuser une commande à payer au retrait            |    —    |        —         |     ✅      |
+| Faire avancer une commande (KDS), remettre, déclarer non venu |    —    |        —         |     ✅      |
+| Marquer payée sur place, rembourser, annuler côté restaurant  |    —    |        —         |     ✅      |
+| Gérer la carte, les ruptures, les horaires, la pause          |    —    |        —         |     ✅      |
+| Paramétrer Greenadine                                         |    —    |        —         |     ✅      |
+| Consulter les statistiques                                    |    —    |        —         |     ✅      |
+| Gérer les comptes, créer un Manager, bannir                   |    —    |        —         |     ✅      |
+| Tableau de bord Hangfire                                      |    —    |        —         |     ✅      |
 
 **Propriété** : une commande n'est lisible par un Client que s'il en est le `CustomerId` ;
 toute autre tentative renvoie **404** (pas 403, pour ne pas révéler l'existence).

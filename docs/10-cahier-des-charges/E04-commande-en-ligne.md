@@ -14,6 +14,7 @@ je veux.
 **Avancement :** Règles et prix côté serveur faits en J2 (`POST /orders/quote`, R2/R4) ; écran fait (F8a : fiche produit, prix par le devis, panier conservé sur l'appareil).
 
 **Critères d'acceptation**
+
 - Seuls les ingrédients retirables peuvent être retirés ou remplacés ; un remplacement se fait
   par un ingrédient proposé en remplacement et disponible, au surcoût
   `max(0, écart de prix de référence)` affiché avant l'ajout.
@@ -33,6 +34,7 @@ personnaliser) afin de commander une formule.
 **Avancement :** Règles de menu faites en J2 (R5, surcoûts, personnalisation des composants) ; écran fait (F8a : `/commander/menu/:id`).
 
 **Critères d'acceptation**
+
 - Le nombre de choix par emplacement respecte son minimum et son maximum ; un emplacement
   obligatoire non rempli bloque l'ajout.
 - Le surcoût d'une option (ex. grande boisson) s'ajoute au prix du menu.
@@ -48,7 +50,8 @@ ma commande quand cela m'arrange.
 **Avancement :** API faite en J2 (ASAP si ouvert et hors pause, créneau du jour non plein) ; écran fait (F8a : validation `/commander/valider`).
 
 **Critères d'acceptation**
-- « Dès que possible » n'est proposé que si le restaurant est ouvert et non en pause ; l'heure
+
+- « Dès que possible » n'est proposé que si Greenadine est ouvert et non en pause ; l'heure
   estimée est affichée.
 - Les créneaux proposés sont ceux de [US-E03-6](E03-ouverture-ruptures.md#us-e03-6--configurer-les-créneaux-de-retrait) ;
   un créneau plein n'est pas sélectionnable.
@@ -65,6 +68,7 @@ commande soit transmise au restaurant.
 **Avancement :** API faite en J2 (`POST /orders` : recalcul, revérification, refus détaillé par ligne, idempotence, numéro du jour) ; redirection SumUp en J3 ; écran fait (F8a : lignes refusées signalées au panier).
 
 **Critères d'acceptation**
+
 - Le serveur **recalcule** le total à partir de la carte en vigueur ; le total envoyé par le
   client est ignoré.
 - Le serveur **revérifie** : ouverture / pause, créneau non plein, disponibilité de chaque
@@ -87,6 +91,7 @@ retirées.
 **Avancement :** API faite en J2 (une commande au retrait en cours, blocage au seuil de non-venues, levée par `POST /manage/customers/{id}/no-shows/reset`) ; `GET /orders/checkout-options` annonce le blocage avant la validation (F8a).
 
 **Critères d'acceptation**
+
 - Un client a au plus une commande « payer au retrait » en cours.
 - Un client marqué « non venu » N fois (paramètre, ex. 2) ne peut plus choisir le paiement au
   retrait ; le Manager peut lever le blocage.
@@ -101,6 +106,7 @@ corriger une erreur.
 **Avancement :** API faite en J2 (`POST /orders/{id}/cancel`) ; remboursement en ligne en J3 ; bouton sur le suivi (F8a).
 
 **Critères d'acceptation**
+
 - Annulation possible en `En attente de paiement`, `À valider` ou `Confirmée` ; impossible à
   partir de `En préparation`.
 - Une commande payée en ligne et annulée est remboursée ([US-E05-4](E05-paiement.md#us-e05-4--rembourser-une-commande-payée-en-ligne)).
@@ -115,4 +121,5 @@ temps.
 **État :** Absente
 
 **Critères d'acceptation**
+
 - Les lignes encore disponibles sont ajoutées au prix actuel ; les autres sont signalées.
