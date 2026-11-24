@@ -29,11 +29,11 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 | `Product` | Plat / boisson / dessert | `Kind`, `PriceCents`, `VatRate`, `Position`, `IsActive`, `IsAvailable` (rupture) |
 | `Ingredient` | Ingrédient | nom unique, `IsAvailable` (rupture), `PriceCents` (référence pour les remplacements, ≥ 0), `IsOfferedAsReplacement`, `ImageUrl` |
 | `ProductIngredient` | Composition | PK (produit, ingrédient), `IsRemovable` (retirable et remplaçable) |
-| `OptionGroup` | Groupe d'options partagé entre produits (pain, sauces, taille) | `Label` unique (non archivé), `ImageUrl`, `Min/MaxChoices` et `FreeChoices` (en unités), `ExtraChoicePriceCents`, `MaxPerChoice` (≥ 1, fois qu'un même choix peut être pris) ; archivé, refusé tant qu'un produit le propose |
+| `OptionGroup` | Groupe d'options partagé entre produits (pain, sauces, taille) | `Label` unique (non archivé), `ImageUrl`, `Min/MaxChoices` (en unités), `MaxPerChoice` (≥ 1, fois qu'un même choix peut être pris) ; archivé, refusé tant qu'un produit le propose |
 | `OptionChoice` | Choix d'un groupe | nom unique par groupe (non archivé), `ImageUrl`, `IngredientId?` (rupture), `ExtraPriceCents`, `Position` ; archivé |
 | `Menu` | Formule | `PriceCents`, `VatRate`, `Position`, `ImageUrl`, `IsActive` |
 | `MenuSlot` | Emplacement | `Label`, position unique par menu, `Min/MaxChoices` |
-| `ProductOptionGroup` | Groupe proposé sur un produit | PK (produit, groupe), `Position` (ordre dans le produit), `Min/Max/FreeChoices?` propres au produit (tous nuls = ceux du groupe) ; supprimé avec le produit, jamais avec le groupe |
+| `ProductOptionGroup` | Groupe proposé sur un produit | PK (produit, groupe), `Position` (ordre dans le produit), `Min/MaxChoices?` propres au produit (tous deux nuls = ceux du groupe) ; supprimé avec le produit, jamais avec le groupe |
 | `MenuSlotOption` | Produit proposé | PK (emplacement, produit), `ExtraPriceCents` |
 
 ## Restaurant
@@ -70,7 +70,7 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 | M9 | ✅ Filtre automatique `ArchivedAt == null` : **non rétabli**, les services filtrent explicitement | lecture de commandes anciennes | J1 |
 | M10 | ✅ Index de lecture pour les statistiques : `Order(Status, CompletedAt)` et `Order(Status, ReadyAt)` ; table `NoShowResets` (historique des levées de blocage, US-E10-4) | E09, E10 | J5 |
 | M11 | Socle : retirer `HelpEntry`, `MailBroadcast`, paramètres de maintenance | J0 | J0 |
-| M12 | ✅ Groupes d'options, partagés entre produits depuis le 2026-11-23 : `OptionGroup`, `OptionChoice`, liaison `ProductOptionGroup`, `ModificationType.Choice`, `OrderItemModification.OptionChoiceId` et `Position` | sandwichs (pain, sauces), pizzas (taille) — [US-E02-9](../10-cahier-des-charges/E02-carte.md#us-e02-9--définir-les-groupes-doptions-et-les-proposer-sur-les-produits) | J5 |
+| M12 | ✅ Groupes d'options, partagés entre produits depuis le 2026-11-23 : `OptionGroup`, `OptionChoice`, liaison `ProductOptionGroup`, `ModificationType.Choice`, `OrderItemModification.OptionChoiceId` et `Position` ; choix offerts et prix par choix supplémentaire supprimés le 2026-11-24 (`RemoveOptionGroupFreeChoices`) | sandwichs (pain, sauces), pizzas (taille) — [US-E02-9](../10-cahier-des-charges/E02-carte.md#us-e02-9--définir-les-groupes-doptions-et-les-proposer-sur-les-produits) | J5 |
 
 Chaque écart est une migration nommée (`dotnet ef migrations add <Nom>`) ; plus de
 régénération d'`InitialCreate` une fois la première mise en production faite.

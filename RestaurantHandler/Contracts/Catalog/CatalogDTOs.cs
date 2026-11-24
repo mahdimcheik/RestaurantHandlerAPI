@@ -180,12 +180,11 @@ public class ProductOptionGroupWrite
     public OptionGroupRules? Rules { get; set; }
 }
 
-/// <summary>Nombre d'unités à choisir dans un groupe, et combien sont incluses dans le prix.</summary>
+/// <summary>Nombre d'unités à choisir dans un groupe.</summary>
 public class OptionGroupRules : IValidatableObject
 {
     [Required, Range(0, 20)] public int MinChoices { get; set; }
     [Required, Range(1, 20)] public int MaxChoices { get; set; } = 1;
-    [Required, Range(0, 20)] public int FreeChoices { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
@@ -210,13 +209,6 @@ public class OptionGroupWrite : IValidatableObject
 
     [Range(1, 20)]
     public int MaxChoices { get; set; } = 1;
-
-    /// <summary>Choix inclus avant de facturer <see cref="ExtraChoicePriceCents"/> ; tous si absent.</summary>
-    [Range(0, 20)]
-    public int? FreeChoices { get; set; }
-
-    [Range(0, 100_000)]
-    public int ExtraChoicePriceCents { get; set; }
 
     /// <summary>Nombre de fois qu'un même choix peut être pris (2 = double jambon) ; 1 = choix distincts.</summary>
     [Range(1, 10)]
@@ -265,8 +257,6 @@ public class OptionGroupDetails
     [Required] public int Position { get; set; }
     [Required] public int MinChoices { get; set; }
     [Required] public int MaxChoices { get; set; }
-    [Required] public int FreeChoices { get; set; }
-    [Required] public int ExtraChoicePriceCents { get; set; }
     [Required] public int MaxPerChoice { get; set; }
 
     /// <summary>Bornes redéfinies par le produit (détail d'un produit) ; nul = celles du groupe.</summary>

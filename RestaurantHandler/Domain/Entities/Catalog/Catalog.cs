@@ -118,11 +118,6 @@ public class OptionGroup : BaseModel
     public int MinChoices { get; set; }
     public int MaxChoices { get; set; } = 1;
 
-    /// <summary>Nombre de choix inclus ; chacun des suivants coûte <see cref="ExtraChoicePriceCents"/>.</summary>
-    public int FreeChoices { get; set; } = 1;
-
-    public int ExtraChoicePriceCents { get; set; }
-
     /// <summary>Nombre de fois qu'un même choix peut être pris ; 1 = choix distincts.</summary>
     public int MaxPerChoice { get; set; } = 1;
 
@@ -155,7 +150,7 @@ public class OptionChoice : BaseModel
 /// <summary>
 /// Groupe d'options proposé sur un produit, à sa place dans l'ordre d'affichage. Les bornes du
 /// groupe s'appliquent sauf si le produit les redéfinit (même liste « Ingrédients », 3 sur une
-/// pizza, 5 sur une autre) : les trois valeurs sont toutes renseignées ou toutes nulles.
+/// pizza, 5 sur une autre) : les deux valeurs sont toutes deux renseignées ou toutes deux nulles.
 /// </summary>
 public class ProductOptionGroup
 {
@@ -169,7 +164,6 @@ public class ProductOptionGroup
 
     public int? MinChoices { get; set; }
     public int? MaxChoices { get; set; }
-    public int? FreeChoices { get; set; }
 }
 
 public class Menu : BaseModel

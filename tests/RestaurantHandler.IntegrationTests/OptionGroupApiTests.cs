@@ -50,7 +50,7 @@ public class OptionGroupApiTests(ApiFixture api) : IAsyncLifetime
         }, ApiFixture.Json));
         var sauces = await OkDataAsync(await manager.PostAsJsonAsync("/manage/option-groups", new
         {
-            label = $"Sauces {suffix}", minChoices = 0, maxChoices = 3, freeChoices = 2, extraChoicePriceCents = 50,
+            label = $"Sauces {suffix}", minChoices = 0, maxChoices = 3,
             choices = new object[]
             {
                 new { name = "Blanche", ingredientId = blanche },
@@ -109,7 +109,7 @@ public class OptionGroupApiTests(ApiFixture api) : IAsyncLifetime
 
         var order = await OkDataAsync(response);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.Equal(850, order.GetProperty("totalCents").GetInt32());
+        Assert.Equal(800, order.GetProperty("totalCents").GetInt32());
         var labels = order.GetProperty("items")[0].GetProperty("modifications").EnumerateArray()
             .Select(m => m.GetProperty("label").GetString());
         Assert.Equal(
@@ -261,7 +261,7 @@ public class OptionGroupApiTests(ApiFixture api) : IAsyncLifetime
         var suffix = Guid.NewGuid().ToString("N")[..6];
         var group = await OkDataAsync(await manager.PostAsJsonAsync("/manage/option-groups", new
         {
-            label = $"Ingrédients {suffix}", minChoices = 3, maxChoices = 3, freeChoices = 3, maxPerChoice = 2,
+            label = $"Ingrédients {suffix}", minChoices = 3, maxChoices = 3, maxPerChoice = 2,
             choices = new[] { new { name = "Jambon" }, new { name = "Œuf" }, new { name = "Olives" } },
         }, ApiFixture.Json));
         var groupId = group.GetProperty("id").GetGuid();
@@ -273,7 +273,7 @@ public class OptionGroupApiTests(ApiFixture api) : IAsyncLifetime
         await LinkAsync(manager, pizza3, groupId);
         var details = await OkDataAsync(await manager.PutAsJsonAsync($"/manage/products/{pizza5}/option-groups", new
         {
-            optionGroups = new[] { new { optionGroupId = groupId, rules = new { minChoices = 5, maxChoices = 5, freeChoices = 5 } } },
+            optionGroups = new[] { new { optionGroupId = groupId, rules = new { minChoices = 5, maxChoices = 5 } } },
         }, ApiFixture.Json));
         Assert.Equal(5, details.GetProperty("optionGroups")[0].GetProperty("productRules").GetProperty("minChoices").GetInt32());
 
@@ -309,7 +309,7 @@ public class OptionGroupApiTests(ApiFixture api) : IAsyncLifetime
         // Retirer un choix rendrait le minimum de la pizza 5 inatteignable (2 choix × 2 < 5).
         var shrink = await manager.PutAsJsonAsync($"/manage/option-groups/{groupId}", new
         {
-            label = $"Ingrédients {suffix}", minChoices = 3, maxChoices = 3, freeChoices = 3, maxPerChoice = 2,
+            label = $"Ingrédients {suffix}", minChoices = 3, maxChoices = 3, maxPerChoice = 2,
             choices = new[] { new { id = jambon, name = "Jambon" }, new { id = oeuf, name = "Œuf" } },
         }, ApiFixture.Json);
         Assert.False(shrink.IsSuccessStatusCode);

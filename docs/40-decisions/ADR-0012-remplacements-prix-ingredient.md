@@ -21,7 +21,7 @@ saumon) doivent coûter plus cher.
   ingrédient disponible et proposé en remplacement, au surcoût
   `max(0, prix du remplaçant − prix du remplacé)`. Le prix ne baisse jamais.
 - Les **suppléments** passent par un **groupe d'options facultatif** (« Suppléments pizza » :
-  minimum 0, choix offerts 0, un choix payant par ingrédient, plusieurs fois si besoin), partagé
+  minimum 0, un choix payant par ingrédient, plusieurs fois si besoin), partagé
   entre produits.
 - `IngredientSubstitution` et `ProductSupplement` sont supprimés. `ModificationType.Supplement`
   reste pour les commandes passées ; le panier le refuse.

@@ -558,12 +558,6 @@ namespace RestaurantHandler.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("ExtraChoicePriceCents")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("FreeChoices")
-                        .HasColumnType("integer");
-
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -594,10 +588,6 @@ namespace RestaurantHandler.Migrations
                     b.ToTable("OptionGroups", t =>
                         {
                             t.HasCheckConstraint("CK_OptionGroups_Choices", "\"MinChoices\" >= 0 AND \"MaxChoices\" >= 1 AND \"MinChoices\" <= \"MaxChoices\"");
-
-                            t.HasCheckConstraint("CK_OptionGroups_ExtraChoicePriceCents", "\"ExtraChoicePriceCents\" >= 0");
-
-                            t.HasCheckConstraint("CK_OptionGroups_FreeChoices", "\"FreeChoices\" >= 0");
 
                             t.HasCheckConstraint("CK_OptionGroups_MaxPerChoice", "\"MaxPerChoice\" >= 1");
                         });
@@ -1075,9 +1065,6 @@ namespace RestaurantHandler.Migrations
                     b.Property<Guid>("OptionGroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<int?>("FreeChoices")
-                        .HasColumnType("integer");
-
                     b.Property<int?>("MaxChoices")
                         .HasColumnType("integer");
 
@@ -1095,7 +1082,7 @@ namespace RestaurantHandler.Migrations
 
                     b.ToTable("ProductOptionGroups", t =>
                         {
-                            t.HasCheckConstraint("CK_ProductOptionGroups_Choices", "(\"MinChoices\" IS NULL AND \"MaxChoices\" IS NULL AND \"FreeChoices\" IS NULL) OR (\"MinChoices\" >= 0 AND \"MaxChoices\" >= 1 AND \"MinChoices\" <= \"MaxChoices\" AND \"FreeChoices\" >= 0)");
+                            t.HasCheckConstraint("CK_ProductOptionGroups_Choices", "(\"MinChoices\" IS NULL AND \"MaxChoices\" IS NULL) OR (\"MinChoices\" >= 0 AND \"MaxChoices\" >= 1 AND \"MinChoices\" <= \"MaxChoices\")");
                         });
                 });
 

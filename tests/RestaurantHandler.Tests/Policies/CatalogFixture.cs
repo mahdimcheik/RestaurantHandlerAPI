@@ -51,17 +51,17 @@ public class CatalogFixture
         GrandCola = new Product { Id = Guid.NewGuid(), Name = "Grand Cola", Category = Burgers, PriceCents = 350, VatRate = 5.5m };
 
         Kebab = new Product { Id = Guid.NewGuid(), Name = "Kebab", Category = Burgers, PriceCents = 800, VatRate = 10 };
-        PainGroup = Group("Pain", 1, 1, 1, 0, Choice("Baguette", 0, Baguette), Choice("Pita", 0, Pita));
-        SauceGroup = Group("Sauces", 0, 3, 2, 50,
+        PainGroup = Group("Pain", 1, 1, Choice("Baguette", 0, Baguette), Choice("Pita", 0, Pita));
+        SauceGroup = Group("Sauces", 0, 3,
             Choice("Blanche", 0, Blanche), Choice("Algérienne", 0, Algerienne), Choice("Samouraï", 0, Samourai));
         Link(Kebab, PainGroup, 0);
         Link(Kebab, SauceGroup, 1);
 
         Margherita = new Product { Id = Guid.NewGuid(), Name = "Margherita", Category = Burgers, PriceCents = 1000, VatRate = 10 };
-        TailleGroup = Group("Taille", 1, 1, 1, 0, Choice("29 cm", 0), Choice("33 cm", 300));
+        TailleGroup = Group("Taille", 1, 1, Choice("29 cm", 0), Choice("33 cm", 300));
         Link(Margherita, TailleGroup, 0);
 
-        IngredientsGroup = Group("Ingrédients", 3, 3, 3, 150,
+        IngredientsGroup = Group("Ingrédients", 3, 3,
             Choice("Jambon", 0, Jambon), Choice("Œuf", 0, Oeuf), Choice("Olives", 0, Olives));
         IngredientsGroup.MaxPerChoice = 2;
         Pizza3 = new Product { Id = Guid.NewGuid(), Name = "Pizza 3", Category = Burgers, PriceCents = 900, VatRate = 10 };
@@ -69,7 +69,7 @@ public class CatalogFixture
         Pizza5 = new Product { Id = Guid.NewGuid(), Name = "Pizza 5", Category = Burgers, PriceCents = 1100, VatRate = 10 };
         Link(Pizza5, IngredientsGroup, 0);
         var rules = Pizza5.OptionGroups.Single();
-        (rules.MinChoices, rules.MaxChoices, rules.FreeChoices) = (5, 6, 5);
+        (rules.MinChoices, rules.MaxChoices) = (5, 6);
 
         Menu = new Menu { Id = Guid.NewGuid(), Name = "Menu Classic", PriceCents = 1290, VatRate = 10 };
         PlatSlot = new MenuSlot { Id = Guid.NewGuid(), Label = "Plat", Position = 0, MinChoices = 1, MaxChoices = 1 };
@@ -92,12 +92,12 @@ public class CatalogFixture
             ProductId = product.Id, Product = product, OptionGroupId = group.Id, OptionGroup = group, Position = position,
         });
 
-    private static OptionGroup Group(string label, int min, int max, int free, int extra, params OptionChoice[] choices)
+    private static OptionGroup Group(string label, int min, int max, params OptionChoice[] choices)
     {
         var group = new OptionGroup
         {
             Id = Guid.NewGuid(), Label = label,
-            MinChoices = min, MaxChoices = max, FreeChoices = free, ExtraChoicePriceCents = extra,
+            MinChoices = min, MaxChoices = max,
         };
         for (var i = 0; i < choices.Length; i++)
         {

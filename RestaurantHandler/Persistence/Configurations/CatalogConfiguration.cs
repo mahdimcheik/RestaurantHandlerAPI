@@ -75,8 +75,6 @@ public class OptionGroupConfiguration : IEntityTypeConfiguration<OptionGroup>
                 "CK_OptionGroups_Choices",
                 "\"MinChoices\" >= 0 AND \"MaxChoices\" >= 1 AND \"MinChoices\" <= \"MaxChoices\""
             );
-            t.HasCheckConstraint("CK_OptionGroups_FreeChoices", "\"FreeChoices\" >= 0");
-            t.HasCheckConstraint("CK_OptionGroups_ExtraChoicePriceCents", "\"ExtraChoicePriceCents\" >= 0");
             t.HasCheckConstraint("CK_OptionGroups_MaxPerChoice", "\"MaxPerChoice\" >= 1");
         });
 
@@ -118,8 +116,8 @@ public class ProductOptionGroupConfiguration : IEntityTypeConfiguration<ProductO
         builder.HasIndex(l => new { l.ProductId, l.Position });
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_ProductOptionGroups_Choices",
-            "(\"MinChoices\" IS NULL AND \"MaxChoices\" IS NULL AND \"FreeChoices\" IS NULL) OR "
-                + "(\"MinChoices\" >= 0 AND \"MaxChoices\" >= 1 AND \"MinChoices\" <= \"MaxChoices\" AND \"FreeChoices\" >= 0)"
+            "(\"MinChoices\" IS NULL AND \"MaxChoices\" IS NULL) OR "
+                + "(\"MinChoices\" >= 0 AND \"MaxChoices\" >= 1 AND \"MinChoices\" <= \"MaxChoices\")"
         ));
         builder.HasIndex(l => l.OptionGroupId);
 

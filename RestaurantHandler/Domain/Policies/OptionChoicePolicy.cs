@@ -6,15 +6,13 @@ namespace RestaurantHandler.Domain.Policies;
 /// Choix dans les groupes d'options d'un produit (R4, docs/20-regles-metier/01-regles-commande.md) :
 /// chaque groupe actif reçoit entre son minimum et son maximum d'unités, chaque choix proposé au
 /// plus <see cref="OptionGroup.MaxPerChoice"/> fois (double jambon = 2 unités).
-/// Prix d'un groupe = Σ surcoûts des unités + (unités − incluses)⁺ × prix d'un choix en plus.
+/// Prix d'un groupe = Σ surcoût du choix × quantité.
 /// </summary>
 public static class OptionChoicePolicy
 {
     /// <summary>
-    /// Une modification par choix, groupes et choix dans l'ordre de la carte ; un choix à cheval
-    /// sur la limite des unités incluses est scindé en une part incluse et une part payante. Les
-    /// unités payantes sont les dernières dans l'ordre de la carte : le total ne dépend pas de
-    /// l'ordre de la requête. Renvoie null après avoir signalé chaque écart.
+    /// Une modification par choix, groupes et choix dans l'ordre de la carte. Renvoie null après
+    /// avoir signalé chaque écart.
     /// </summary>
     public static List<OrderItemModification>? Build(
         Product product,
@@ -72,7 +70,6 @@ public static class OptionChoicePolicy
                 continue;
             }
 
-            var counted = 0;
             foreach (var (choice, quantity) in chosen)
             {
                 if (!AvailabilityPolicy.IsOptionChoiceOffered(choice))
@@ -82,16 +79,7 @@ public static class OptionChoicePolicy
                     continue;
                 }
 
-                var included = Math.Clamp(offered.FreeChoices - counted, 0, quantity);
-                counted += quantity;
-                var paid = quantity - included;
-                if (group.ExtraChoicePriceCents == 0)
-                    (included, paid) = (quantity, 0);
-
-                if (included > 0)
-                    modifications.Add(ChoiceModification(group, choice, included, choice.ExtraPriceCents));
-                if (paid > 0)
-                    modifications.Add(ChoiceModification(group, choice, paid, choice.ExtraPriceCents + group.ExtraChoicePriceCents));
+                modifications.Add(ChoiceModification(group, choice, quantity, choice.ExtraPriceCents));
             }
         }
 

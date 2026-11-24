@@ -9,14 +9,14 @@ public sealed record ProductAvailability(bool IsOrderable, IReadOnlyList<Guid> F
 }
 
 /// <summary>Groupe d'options tel qu'un produit le propose : bornes du produit, sinon du groupe.</summary>
-public sealed record OfferedOptionGroup(OptionGroup Group, int MinChoices, int MaxChoices, int FreeChoices)
+public sealed record OfferedOptionGroup(OptionGroup Group, int MinChoices, int MaxChoices)
 {
     public static OfferedOptionGroup From(ProductOptionGroup link)
     {
         var group = link.OptionGroup!;
-        return link is { MinChoices: { } min, MaxChoices: { } max, FreeChoices: { } free }
-            ? new(group, min, max, free)
-            : new(group, group.MinChoices, group.MaxChoices, group.FreeChoices);
+        return link is { MinChoices: { } min, MaxChoices: { } max }
+            ? new(group, min, max)
+            : new(group, group.MinChoices, group.MaxChoices);
     }
 
     /// <summary>Unités qu'on peut encore choisir : choix proposés × fois max par choix.</summary>
