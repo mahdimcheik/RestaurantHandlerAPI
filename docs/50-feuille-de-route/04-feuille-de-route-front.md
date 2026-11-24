@@ -375,6 +375,13 @@ thème retiré de la barre du haut (sans effet sur un parfum). Tableau de bord r
 « Bonjour Prénom » et date, trois chiffres phares, pastilles par étape, carte « Service ».
 `/cuisine` inchangé (lisibilité à 2 m). Rendu et axe à vérifier dans le navigateur.
 
+**Photos en plusieurs tailles (2026-11-24) :** l'API décline chaque photo envoyée en WebP 160,
+320, 640 et 1200 px (`…-w{taille}.webp`, [ADR-0003](../40-decisions/ADR-0003-stockage-objet.md)) ;
+le client fournit un `IMAGE_LOADER` (`core/images/catalog-image-loader.ts`) qui choisit la taille
+dans le `srcset` 1x/2x de `NgOptimizedImage` : vignettes du rail et du back-office en 160/320,
+cartes en 320/640, fiches en 640/1200. Photos déjà envoyées inchangées (à renvoyer pour en
+profiter). Reste : poids des images de `/commander` mesuré dans le navigateur avant/après.
+
 **Reste :**
 - Acceptation par le Manager puis cuisine jusqu'à « Prête » vue côté client ; parcours 1 avec
   SumUp en sandbox (clés et URL publique de l'API pour la notification) ; menus (aucun en base

@@ -10,7 +10,10 @@ namespace RestaurantHandler.IntegrationTests;
 /// </summary>
 public sealed class FakeS3 : HttpMessageHandler
 {
-    public sealed record StoredObject(string ContentType, string? Acl, long Length);
+    public sealed record StoredObject(string ContentType, string? Acl, byte[] Body)
+    {
+        public long Length => Body.Length;
+    }
 
     public const string Bucket = "test";
 
@@ -30,7 +33,7 @@ public sealed class FakeS3 : HttpMessageHandler
             var body = request.Content is null ? [] : await request.Content.ReadAsByteArrayAsync(ct);
             var acl = request.Headers.TryGetValues("x-amz-acl", out var values) ? values.FirstOrDefault() : null;
             var type = request.Content?.Headers.ContentType?.MediaType ?? "application/octet-stream";
-            Objects[key] = new StoredObject(type, acl, body.Length);
+            Objects[key] = new StoredObject(type, acl, body);
             var ok = new HttpResponseMessage(HttpStatusCode.OK);
             ok.Headers.ETag = new System.Net.Http.Headers.EntityTagHeaderValue("\"fake\"");
             return ok;

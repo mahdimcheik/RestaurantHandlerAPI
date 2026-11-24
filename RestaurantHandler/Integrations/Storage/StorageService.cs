@@ -60,6 +60,21 @@ public class StorageService(IAmazonS3 s3, ILogger<StorageService> logger)
         return await Put(BuildKey(folder, extension), stream, ct);
     }
 
+    /// <summary>
+    /// Contenu produit par l'API, envoyé à une clé choisie par l'appelant (variantes d'une même photo
+    /// qui partagent un GUID). La clé doit provenir de <see cref="BuildKey"/>.
+    /// </summary>
+    public async Task<Response<string>> UploadBytesAt(byte[] content, string key, CancellationToken ct)
+    {
+        if (content.Length == 0)
+            return Fail(400, "Aucun fichier reçu.");
+        if (!IsValidKey(key))
+            return Fail(400, "Clé de stockage invalide.");
+
+        using var stream = new MemoryStream(content, writable: false);
+        return await Put(key, stream, ct);
+    }
+
     /// <summary>Idempotent ; un échec est journalisé, jamais propagé (au pire un fichier orphelin).</summary>
     public async Task Delete(string key, CancellationToken ct)
     {
