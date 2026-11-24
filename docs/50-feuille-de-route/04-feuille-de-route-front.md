@@ -257,7 +257,12 @@ bandeau, pages légales, PWA, appareils réels).
   fermetures à venir, téléphone).
 - `features/shop` : carte `/commander` (rubriques, prix TTC, ruptures grisées avec libellé,
   état d'ouverture et délai), fiche produit `/commander/produit/:id` (retraits, remplacements au
-  surcoût affiché, options, quantité, prix par le devis), menu `/commander/menu/:id`, panier
+  surcoût affiché, prix par le devis ; pas de sélecteur de quantité sur les fiches produit et
+  menu, une portion par ajout, petites commandes ; les groupes d'options se choisissent pas à pas
+  dans un second dialogue ouvert d'office à l'ouverture de la fiche, `shared/ordering/options-wizard.ts` : un groupe par étape, Précédent /
+  Suivant, Passer pour un groupe facultatif, avance seule après un choix unique, récapitulatif
+  où chaque groupe se corrige, vignette du choix s'il a une photo ; même assistant pour un produit
+  choisi dans un menu, le comptoir garde l'affichage d'un seul tenant), menu `/commander/menu/:id`, panier
   `/panier` conservé sur l'appareil (`localStorage`, identifiants seulement ; lignes disparues de
   la carte retirées et signalées ; nouvelle clé d'idempotence à chaque modification), TVA et
   total du devis, lignes refusées signalées une à une.
@@ -300,6 +305,16 @@ clair et sombre.
   « Votre commande » ouverte et `/panier`, après avoir foncé l'encre du parfum 1 (`#281d3c`,
   4,78:1 même sur les lignes du fond `.waves`) et placé le bandeau d'activation dans une région
   nommée.
+
+**Fait (carte à consulter, 2026-11-24) :**
+- Page `/carte` séparée de la page de commande (`features/shop/pages/menu-board-page`) : toutes
+  les rubriques à la suite (« Menus » en premier), avec les mêmes cartes produit que
+  `/commander`, et une barre collante de liens vers chaque rubrique (ancres `#rubrique-…`).
+  Un article ouvre sa fiche de commande (`/commander/produit/:id` ou `/commander/menu/:id`) ;
+  le bouton info affiche les ingrédients sur place. Ni panier ni colonne de commande.
+- Le lien « Carte » de la barre du haut et les boutons « Voir la carte » (À propos, pages
+  légales) mènent à `/carte` ; « Commander » reste sur `/commander`.
+- Tests unitaires et build OK ; rendu navigateur et axe pas encore vérifiés.
 
 **Fait (F8b) :**
 - Historique `/commandes` (US-E08-3) : plus récente en premier, pages de 20, statut en termes
