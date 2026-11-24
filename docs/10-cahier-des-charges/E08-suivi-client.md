@@ -28,7 +28,7 @@ de ne pas la chercher.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`GET /orders/mine/current`) ; bandeau en J4.
+**Avancement :** API faite en J2 (`GET /orders/mine/current`) ; bandeau fait (F8b).
 
 **Critères d'acceptation**
 - Un bandeau « Commande n° 42 — En préparation » est affiché sur toutes les pages tant qu'une
@@ -40,7 +40,7 @@ En tant que client, je veux voir mes commandes passées et leur reçu afin de ga
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`GET /orders/mine` paginé, détail depuis les snapshots) ; écran en J4.
+**Avancement :** API faite en J2 (`GET /orders/mine` paginé, détail depuis les snapshots) ; écran fait (F8b : `/commandes`).
 
 **Critères d'acceptation**
 - Liste paginée, plus récente en premier : date, numéro, total, statut.
