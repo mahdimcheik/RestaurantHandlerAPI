@@ -13,7 +13,7 @@ attendre.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J3 (checkout à page hébergée SumUp, `paymentUrl`, nouvelle tentative `POST /orders/{id}/payment`, bascule `POST /orders/{id}/pay-on-site`, anomalie si montant ≠ total), testée contre un faux SumUp ; **paiement sandbox réel à faire** (clés et URL publique) ; écran en J4.
+**Avancement :** API faite en J3 (checkout à page hébergée SumUp, `paymentUrl`, nouvelle tentative `POST /orders/{id}/payment`, bascule `POST /orders/{id}/pay-on-site`, anomalie si montant ≠ total), testée contre un faux SumUp ; **paiement sandbox réel à faire** (clés et URL publique) ; écran fait (F8a : choix du paiement, redirection, nouvel essai et bascule depuis le suivi).
 
 **Critères d'acceptation**
 - La validation crée un *checkout* SumUp du montant calculé par le serveur, en EUR, avec une
@@ -81,7 +81,7 @@ présenter (note de frais).
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J3 (`GET /orders/{id}/receipt`, commande payée uniquement) ; contenu à valider (question 2) ; page en J4.
+**Avancement :** API faite en J3 (`GET /orders/{id}/receipt`, commande payée uniquement) ; contenu à valider (question 2) ; page faite (F8b : `/commandes/:id/recu`, imprimable).
 
 **Critères d'acceptation**
 - Une page « reçu » de la commande, accessible depuis l'historique, affiche : restaurant

@@ -25,7 +25,7 @@ Statuts : ✅ terminé · 🟡 en cours · ⬜ à faire.
 | **F6 — KDS** | La cuisine prépare sans papier | E07 | file lisible à 2 m, gestes annulables | 🟡 |
 | **F7 — Pilotage** | Statistiques et utilisateurs | US-E09-1→3, US-E10-1→4 | chiffres du jour justes | 🟡 |
 | → **Sortie J5** | | | **service simulé de 30 min sans papier** | |
-| **F8 — PWA client** | Commander, payer, suivre | E04, E05, E08, légal | **parcours 1 et 2 sur iPhone et Android réels (sortie J4)** | ⬜ |
+| **F8 — PWA client** | Commander, payer, suivre | E04, E05, E08, légal | **parcours 1 et 2 sur iPhone et Android réels (sortie J4)** | 🟡 |
 | **F9 — Qualité** (en continu) | Sûreté, accessibilité, tests de bout en bout | — | axe sans violation, E2E verts en CI | 🟡 |
 
 ## F0 — Socle — ✅
@@ -236,21 +236,87 @@ utilisateurs ; « C'est votre compte » sur sa propre fiche ; thèmes clair et s
 
 **→ Sortie J5 :** service simulé de 30 minutes (comptoir + en ligne + KDS) sans papier.
 
-## F8 — PWA client (E04, E05, E08) — ⬜
+## F8 — PWA client (E04, E05, E08) — 🟡
 
-- PWA installable : manifest, service worker (ressources statiques et carte en cache,
-  **jamais** commandes ni paiements).
-- Accueil branché sur `/restaurant/info` et `/restaurant/status` (ouvert, fermé, en pause).
-- Carte (US-E02-1), fiche produit avec options, retraits et remplacements (US-E04-1),
-  composition de menu (US-E04-2), panier persistant, devis par l'API.
-- Moment du retrait ASAP ou créneau (US-E04-3), validation avec refus détaillé par ligne
-  (US-E04-4, US-E04-5), commande exigeant un compte (US-E01-3).
-- Paiement en ligne SumUp ou au retrait (US-E05-1), reçu (US-E05-5).
-- Suivi temps réel (US-E08-1), bandeau « commande en cours » (US-E08-2), annulation
-  (US-E04-6), historique (US-E08-3).
-- Pages légales : CGV, confidentialité, mentions, lien allergènes
-  ([conformité](../20-regles-metier/04-conformite-legale.md)).
-- **Sortie (J4) :** parcours 1 et 2 complets sur un iPhone et un Android réels.
+Livrée en deux tranches : **F8a** (commander, payer, suivre) puis **F8b** (historique, reçu,
+bandeau, pages légales, PWA, appareils réels).
+
+**Fait (F8a) :**
+- API : refus de panier documenté dans l'OpenAPI (`CartProblemDetails`, `issues` par ligne,
+  409 sur `POST /orders/quote` et `POST /orders`) ; `GET /orders/checkout-options` (rôle Client :
+  paiement en ligne actif, paiement au retrait possible ou motif du blocage, même règle que la
+  validation) ; tests `OrderApiTests`.
+- Logique de personnalisation commune au comptoir et à la commande en ligne dans
+  `shared/ordering/` : modèle neutre avec adaptateurs carte de gestion / carte publique, bornes,
+  libellés, `Cart` (clé d'idempotence), corps de formulaire `app-product-options` et
+  `app-menu-slots` (le comptoir garde ses dialogues).
+- `shared/services/public-store.service.ts` : carte publique et infos du restaurant en cache,
+  carte relue sur `AvailabilityChanged` (`catalog`) et à chaque resynchronisation ; connexion
+  temps réel anonyme ouverte par les pages client.
+- Accueil branché sur `/restaurant/info` et l'état d'ouverture (horaires de la semaine,
+  fermetures à venir, téléphone).
+- `features/shop` : carte `/commander` (rubriques, prix TTC, ruptures grisées avec libellé,
+  état d'ouverture et délai), fiche produit `/commander/produit/:id` (retraits, remplacements au
+  surcoût affiché, options, quantité, prix par le devis), menu `/commander/menu/:id`, panier
+  `/panier` conservé sur l'appareil (`localStorage`, identifiants seulement ; lignes disparues de
+  la carte retirées et signalées ; nouvelle clé d'idempotence à chaque modification), TVA et
+  total du devis, lignes refusées signalées une à une.
+- Validation `/commander/valider` (compte exigé, retour après connexion) : dès que possible si
+  ouvert, créneaux du jour, aucun → commande impossible ; paiement en ligne / au retrait selon
+  `checkout-options` (motif du blocage affiché) ; note ; 409 avec `issues` → retour au panier ;
+  paiement en ligne → redirection vers l'adresse `https` renvoyée par l'API.
+- Suivi `/commandes/:id` (adresse de retour SumUp) : numéro du jour, statut en termes client,
+  retrait, total, paiement, contenu ; relu sur `OrderStatusChanged`, à chaque resynchronisation
+  et toutes les 5 s tant que le paiement en ligne est attendu ; « Prête » mise en avant
+  (bandeau, annonce, vibration) ; payer de nouveau, passer au paiement au retrait, annuler avant
+  préparation (confirmation).
+
+**Vérifié contre la vraie API (2026-11-23, Chrome) :** parcours 2 jusqu'à la commande « à
+valider » : fiche produit avec retrait, remplacement, sauce et taille (prix du devis exact),
+panier conservé au rechargement, connexion exigée puis retour à la validation, créneau choisi
+restaurant fermé, commande créée et suivi ouvert ; annulation depuis un deuxième onglet
+répercutée seule dans le premier (SignalR) ; compte Manager refusé à la validation ; thèmes
+clair et sombre.
+
+**Fait (F8b) :**
+- Historique `/commandes` (US-E08-3) : plus récente en premier, pages de 20, statut en termes
+  client ; lien « Mes commandes » dans l'en-tête pour un client connecté.
+- Reçu `/commandes/:id/recu` (US-E05-5) : vendeur (raison sociale, adresse, SIRET, n° TVA),
+  commande, lignes, total HT, TVA par taux, TTC, paiements réussis ; imprimable (en-tête et
+  boutons masqués). Proposé depuis le suivi pour une commande payée en ligne seulement (sur
+  place, le ticket vient de la caisse certifiée). Contenu provisoire (question 2).
+- Bandeau « Commande n° 42 — En préparation » sous l'en-tête de toutes les pages client
+  (US-E08-2), relu à chaque changement de statut et resynchronisation, mis en avant à « Prête »
+  (`shared/services/current-order.service.ts`, `shared/ui/current-order-banner`).
+- Pages `/cgv`, `/confidentialite`, `/mentions-legales`, `/allergenes` (`features/legal`) :
+  identité du vendeur lue sur `/restaurant/info`, rubriques non rédigées signalées « À
+  rédiger » et bandeau « texte en cours de rédaction » ; lien « Informations allergènes
+  disponibles » sur la carte et chaque fiche produit ; liens dans le pied de page, à la
+  validation et à l'inscription.
+- PWA (`@angular/service-worker`) : `manifest.webmanifest` (français, `start_url` `/`,
+  icônes provisoires monochromes, dont masquables), méta iOS et `theme-color` clair / sombre ;
+  `ngsw-config.json` : coquille préchargée, images à la demande, `/api/menu` et
+  `/api/restaurant/info` en « fraîcheur » (réseau d'abord, 3 s, 1 jour), **aucune autre route
+  `/api` en cache**, `/api` et `/hubs` exclus de la navigation ; bandeau « Une nouvelle version
+  est disponible — Recharger », jamais pendant la validation d'une commande ni la saisie
+  comptoir.
+
+**Vérifié (2026-11-23, Chrome, build de production servi tel quel) :** service worker actif
+en état normal ; seul `/api/menu` dans le cache de données (commandes et état d'ouverture
+absents) ; serveur arrêté, la carte se rouvre depuis le cache. Historique et accueil contre la
+vraie API. Le service worker ne se teste pas avec `ng serve` (fichiers servis différents des
+empreintes de `ngsw.json` : état dégradé) : servir `dist/`.
+
+**Reste :**
+- Acceptation par le Manager puis cuisine jusqu'à « Prête » vue côté client ; parcours 1 avec
+  SumUp en sandbox (clés et URL publique de l'API pour la notification) ; menus (aucun en base
+  de dev) ; rendu 360 px et axe sur toutes les pages client.
+- Textes des CGV, de la politique de confidentialité, de l'hébergeur et document des
+  allergènes, à rédiger et valider hors du code (questions 6 et 8) ; identité visuelle et
+  icônes définitives (question 14).
+- CSP de production : SumUp n'est qu'une redirection (aucun script), `worker-src 'self'`.
+- **Sortie (J4) :** parcours 1 et 2 complets sur un iPhone (Safari, installée ou non) et un
+  Android (Chrome), application servie en HTTPS.
 
 ## F9 — Qualité transverse (en continu) — 🟡
 
@@ -268,8 +334,6 @@ ponctuels sur l'auth ; budgets de build.
 ## Dette front connue
 
 - Image `auth.webp` provisoire.
-- Accueil en dur (adresse, horaires, téléphone) ; bouton « Commander » vers `/commander`, qui
-  n'existe pas encore (F8).
 - Dossier `src/app/design-dev` vide.
 - Jeton d'accès en mémoire tant qu'ADR-0002 n'est pas appliquée côté API.
 

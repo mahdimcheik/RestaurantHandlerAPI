@@ -11,7 +11,7 @@ je veux.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** Règles et prix côté serveur faits en J2 (`POST /orders/quote`, R2/R4) ; panier en J4.
+**Avancement :** Règles et prix côté serveur faits en J2 (`POST /orders/quote`, R2/R4) ; écran fait (F8a : fiche produit, prix par le devis, panier conservé sur l'appareil).
 
 **Critères d'acceptation**
 - Seuls les ingrédients retirables peuvent être retirés ou remplacés ; un remplacement se fait
@@ -30,7 +30,7 @@ personnaliser) afin de commander une formule.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** Règles de menu faites en J2 (R5, surcoûts, personnalisation des composants) ; écran en J4.
+**Avancement :** Règles de menu faites en J2 (R5, surcoûts, personnalisation des composants) ; écran fait (F8a : `/commander/menu/:id`).
 
 **Critères d'acceptation**
 - Le nombre de choix par emplacement respecte son minimum et son maximum ; un emplacement
@@ -45,7 +45,7 @@ ma commande quand cela m'arrange.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (ASAP si ouvert et hors pause, créneau du jour non plein) ; écran en J4.
+**Avancement :** API faite en J2 (ASAP si ouvert et hors pause, créneau du jour non plein) ; écran fait (F8a : validation `/commander/valider`).
 
 **Critères d'acceptation**
 - « Dès que possible » n'est proposé que si le restaurant est ouvert et non en pause ; l'heure
@@ -62,7 +62,7 @@ commande soit transmise au restaurant.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`POST /orders` : recalcul, revérification, refus détaillé par ligne, idempotence, numéro du jour) ; redirection SumUp en J3.
+**Avancement :** API faite en J2 (`POST /orders` : recalcul, revérification, refus détaillé par ligne, idempotence, numéro du jour) ; redirection SumUp en J3 ; écran fait (F8a : lignes refusées signalées au panier).
 
 **Critères d'acceptation**
 - Le serveur **recalcule** le total à partir de la carte en vigueur ; le total envoyé par le
@@ -84,7 +84,7 @@ retirées.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (une commande au retrait en cours, blocage au seuil de non-venues, levée par `POST /manage/customers/{id}/no-shows/reset`) ; écran en J5.
+**Avancement :** API faite en J2 (une commande au retrait en cours, blocage au seuil de non-venues, levée par `POST /manage/customers/{id}/no-shows/reset`) ; `GET /orders/checkout-options` annonce le blocage avant la validation (F8a).
 
 **Critères d'acceptation**
 - Un client a au plus une commande « payer au retrait » en cours.
@@ -98,7 +98,7 @@ corriger une erreur.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`POST /orders/{id}/cancel`) ; remboursement en ligne en J3.
+**Avancement :** API faite en J2 (`POST /orders/{id}/cancel`) ; remboursement en ligne en J3 ; bouton sur le suivi (F8a).
 
 **Critères d'acceptation**
 - Annulation possible en `En attente de paiement`, `À valider` ou `Confirmée` ; impossible à

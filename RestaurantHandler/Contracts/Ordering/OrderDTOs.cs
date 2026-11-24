@@ -131,6 +131,31 @@ public class CartIssueDto
     [Required] public string Message { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Corps d'un refus de panier (409) sur <c>POST /orders/quote</c> et <c>POST /orders</c> :
+/// ProblemDetails enrichi du détail par ligne.
+/// </summary>
+public class CartProblemDetails
+{
+    [Required] public int Status { get; set; }
+    public string? Title { get; set; }
+    public string? Detail { get; set; }
+    public string? Message { get; set; }
+    [Required] public List<CartIssueDto> Issues { get; set; } = [];
+}
+
+/// <summary>
+/// Modes de paiement proposables au client connecté avant la validation (US-E04-5, US-E05-1).
+/// Indication pour l'écran : <c>POST /orders</c> revérifie tout.
+/// </summary>
+public class CheckoutOptions
+{
+    [Required] public bool OnlinePaymentEnabled { get; set; }
+    [Required] public bool CanPayOnSite { get; set; }
+    /// <summary>Motif à afficher quand le paiement au retrait est indisponible.</summary>
+    public string? PayOnSiteBlockedReason { get; set; }
+}
+
 // ---------- Lecture ----------
 
 public class VatLineDto
