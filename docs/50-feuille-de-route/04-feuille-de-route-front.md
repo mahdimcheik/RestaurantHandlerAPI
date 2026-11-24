@@ -366,6 +366,15 @@ accroche et assiette à gauche dès 60rem, formulaire dans une carte (`.auth__ca
 `_brand.scss`) ; boutons `.btn-brand`. Image `auth.webp` retirée. Rendu vérifié en Chrome
 headless (grand écran, téléphone) ; axe à repasser.
 
+**Nouveau design — back-office (2026-11-24) :** toute la gestion `/gestion` passe au parfum 1
+(clair dans les deux thèmes) : la coquille `shared/ui/admin-layout` pose `.brand--1 .brand-ui`
+et le fond ondulé, et les pages suivent sans changer de gabarit (classes de `_admin.scss`
+redessinées : cartes à bord plein et coins arrondis, voile clair, titres en police d'affiche).
+Menu latéral par rubriques (Service, Carte, Réglages), nom du restaurant en tête ; sélecteur de
+thème retiré de la barre du haut (sans effet sur un parfum). Tableau de bord recomposé :
+« Bonjour Prénom » et date, trois chiffres phares, pastilles par étape, carte « Service ».
+`/cuisine` inchangé (lisibilité à 2 m). Rendu et axe à vérifier dans le navigateur.
+
 **Reste :**
 - Acceptation par le Manager puis cuisine jusqu'à « Prête » vue côté client ; parcours 1 avec
   SumUp en sandbox (clés et URL publique de l'API pour la notification) ; menus (aucun en base
