@@ -359,6 +359,13 @@ nouveau design (`shared/ui/site-topbar` : menu, panier) à la place de l'en-têt
 `@fontsource/archivo`), rendu vérifié dans le navigateur, nombre d'articles sur le bouton
 panier (déplacer `CartStore` dans `shared`).
 
+**Nouveau design — écrans de compte (2026-11-24) :** connexion, inscription, mot de passe
+oublié, nouveau mot de passe, confirmations et lien d'activation expiré passent au nouveau
+design par `shared/ui/auth-layout` : parfum 1 (lilas, `.brand-ui`), fond ondulé, barre du haut,
+accroche et assiette à gauche dès 60rem, formulaire dans une carte (`.auth__card`,
+`_brand.scss`) ; boutons `.btn-brand`. Image `auth.webp` retirée. Rendu vérifié en Chrome
+headless (grand écran, téléphone) ; axe à repasser.
+
 **Reste :**
 - Acceptation par le Manager puis cuisine jusqu'à « Prête » vue côté client ; parcours 1 avec
   SumUp en sandbox (clés et URL publique de l'API pour la notification) ; menus (aucun en base
@@ -385,7 +392,6 @@ ponctuels sur l'auth ; budgets de build.
 
 ## Dette front connue
 
-- Image `auth.webp` provisoire.
 - Dossier `src/app/design-dev` vide.
 - Jeton d'accès en mémoire tant qu'ADR-0002 n'est pas appliquée côté API.
 
