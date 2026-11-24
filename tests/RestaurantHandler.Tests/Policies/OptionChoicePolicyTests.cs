@@ -3,7 +3,7 @@ using RestaurantHandler.Models;
 
 namespace RestaurantHandler.Tests.Policies;
 
-/// <summary>Groupes d'options (R4) : pain obligatoire, sauces bornées avec gratuité, taille avec surcoût.</summary>
+/// <summary>Groupes d'options (R4) : pain obligatoire, sauces bornées, taille avec surcoût ; seul le surcoût des choix est facturé.</summary>
 public class OptionChoicePolicyTests
 {
     private readonly CatalogFixture _c = new();
@@ -22,7 +22,7 @@ public class OptionChoicePolicyTests
     private OptionChoice Garniture(string name) => _c.ChoiceOf(_c.IngredientsGroup, name);
 
     [Fact]
-    public void Pain_et_deux_sauces_offertes_au_prix_du_produit_avec_libelles()
+    public void Pain_et_deux_sauces_sans_surcout_au_prix_du_produit_avec_libelles()
     {
         var cart = Price(Product(_c.Kebab.Id, Sauce("Algérienne"), Pain("Pita"), Sauce("Blanche")));
 
@@ -35,15 +35,17 @@ public class OptionChoicePolicyTests
     }
 
     [Fact]
-    public void Troisieme_sauce_payante_quel_que_soit_l_ordre_de_la_requete()
+    public void Seul_le_surcout_du_choix_est_facture_quel_que_soit_l_ordre_de_la_requete()
     {
+        Sauce("Samouraï").ExtraPriceCents = 100;
+
         var first = Price(Product(_c.Kebab.Id, Pain("Baguette"), Sauce("Samouraï"), Sauce("Blanche"), Sauce("Algérienne")));
         var second = Price(Product(_c.Kebab.Id, Sauce("Blanche"), Sauce("Algérienne"), Pain("Baguette"), Sauce("Samouraï")));
 
-        Assert.Equal(850, first.TotalCents);
-        Assert.Equal(850, second.TotalCents);
-        // Les sauces au-delà des offertes sont facturées dans l'ordre de la carte.
-        Assert.Equal(50, first.Items[0].Modifications.Single(m => m.LabelSnapshot == "Sauces : Samouraï").UnitPriceCents);
+        Assert.Equal(900, first.TotalCents);
+        Assert.Equal(900, second.TotalCents);
+        var sauces = first.Items[0].Modifications.Where(m => m.LabelSnapshot.StartsWith("Sauces")).ToList();
+        Assert.Equal([0, 0, 100], sauces.Select(m => m.UnitPriceCents));
     }
 
     [Fact]
@@ -180,8 +182,7 @@ public class OptionChoicePolicyTests
             new CartMenuChoice(_c.BoissonSlot.Id, _c.Cola.Id, []),
         ]));
 
-        // Prix du menu + 3e sauce
-        Assert.Equal(1290 + 50, ok.TotalCents);
+        Assert.Equal(1290, ok.TotalCents);
         Assert.Contains(missingBread.Issues, i => i.Message == "Menu Classic : Kebab : choisissez 1 « Pain ».");
     }
 
@@ -252,15 +253,16 @@ public class OptionChoicePolicyTests
     }
 
     [Fact]
-    public void Unite_au_dela_des_incluses_facturee_en_scindant_le_choix()
+    public void Choix_double_a_surcout_facture_a_chaque_fois_en_une_modification()
     {
-        // Ordre de la carte : Jambon ×2, Œuf ×2, Olives ×2 ; la 6e unité (2e olive) est payante.
+        Garniture("Olives").ExtraPriceCents = 150;
+
         var cart = Price(Quantities(_c.Pizza5.Id, (Garniture("Olives"), 2), (Garniture("Jambon"), 2), (Garniture("Œuf"), 2)));
 
         Assert.True(cart.IsValid, string.Join(" ", cart.Issues.Select(i => i.Message)));
-        Assert.Equal(1100 + 150, cart.TotalCents);
-        var olives = cart.Items[0].Modifications.Where(m => m.LabelSnapshot == "Ingrédients : Olives").ToList();
-        Assert.Equal([(1, 0), (1, 150)], olives.Select(m => (m.Quantity, m.UnitPriceCents)));
+        Assert.Equal(1100 + 2 * 150, cart.TotalCents);
+        var olives = cart.Items[0].Modifications.Single(m => m.LabelSnapshot == "Ingrédients : Olives");
+        Assert.Equal((2, 150), (olives.Quantity, olives.UnitPriceCents));
     }
 
     [Fact]

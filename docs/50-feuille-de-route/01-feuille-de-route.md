@@ -154,7 +154,7 @@ simulé.
 
 **Groupes d'options (API, 2026-11-22) :** la carte réelle (sandwichs, pizzas) exige des choix
 bornés que la composition ne sait pas exprimer : groupes d'options par produit (US-E02-9, écart
-M12) — pain 1/1, sauces 0 à 3 avec choix offerts puis payants, taille de pizza avec surcoût.
+M12) — pain 1/1, sauces 0 à 3, taille de pizza avec surcoût.
 Règle pure `OptionChoicePolicy` (R2/R4/R6, 16 tests), `PUT /manage/products/{id}/option-groups`,
 `optionGroups` dans la carte publique, `optionChoiceIds` dans les lignes du panier (produit seul
 ou composant de menu). `InitialCreate` régénérée (32 tables) ; 5 nouveaux tests d'intégration

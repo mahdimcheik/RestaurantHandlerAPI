@@ -198,7 +198,6 @@ public class ProductService(MainContext db, CatalogImageService images, CatalogC
             link.Position = position;
             link.MinChoices = write.Rules?.MinChoices;
             link.MaxChoices = write.Rules?.MaxChoices;
-            link.FreeChoices = write.Rules?.FreeChoices;
         }
 
         product.UpdatedAt = DateTimeOffset.UtcNow;
@@ -274,7 +273,7 @@ public class ProductService(MainContext db, CatalogImageService images, CatalogC
         };
 
     private static OptionGroupRules? RulesOf(ProductOptionGroup link) =>
-        link is { MinChoices: { } min, MaxChoices: { } max, FreeChoices: { } free }
-            ? new OptionGroupRules { MinChoices = min, MaxChoices = max, FreeChoices = free }
+        link is { MinChoices: { } min, MaxChoices: { } max }
+            ? new OptionGroupRules { MinChoices = min, MaxChoices = max }
             : null;
 }

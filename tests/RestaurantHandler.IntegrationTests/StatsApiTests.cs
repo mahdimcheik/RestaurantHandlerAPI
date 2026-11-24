@@ -39,7 +39,7 @@ public class StatsApiTests(ApiFixture api) : IAsyncLifetime
         // Suppléments par un groupe d'options facultatif, choix payant lié à l'ingrédient.
         var supplements = await DataAsync(await manager.PostAsJsonAsync("/manage/option-groups", new
         {
-            label = $"Suppléments {Guid.NewGuid():N}"[..20], minChoices = 0, maxChoices = 3, freeChoices = 0,
+            label = $"Suppléments {Guid.NewGuid():N}"[..20], minChoices = 0, maxChoices = 3,
             choices = new[] { new { name = "Cheddar", ingredientId = M.Cheddar, extraPriceCents = 80 } },
         }, ApiFixture.Json));
         var groupId = supplements.GetProperty("id").GetGuid();

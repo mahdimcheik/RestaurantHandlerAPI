@@ -144,8 +144,6 @@ public class OptionGroupService(MainContext db, CatalogImageService images, Cata
             Position = position,
             MinChoices = g.MinChoices,
             MaxChoices = g.MaxChoices,
-            FreeChoices = g.FreeChoices,
-            ExtraChoicePriceCents = g.ExtraChoicePriceCents,
             MaxPerChoice = g.MaxPerChoice,
             ProductRules = productRules,
             IsArchived = g.ArchivedAt != null,
@@ -182,8 +180,6 @@ public class OptionGroupService(MainContext db, CatalogImageService images, Cata
         group.Label = label;
         group.MinChoices = dto.MinChoices;
         group.MaxChoices = dto.MaxChoices;
-        group.FreeChoices = dto.FreeChoices ?? dto.MaxChoices;
-        group.ExtraChoicePriceCents = dto.ExtraChoicePriceCents;
         group.MaxPerChoice = dto.MaxPerChoice;
 
         // Les produits qui redéfinissent le minimum doivent pouvoir encore l'atteindre.

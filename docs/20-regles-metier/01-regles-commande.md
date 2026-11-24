@@ -23,7 +23,6 @@ prix d'une ligne produit  = (prix produit
                              + Σ surcoûts de remplacement
                              + Σ prix des groupes d'options) × quantité
 prix d'un groupe d'options = Σ surcoût du choix × quantité
-                             + max(0, unités − unités incluses) × prix d'un choix en plus
 prix d'une ligne menu     = (prix menu
                              + Σ surcoûts d'option d'emplacement
                              + Σ personnalisations des produits choisis) × quantité
@@ -46,20 +45,20 @@ historique, reçu, statistiques) utilise ces copies, jamais la carte courante.
 | Remplacement | l'ingrédient est dans la composition **et** `IsRemovable` ; le remplaçant est un autre ingrédient non archivé, disponible et `IsOfferedAsReplacement` | `max(0, prix du remplaçant − prix du remplacé)` ([ADR-0012](../40-decisions/ADR-0012-remplacements-prix-ingredient.md)) |
 | Supplément | refusé : les suppléments sont des choix d'un groupe d'options facultatif | — |
 
-| Choix d'option | le choix appartient à un groupe actif du produit, n'est pas archivé, son ingrédient éventuel est disponible, quantité entre 1 et `MaxPerChoice` du groupe | surcoût du choix × quantité (+ prix d'un choix en plus par unité au-delà des incluses) |
+| Choix d'option | le choix appartient à un groupe actif du produit, n'est pas archivé, son ingrédient éventuel est disponible, quantité entre 1 et `MaxPerChoice` du groupe | surcoût du choix × quantité |
 
 Un même ingrédient ne peut pas être à la fois retiré et remplacé dans une ligne.
 
 Pour chaque groupe d'options actif du produit : `MinChoices ≤ unités ≤ MaxChoices`, où les
 unités sont la somme des quantités (« double jambon + œuf » = 3 unités). Un choix figure une
 seule fois dans la requête, avec sa quantité ; `MaxPerChoice = 1` (par défaut) revient à des
-choix distincts. Les bornes et les unités incluses sont celles du groupe, sauf si le produit les
+choix distincts. Les bornes sont celles du groupe, sauf si le produit les
 redéfinit (même liste « Ingrédients » : 3 sur une pizza, 5 sur une autre).
 
-Les unités au-delà des incluses sont facturées en suivant l'ordre de la carte : le total ne
-dépend pas de l'ordre de la requête. Chaque choix est une personnalisation `Choice` de libellé
-« Groupe : Choix » (« Sauces : Algérienne ») et de quantité ; un choix à cheval sur la limite
-des unités incluses est scindé en une part incluse et une part payante.
+Seul le surcoût propre d'un choix est facturé, à chaque fois qu'il est pris : un groupe n'a ni
+choix offerts ni prix par choix supplémentaire, et le maximum suffit à borner les quantités.
+Chaque choix est une personnalisation `Choice` de libellé « Groupe : Choix » (« Sauces :
+Algérienne »), de quantité et de prix unitaire égal à son surcoût, dans l'ordre de la carte.
 
 ## R5 — Validité d'un menu
 

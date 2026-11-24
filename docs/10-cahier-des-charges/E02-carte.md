@@ -133,7 +133,7 @@ En tant que client, je veux connaître les allergènes d'un produit afin de comm
 ### US-E02-9 — Définir les groupes d'options et les proposer sur les produits
 
 En tant que Manager, je veux définir des choix dans une liste (pain d'un sandwich, sauces, taille
-d'une pizza), avec un minimum, un maximum, un nombre de choix offerts et des surcoûts, et les
+d'une pizza), avec un minimum, un maximum et un surcoût éventuel par choix, et les
 proposer sur plusieurs produits, afin que le client compose son plat sans passer par la
 composition.
 
@@ -158,8 +158,8 @@ back-office en cours (client, `/gestion/options`).
   retiré est archivé, jamais supprimé.
 - Un groupe proposé sur un produit non archivé ne peut pas être archivé ; l'archivage est
   définitif.
-- Un groupe a un libellé, `0 ≤ min ≤ max`, au moins `min` unités possibles (choix × fois par choix), un nombre de choix offerts
-  (tous par défaut) et un prix par choix au-delà des offerts (≥ 0).
+- Un groupe a un libellé, `0 ≤ min ≤ max`, au moins `min` unités possibles (choix × fois par choix) ;
+  seul le surcoût propre de chaque choix est facturé, autant de fois qu'il est pris.
 - Un choix a un nom unique dans son groupe, un surcoût ≥ 0 (ex. +3 € pour la grande taille) et
   peut être lié à un ingrédient : la rupture de l'ingrédient grise le choix.
 - Un ingrédient lié à un choix d'un groupe non archivé ne peut pas être archivé.
@@ -168,5 +168,5 @@ back-office en cours (client, `/gestion/options`).
   conservée quand les choix sont remplacés. Un choix lié à un ingrédient et sans photo propre
   affiche sur la carte celle de l'ingrédient, lue à l'affichage (rien n'est recopié) ; le détail
   back-office la donne à part (`ingredientImageUrl`).
-- Exemples : « Pain » 1 parmi baguette / pita ; « Sauces » 0 à 3, 2 offertes puis +0,50 € ;
+- Exemples : « Pain » 1 parmi baguette / pita ; « Sauces » 0 à 3, sauce truffe +1 € ;
   « Taille » 1 parmi 29 cm / 33 cm (+3 €).

@@ -61,11 +61,6 @@ public class PublicOptionGroup
     [Required] public int MinChoices { get; set; }
     [Required] public int MaxChoices { get; set; }
 
-    /// <summary>Unités incluses ; chacune des suivantes coûte <see cref="ExtraChoicePriceCents"/>.</summary>
-    [Required] public int FreeChoices { get; set; }
-
-    [Required] public int ExtraChoicePriceCents { get; set; }
-
     /// <summary>Nombre de fois qu'un même choix peut être pris ; 1 = cases à cocher.</summary>
     [Required] public int MaxPerChoice { get; set; }
     [Required] public List<PublicOptionChoice> Choices { get; set; } = [];

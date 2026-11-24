@@ -116,8 +116,6 @@ public class PublicCatalogService(MainContext db, HybridCache cache, CatalogImag
                     ImageUrl = images.Url(o.Group.ImageUrl),
                     MinChoices = o.MinChoices,
                     MaxChoices = o.MaxChoices,
-                    FreeChoices = o.FreeChoices,
-                    ExtraChoicePriceCents = o.Group.ExtraChoicePriceCents,
                     MaxPerChoice = o.Group.MaxPerChoice,
                     Choices = o.Group.Choices
                         .Where(c => c.ArchivedAt is null)
