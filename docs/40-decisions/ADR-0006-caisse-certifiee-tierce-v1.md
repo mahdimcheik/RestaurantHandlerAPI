@@ -5,7 +5,7 @@
 
 ## Contexte
 
-Le restaurant encaisse sur place (comptoir, paiement au retrait ; carte, espèces, paiement
+Greenadine encaisse sur place (comptoir, paiement au retrait ; carte, espèces, paiement
 mixte). En France, un logiciel qui enregistre ces paiements doit être **certifié** (NF525 ou
 équivalent) : inaltérabilité, sécurisation, conservation, archivage, clôtures. La
 certification d'un logiciel maison demande des développements spécifiques (journal chaîné,

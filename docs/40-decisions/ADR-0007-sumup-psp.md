@@ -5,13 +5,13 @@
 
 ## Contexte
 
-Le restaurant utilise SumUp (terminal et, potentiellement, caisse SumUp POS). Un seul
+Greenadine utilise SumUp (terminal et, potentiellement, caisse SumUp POS). Un seul
 prestataire pour l'en ligne et le sur place simplifie le rapprochement des encaissements.
 Le socle d'origine utilisait Stripe, retiré.
 
 ## Décision
 
-- Paiement en ligne par **SumUp Online Payments** : le serveur crée un *checkout* (montant
+- Paiement en ligne par **SumUp Online Payments** : le serveur crée un _checkout_ (montant
   calculé par le serveur, EUR, référence = commande), le client paie sur le widget ou la page
   SumUp (3-D Secure), SumUp notifie l'API.
 - La notification déclenche une **relecture de l'état** du checkout par l'API (clé secrète) ;

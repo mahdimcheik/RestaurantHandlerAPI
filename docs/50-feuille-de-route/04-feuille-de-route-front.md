@@ -36,7 +36,7 @@ Statuts : ✅ terminé · 🟡 en cours · ⬜ à faire.
 - Cache des données qui changent peu : `shared/services/store.service.ts` (`Cached<T>`).
 - Styles globaux par classes (`src/styles/`), thèmes clair / sombre / système, sélecteur de thème.
 - Intercepteurs : jeton en mémoire + renouvellement sur 401, `Idempotency-Key`, XSRF.
-- Proxy de dev même origine (`proxy.conf.mjs`, `API_URL`), i18n `@angular/localize`, tests Vitest.
+- Proxy de dev même origine (`proxy.conf.mjs`, `API_URL`), tests Vitest (i18n `@angular/localize` retirée le 2026-11-24 : textes en français écrits en clair, ADR-0011).
 
 ## F1 — Comptes (E01) — 🟡
 
@@ -257,7 +257,15 @@ bandeau, pages légales, PWA, appareils réels).
   fermetures à venir, téléphone).
 - `features/shop` : carte `/commander` (rubriques, prix TTC, ruptures grisées avec libellé,
   état d'ouverture et délai), fiche produit `/commander/produit/:id` (retraits, remplacements au
-  surcoût affiché, options, quantité, prix par le devis), menu `/commander/menu/:id`, panier
+  surcoût affiché, prix par le devis ; pas de sélecteur de quantité sur les fiches produit et
+  menu, une portion par ajout, petites commandes ; les groupes d'options se choisissent pas à pas
+  dans un second dialogue ouvert d'office à l'ouverture de la fiche ; compteur « − n + » à côté
+  du prix sur chaque carte de commande : « + » ajoute d'office un produit sans options, sinon
+  ouvre la fiche ; « − » retire une unité, ou ouvre le détail de la commande si l'article y est
+  en plusieurs lignes différentes, `shared/ordering/options-wizard.ts` : un groupe par étape, Précédent /
+  Suivant, Passer pour un groupe facultatif, avance seule après un choix unique, récapitulatif
+  où chaque groupe se corrige, vignette du choix s'il a une photo ; même assistant pour un produit
+  choisi dans un menu, le comptoir garde l'affichage d'un seul tenant), menu `/commander/menu/:id`, panier
   `/panier` conservé sur l'appareil (`localStorage`, identifiants seulement ; lignes disparues de
   la carte retirées et signalées ; nouvelle clé d'idempotence à chaque modification), TVA et
   total du devis, lignes refusées signalées une à une.
@@ -277,6 +285,39 @@ panier conservé au rechargement, connexion exigée puis retour à la validation
 restaurant fermé, commande créée et suivi ouvert ; annulation depuis un deuxième onglet
 répercutée seule dans le premier (SignalR) ; compte Manager refusé à la validation ; thèmes
 clair et sombre.
+
+**Fait (refonte de la carte au nouveau design, 2026-11-24) :**
+- `/commander` reprend le style de l'accueil et de `/a-propos` (surface `.brand`, fond ondulé,
+  barre du haut `site-topbar`) ; classe `.brand-ui` (`_order-page.scss`) : les composants de
+  l'ancien style posés sur un parfum en prennent l'encre et le fond.
+- Rubriques dans un rail vertical à gauche (onglets ARIA verticaux, image de la catégorie ou
+  icône, « Menus » en premier) : une seule rubrique affichée à la fois, en cartes.
+- Téléphone : bandeau fixe en bas (nombre d'articles et total du devis) qui ouvre le détail de
+  la commande dans une feuille. Grand écran (≥ 64rem) : détail toujours affiché dans une
+  colonne collée à droite, de hauteur fixe. Dans la colonne comme dans la feuille, seules les
+  lignes défilent : TVA, total et « Valider ma commande » restent en bas. Détail commun `features/shop/components/cart-summary`, aussi utilisé
+  par `/panier` ; devis unique `data-access/cart-quote.ts`.
+- Fiches produit et menu en routes enfants de `/commander`, affichées dans un dialogue par-dessus
+  la carte (adresses inchangées ; Échap, Fermer, clic sur le fond et Retour du navigateur
+  referment ; navigation sans défilement de la carte).
+- Vérifié contre la vraie API (2026-11-24, Chrome, 390, 800 et 1280 px) : rubriques, ajout avec
+  taille obligatoire et prix du devis, détail à droite et feuille du bas, « Modifier » rouvre la
+  ligne, Échap et Fermer referment sans faire défiler la carte, adresse de fiche ouverte
+  directement. axe-core 4.14 (WCAG 2.2 AA + bonnes pratiques) : 0 violation sur la carte (grand
+  écran et téléphone, autre rubrique, menu de la barre ouvert), fiche produit ouverte, feuille
+  « Votre commande » ouverte et `/panier`, après avoir foncé l'encre du parfum 1 (`#281d3c`,
+  4,78:1 même sur les lignes du fond `.waves`) et placé le bandeau d'activation dans une région
+  nommée.
+
+**Fait (carte à consulter, 2026-11-24) :**
+- Page `/carte` séparée de la page de commande (`features/shop/pages/menu-board-page`) : toutes
+  les rubriques à la suite (« Menus » en premier), avec les mêmes cartes produit que
+  `/commander`, et une barre collante de liens vers chaque rubrique (ancres `#rubrique-…`).
+  Un article ouvre sa fiche de commande (`/commander/produit/:id` ou `/commander/menu/:id`) ;
+  le bouton info affiche les ingrédients sur place. Ni panier ni colonne de commande.
+- Le lien « Carte » de la barre du haut et les boutons « Voir la carte » (À propos, pages
+  légales) mènent à `/carte` ; « Commander » reste sur `/commander`.
+- Tests unitaires et build OK ; rendu navigateur et axe pas encore vérifiés.
 
 **Fait (F8b) :**
 - Historique `/commandes` (US-E08-3) : plus récente en premier, pages de 20, statut en termes
@@ -307,6 +348,33 @@ absents) ; serveur arrêté, la carte se rouvre depuis le cache. Historique et a
 vraie API. Le service worker ne se teste pas avec `ng serve` (fichiers servis différents des
 empreintes de `ngsw.json` : état dégradé) : servir `dist/`.
 
+**Nouveau design — accueil (2026-11-24, en cours) :** premier écran de `/` remplacé par un
+carrousel plein écran (`features/home/components/hero-carousel`, géométrie pure dans
+`hero-geometry.ts`) : cinq coupes sur un anneau tournant, fond et encre par parfum (jetons
+`--flavour-N-*`, contraste AA de 4,68 à 8,73), titre au nom du restaurant, « Commander »,
+bouton pause (WCAG 2.2.2), pause d'office avec `prefers-reduced-motion`. Barre du haut du
+nouveau design (`shared/ui/site-topbar` : menu, panier) à la place de l'en-tête sur l'accueil
+(`data: { header: false }`). Contenu fixe. Reste : images définitives dans
+`public/images/home/`, polices auto-hébergées (`@fontsource/dela-gothic-one`,
+`@fontsource/archivo`), rendu vérifié dans le navigateur, nombre d'articles sur le bouton
+panier (déplacer `CartStore` dans `shared`).
+
+**Nouveau design — écrans de compte (2026-11-24) :** connexion, inscription, mot de passe
+oublié, nouveau mot de passe, confirmations et lien d'activation expiré passent au nouveau
+design par `shared/ui/auth-layout` : parfum 1 (lilas, `.brand-ui`), fond ondulé, barre du haut,
+accroche et assiette à gauche dès 60rem, formulaire dans une carte (`.auth__card`,
+`_brand.scss`) ; boutons `.btn-brand`. Image `auth.webp` retirée. Rendu vérifié en Chrome
+headless (grand écran, téléphone) ; axe à repasser.
+
+**Nouveau design — back-office (2026-11-24) :** toute la gestion `/gestion` passe au parfum 1
+(clair dans les deux thèmes) : la coquille `shared/ui/admin-layout` pose `.brand--1 .brand-ui`
+et le fond ondulé, et les pages suivent sans changer de gabarit (classes de `_admin.scss`
+redessinées : cartes à bord plein et coins arrondis, voile clair, titres en police d'affiche).
+Menu latéral par rubriques (Service, Carte, Réglages), nom du restaurant en tête ; sélecteur de
+thème retiré de la barre du haut (sans effet sur un parfum). Tableau de bord recomposé :
+« Bonjour Prénom » et date, trois chiffres phares, pastilles par étape, carte « Service ».
+`/cuisine` inchangé (lisibilité à 2 m). Rendu et axe à vérifier dans le navigateur.
+
 **Reste :**
 - Acceptation par le Manager puis cuisine jusqu'à « Prête » vue côté client ; parcours 1 avec
   SumUp en sandbox (clés et URL publique de l'API pour la notification) ; menus (aucun en base
@@ -333,7 +401,6 @@ ponctuels sur l'auth ; budgets de build.
 
 ## Dette front connue
 
-- Image `auth.webp` provisoire.
 - Dossier `src/app/design-dev` vide.
 - Jeton d'accès en mémoire tant qu'ADR-0002 n'est pas appliquée côté API.
 

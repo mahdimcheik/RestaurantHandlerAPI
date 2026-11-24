@@ -7,7 +7,7 @@
 
 Le socle dispose d'une abstraction unique, `StorageService`
 (`RestaurantHandler/Integrations/Storage/StorageService.cs`), vers un fournisseur compatible S3
-(OVH Object Storage). Le restaurant en a besoin pour les photos de la carte et les avatars.
+(OVH Object Storage). Greenadine en a besoin pour les photos de la carte et les avatars.
 
 ## Décision
 
