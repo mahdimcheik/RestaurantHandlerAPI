@@ -259,7 +259,10 @@ bandeau, pages légales, PWA, appareils réels).
   état d'ouverture et délai), fiche produit `/commander/produit/:id` (retraits, remplacements au
   surcoût affiché, prix par le devis ; pas de sélecteur de quantité sur les fiches produit et
   menu, une portion par ajout, petites commandes ; les groupes d'options se choisissent pas à pas
-  dans un second dialogue ouvert d'office à l'ouverture de la fiche, `shared/ordering/options-wizard.ts` : un groupe par étape, Précédent /
+  dans un second dialogue ouvert d'office à l'ouverture de la fiche ; compteur « − n + » à côté
+  du prix sur chaque carte de commande : « + » ajoute d'office un produit sans options, sinon
+  ouvre la fiche ; « − » retire une unité, ou ouvre le détail de la commande si l'article y est
+  en plusieurs lignes différentes, `shared/ordering/options-wizard.ts` : un groupe par étape, Précédent /
   Suivant, Passer pour un groupe facultatif, avance seule après un choix unique, récapitulatif
   où chaque groupe se corrige, vignette du choix s'il a une photo ; même assistant pour un produit
   choisi dans un menu, le comptoir garde l'affichage d'un seul tenant), menu `/commander/menu/:id`, panier
