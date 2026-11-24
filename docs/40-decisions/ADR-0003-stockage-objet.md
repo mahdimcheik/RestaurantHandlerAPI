@@ -16,6 +16,13 @@ Le socle dispose d'une abstraction unique, `StorageService`
 - Les images **publiques** (photos de produits, catégories, avatars) sont rangées sous des
   préfixes ouverts en lecture anonyme, sans listing, avec des clés immuables
   (`{dossier}/{aaaa}/{mm}/{guid}{ext}`) mises en cache longtemps.
+- Les photos de la carte et le logo sont réencodés en WebP et déclinés en quatre tailles
+  (plus grand côté 160, 320, 640 et 1200 px, jamais agrandies), rangées côte à côte :
+  `catalog/{aaaa}/{mm}/{guid}-w{taille}.webp`. La base ne garde que la clé `-w1200` ; le client
+  (loader de `NgOptimizedImage`, `core/images/catalog-image-loader.ts`) en déduit les autres
+  pour le `srcset`, et le navigateur prend la plus petite qui suffit à l'écran. Les photos
+  envoyées avant (clé sans suffixe) restent en taille unique. Les deux listes de tailles
+  (`CatalogImageService.Widths`, `CATALOG_IMAGE_WIDTHS`) doivent rester identiques.
 - Tout autre fichier est privé et servi par lien signé.
 - Chaque upload est validé : taille, extension, signature binaire.
 

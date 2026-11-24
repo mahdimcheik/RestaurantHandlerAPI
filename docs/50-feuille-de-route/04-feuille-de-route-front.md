@@ -333,7 +333,13 @@ clair et sombre.
   identité du vendeur lue sur `/restaurant/info`, rubriques non rédigées signalées « À
   rédiger » et bandeau « texte en cours de rédaction » ; lien « Informations allergènes
   disponibles » sur la carte et chaque fiche produit ; liens dans le pied de page, à la
-  validation et à l'inscription.
+  validation et à l'inscription. Au nouveau design (coquille `components/legal-document`,
+  parfum 2, sommaire à ancres) ; confidentialité (`pages/privacy-page`) et mentions légales
+  (`pages/notice-page`) rédigées en texte générique d'après `20-regles-metier/04-conformite-legale.md`
+  § 5 ; e-mail, directeur de publication, hébergeur et Instagram dans
+  `shared/site-details.ts` (vide = « À compléter »).
+- Accueil : section « Contact » au-dessus du pied de page (appeler, écrire, venir avec lien
+  d'itinéraire, Instagram ; seuls les moyens renseignés sont affichés).
 - PWA (`@angular/service-worker`) : `manifest.webmanifest` (français, `start_url` `/`,
   icônes provisoires monochromes, dont masquables), méta iOS et `theme-color` clair / sombre ;
   `ngsw-config.json` : coquille préchargée, images à la demande, `/api/menu` et
@@ -375,12 +381,20 @@ thème retiré de la barre du haut (sans effet sur un parfum). Tableau de bord r
 « Bonjour Prénom » et date, trois chiffres phares, pastilles par étape, carte « Service ».
 `/cuisine` inchangé (lisibilité à 2 m). Rendu et axe à vérifier dans le navigateur.
 
+**Photos en plusieurs tailles (2026-11-24) :** l'API décline chaque photo envoyée en WebP 160,
+320, 640 et 1200 px (`…-w{taille}.webp`, [ADR-0003](../40-decisions/ADR-0003-stockage-objet.md)) ;
+le client fournit un `IMAGE_LOADER` (`core/images/catalog-image-loader.ts`) qui choisit la taille
+dans le `srcset` 1x/2x de `NgOptimizedImage` : vignettes du rail et du back-office en 160/320,
+cartes en 320/640, fiches en 640/1200. Photos déjà envoyées inchangées (à renvoyer pour en
+profiter). Reste : poids des images de `/commander` mesuré dans le navigateur avant/après.
+
 **Reste :**
 - Acceptation par le Manager puis cuisine jusqu'à « Prête » vue côté client ; parcours 1 avec
   SumUp en sandbox (clés et URL publique de l'API pour la notification) ; menus (aucun en base
   de dev) ; rendu 360 px et axe sur toutes les pages client.
-- Textes des CGV, de la politique de confidentialité, de l'hébergeur et document des
-  allergènes, à rédiger et valider hors du code (questions 6 et 8) ; identité visuelle et
+- Textes des CGV et document des allergènes à rédiger ; politique de confidentialité et mentions
+  légales génériques à faire relire (RGPD) ; `shared/site-details.ts` à remplir (questions 6 et
+  8) ; identité visuelle et
   icônes définitives (question 14).
 - CSP de production : SumUp n'est qu'une redirection (aucun script), `worker-src 'self'`.
 - **Sortie (J4) :** parcours 1 et 2 complets sur un iPhone (Safari, installée ou non) et un

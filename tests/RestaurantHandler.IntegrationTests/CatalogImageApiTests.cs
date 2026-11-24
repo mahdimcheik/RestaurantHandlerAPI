@@ -42,6 +42,17 @@ public class CatalogImageApiTests(ApiFixture api) : IAsyncLifetime
             new { name = $"Tomate {Guid.NewGuid():N}"[..20] }, ApiFixture.Json)))
         .GetProperty("id").GetGuid();
 
+    /// <summary>Les quatre clés d'une photo multi-tailles, à partir de celle de la plus grande.</summary>
+    private static string[] Variants(string key) =>
+        [.. new[] { 160, 320, 640, 1200 }.Select(w => key.Replace("-w1200.webp", $"-w{w}.webp"))];
+
+    /// <summary>Le SDK envoie le corps en morceaux signés (aws-chunked) : le WebP commence à « RIFF ».</summary>
+    private Size StoredSize(string key)
+    {
+        var body = api.Storage.Objects[key].Body;
+        return Image.Identify(body.AsSpan(body.AsSpan().IndexOf("RIFF"u8))).Size;
+    }
+
     /// <summary>Clé d'objet à partir de l'URL publique (S3_PUBLIC_URL = http://127.0.0.1:1/test).</summary>
     private static string KeyOf(string url) => url["http://127.0.0.1:1/test/".Length..];
 
@@ -56,10 +67,13 @@ public class CatalogImageApiTests(ApiFixture api) : IAsyncLifetime
         var url = details.GetProperty("imageUrl").GetString()!;
         var key = KeyOf(url);
         Assert.StartsWith("catalog/", key);
-        Assert.EndsWith(".webp", key);
-        var stored = api.Storage.Objects[key];
-        Assert.Equal("image/webp", stored.ContentType);
-        Assert.Equal("public-read", stored.Acl);
+        Assert.EndsWith("-w1200.webp", key);
+        foreach (var variant in Variants(key))
+        {
+            var stored = api.Storage.Objects[variant];
+            Assert.Equal("image/webp", stored.ContentType);
+            Assert.Equal("public-read", stored.Acl);
+        }
 
         var (client, _) = await api.NewClientAsync();
         var card = await OkDataAsync(await client.GetAsync("/menu"));
@@ -127,17 +141,40 @@ public class CatalogImageApiTests(ApiFixture api) : IAsyncLifetime
             .GetProperty("imageUrl").GetString()!);
 
         Assert.NotEqual(first, second);
-        Assert.Contains(first, api.Storage.Deleted);
-        Assert.False(api.Storage.Objects.ContainsKey(first));
+        Assert.All(Variants(first), variant =>
+        {
+            Assert.Contains(variant, api.Storage.Deleted);
+            Assert.False(api.Storage.Objects.ContainsKey(variant));
+        });
 
         var cleared = await OkDataAsync(await manager.DeleteAsync($"/manage/ingredients/{id}/image"));
 
         Assert.Equal(JsonValueKind.Null, cleared.GetProperty("imageUrl").ValueKind);
-        Assert.Contains(second, api.Storage.Deleted);
+        Assert.All(Variants(second), variant => Assert.Contains(variant, api.Storage.Deleted));
 
         var list = await OkDataAsync(await manager.GetAsync("/manage/ingredients"));
         var row = list.EnumerateArray().Single(i => i.GetProperty("id").GetGuid() == id);
         Assert.Equal(JsonValueKind.Null, row.GetProperty("imageUrl").ValueKind);
+    }
+
+    [Fact]
+    public async Task Chaque_variante_reduite_a_sa_taille_sans_jamais_agrandir()
+    {
+        var manager = await api.ManagerAsync();
+        var large = await CreateIngredientAsync(manager);
+        var tiny = await CreateIngredientAsync(manager);
+
+        var key = KeyOf((await OkDataAsync(await manager.PostAsync($"/manage/ingredients/{large}/image", Png(2000, 1000))))
+            .GetProperty("imageUrl").GetString()!);
+        var small = KeyOf((await OkDataAsync(await manager.PostAsync($"/manage/ingredients/{tiny}/image", Png(200, 100))))
+            .GetProperty("imageUrl").GetString()!);
+
+        Assert.Equal(new Size(160, 80), StoredSize(Variants(key)[0]));
+        Assert.Equal(new Size(320, 160), StoredSize(Variants(key)[1]));
+        Assert.Equal(new Size(640, 320), StoredSize(Variants(key)[2]));
+        Assert.Equal(new Size(1200, 600), StoredSize(Variants(key)[3]));
+        Assert.Equal(new Size(160, 80), StoredSize(Variants(small)[0]));
+        Assert.Equal(new Size(200, 100), StoredSize(Variants(small)[3]));
     }
 
     [Fact]
@@ -153,7 +190,7 @@ public class CatalogImageApiTests(ApiFixture api) : IAsyncLifetime
         var cleared = await OkDataAsync(await manager.DeleteAsync($"/manage/categories/{id}/image"));
 
         Assert.Equal(JsonValueKind.Null, cleared.GetProperty("imageUrl").ValueKind);
-        Assert.Contains(key, api.Storage.Deleted);
+        Assert.All(Variants(key), variant => Assert.Contains(variant, api.Storage.Deleted));
     }
 
     [Fact]
