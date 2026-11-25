@@ -174,7 +174,7 @@ public class GoogleAuthService(
             if (bytes.Length == 0 || bytes.Length > MaxAvatarBytes)
                 return null;
 
-            using var image = Image.Load(bytes);
+            using var image = Image.Load(ImageDecoding.Options, bytes);
             image.Mutate(x =>
                 x.Resize(
                     new ResizeOptions

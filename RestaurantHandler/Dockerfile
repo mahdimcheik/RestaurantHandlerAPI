@@ -5,7 +5,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
 
 
 # This stage is used to build the service project
@@ -27,6 +26,7 @@ RUN dotnet publish "./RestaurantHandler.csproj" -c $BUILD_CONFIGURATION -o /app/
 FROM base AS final
 ARG APP_VERSION=dev
 ENV APP_VERSION=$APP_VERSION
+ENV ASPNETCORE_ENVIRONMENT=Production
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "RestaurantHandler.dll"]

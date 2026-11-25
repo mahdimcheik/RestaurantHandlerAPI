@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using RestaurantHandler.Infrastructure.Errors;
 using RestaurantHandler.Integrations.Storage;
+using RestaurantHandler.Utilities;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
@@ -49,7 +50,7 @@ public partial class CatalogImageService(StorageService storage)
         try
         {
             await using var input = file.OpenReadStream();
-            image = await Image.LoadAsync(input, ct);
+            image = await Image.LoadAsync(ImageDecoding.Options, input, ct);
         }
         catch (Exception ex) when (ex is UnknownImageFormatException or InvalidImageContentException)
         {

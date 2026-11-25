@@ -1,13 +1,14 @@
 name: CI-CD
 
+# Release : git tag v1.0.0 && git push origin v1.0.0
+# Tests → image Docker Hub (tag de version + latest) → déploiement SSH sur Acer
+# dans ~/restauranthandler/back-end (compose : RestaurantHandler/Utilities/docker-compose.yml).
 on:
   push:
     tags:
-      - "v*" # se déclenche sur git tag v1.4.0, v1.4.1, etc.
-      - "!v*-rc*" # les tags de pré-production partent sur CD-TEST
-      - "!v*-test*"
+      - "v*"
 
-# Un seul déploiement prod à la fois : deux tags poussés ensemble ne se doublent plus.
+# Un seul déploiement à la fois : deux tags poussés ensemble ne se doublent pas.
 concurrency:
   group: cd-prod
   cancel-in-progress: false
@@ -29,7 +30,7 @@ jobs:
 
       - name: Build the Docker image
         run: |
-          docker build . --fiGreenadineHandler/Dockerfile \
+          docker build . --file RestaurantHandler/Dockerfile \
             --build-arg APP_VERSION=${{ steps.version.outputs.version }} \
             --tag mahdimcheik/restauranthandler:${{ steps.version.outputs.version }} \
             --tag mahdimcheik/restauranthandler:latest
@@ -43,15 +44,16 @@ jobs:
       - name: Push image to Docker Hub
         run: docker push --all-tags mahdimcheik/restauranthandler
 
-      - name: Deploy on VPS via SSH
+      - name: Deploy on Acer via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           envs: IMAGE_TAG
-          # Le compose prod tire mahdimcheik/restauranthandler:${IMAGE_TAG:-latest} : on fige le tag
+          # Le compose tire mahdimcheik/restauranthandler:${IMAGE_TAG:-latest} : on fige le tag
           # dans le .env plutôt que de dépendre de :latest (écrasé par le dernier run fini).
+          # Retour arrière : remettre l'ancien IMAGE_TAG dans le .env puis `docker compose up -d`.
           script: |
             set -e
             cd ~/restauranthandler/back-end
@@ -59,7 +61,8 @@ jobs:
             grep -v '^IMAGE_TAG=' .env > .env.tmp || true
             echo "IMAGE_TAG=${IMAGE_TAG}" >> .env.tmp
             mv .env.tmp .env
-            docker pull mahdimcheik/restauranthandler:${IMAGE_TAG}
-            docker compose up -d --force-recreate api
+            docker compose pull api
+            docker compose up -d api
+            docker image prune -f
         env:
           IMAGE_TAG: ${{ steps.version.outputs.version }}

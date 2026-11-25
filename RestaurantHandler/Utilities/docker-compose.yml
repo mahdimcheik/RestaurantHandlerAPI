@@ -1,84 +1,44 @@
+# Pile de PRODUCTION sur Acer, dans ~/restauranthandler/back-end, à côté d'un .env
+# construit à partir de .env.deploy.example (cp .env.deploy.example .env && vi .env).
+# Le workflow CI-CD réécrit la ligne IMAGE_TAG= du .env avant chaque `docker compose up`.
+#
+# Trafic : Nginx Proxy Manager → conteneur front (nginx) → /api, /hubs, /hangfire → api:8080.
+# L'API ne publie aucun port ; le front la joint par global-network sous le nom
+# container-restauranthandler-api.
+name: restauranthandler
+
 services:
   db:
-    image: postgres:15
+    image: postgres:17
+    container_name: container-restauranthandler-db
+    restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    container_name: container-db
-    restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    # Local uniquement (tunnel SSH pour un client SQL). 5431 est pris sur Acer.
     ports:
-      - "127.0.0.1:${POSTGRES_PORT}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5435}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - local-network
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: container-pgadmin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-root}
-    ports:
-      - "127.0.0.1:5050:80" # Accessible via localhost:5050
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - local-network
-      - global-network
-
   api:
-    image: mahdimcheik/bonprof:latest
-    container_name: container-api
+    image: mahdimcheik/restauranthandler:${IMAGE_TAG:-latest}
+    container_name: container-restauranthandler-api
     restart: unless-stopped
+    # Toutes les variables de l'API viennent du .env (modèle : .env.deploy.example).
+    env_file: .env
     environment:
-      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
-      JWT_KEY: ${JWT_KEY}
-      ADDRESS_ENCRYPTION_KEY: ${ADDRESS_ENCRYPTION_KEY}
-      API_BACK_URL: ${API_BACK_URL}
-      API_FRONT_URL: ${API_FRONT_URL}
-      DB_PORT: ${DB_PORT}
-      DB_HOST: ${DB_HOST}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-      COOKIES_VALIDITY_DAYS: ${COOKIES_VALIDITY_DAYS}
-      TOKEN_VALIDITY_MINUTES: ${TOKEN_VALIDITY_MINUTES}
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_LOGIN: ${SMTP_LOGIN}
-      SMTP_KEY: ${SMTP_KEY}
-      SMTP_PORT: ${SMTP_PORT}
-      SMTP_ALLOW_SELF_SIGNED: ${SMTP_ALLOW_SELF_SIGNED:-false}
-      DO_NO_REPLY_MAIL: ${DO_NO_REPLY_MAIL}
-      ALLOW_DEMO_SEED: ${ALLOW_DEMO_SEED}
-      S3_UPLOAD_URL: ${S3_UPLOAD_URL}
-      S3_PUBLIC_URL: ${S3_PUBLIC_URL}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-      S3_SECRET_KEY: ${S3_SECRET_KEY}
-      S3_BUCKET: ${S3_BUCKET}
-      SIGNED_URL_MINUTES: ${SIGNED_URL_MINUTES:-60}
-      PRIVACY_DOCUMENT_RETENTION_DAYS: ${PRIVACY_DOCUMENT_RETENTION_DAYS:-30}
-      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
-      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
-      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:contact@bonprof.fr}
-      RATE_LIMITING_ENABLED: ${RATE_LIMITING_ENABLED:-true}
-      RATE_LIMIT_IP_PER_MINUTE: ${RATE_LIMIT_IP_PER_MINUTE:-300}
-      RATE_LIMIT_USER_PER_MINUTE: ${RATE_LIMIT_USER_PER_MINUTE:-200}
-      RATE_LIMIT_AUTH_PER_MINUTE: ${RATE_LIMIT_AUTH_PER_MINUTE:-10}
-      RATE_LIMIT_EXEMPT_IPS: ${RATE_LIMIT_EXEMPT_IPS:-}
-
+      ASPNETCORE_URLS: http://+:8080
     expose:
-      - 7113
+      - 8080
     networks:
       - local-network
       - global-network
@@ -88,23 +48,24 @@ services:
 
   pgbackups:
     image: prodrigestivill/postgres-backup-local
+    container_name: container-restauranthandler-pgbackups
     restart: always
     volumes:
       - ./backups:/backups
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
-      POSTGRES_HOST: ${DB_HOST}
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_HOST: db
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       SCHEDULE: "@daily"
       BACKUP_KEEP_DAYS: 7
       BACKUP_KEEP_WEEKS: 4
       BACKUP_KEEP_MONTHS: 6
     networks:
       - local-network
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
