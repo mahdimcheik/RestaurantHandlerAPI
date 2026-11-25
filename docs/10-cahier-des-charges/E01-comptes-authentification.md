@@ -30,6 +30,10 @@ de mot de passe.
 **Critères d'acceptation**
 
 - Un premier login Google crée un compte `Client` déjà activé.
+- Sur l'inscription, « Continuer avec Google » est proposé en tête ; la mention affichée sous le
+  bouton (CGU, politique de confidentialité, traitement des données) vaut acceptation au clic.
+- Depuis la connexion, un compte Google inconnu ouvre « Finaliser votre compte » (même mention,
+  bouton « Créer mon compte ») au lieu d'une erreur ; l'API signale ce cas par le statut 428.
 - Un login Google sur un e-mail déjà inscrit rattache la connexion au compte existant.
 - Le rôle `Manager` n'est jamais attribuable par Google ni par l'inscription publique.
 

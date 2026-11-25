@@ -68,7 +68,9 @@ En V1, l'application ne gère pas les allergènes ([US-E02-8](../10-cahier-des-c
 
 - Données collectées : identité, e-mail, téléphone, historique de commandes. Base légale :
   exécution du contrat (commande) ; pas de prospection en V1.
-- Politique de confidentialité et CGU/CGV acceptées à l'inscription (consentements du socle).
+- Politique de confidentialité et CGU/CGV acceptées à l'inscription (consentements du socle) :
+  cases à cocher pour l'inscription par e-mail ; pour Google, mention explicite sous le bouton
+  dont le clic vaut acceptation (horodatée par `TermsAcceptedAt` et `TermsVersion`).
 - Effacement : anonymisation du compte, conservation des commandes (obligation comptable
   10 ans pour les pièces).
 - Sous-traitants : hébergeur (VPS), SumUp, Google (connexion), stockage objet OVH.

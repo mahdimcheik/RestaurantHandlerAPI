@@ -10,6 +10,10 @@ public static class HardCode
     // doit rester alignée avec la date affichée sur la page /cgu côté Angular.
     public const string TERMS_VERSION = "2026-10-09";
 
+    // Statut de l'enveloppe Response renvoyé par POST /auth/google quand le compte Google est
+    // inconnu et que les consentements manquent : le front propose alors de finaliser le compte.
+    public const int GOOGLE_CONSENT_REQUIRED_STATUS = 428;
+
     // Langues dans lesquelles l'admin peut saisir ces traductions — doit rester aligné
     // avec SUPPORTED_LANGUAGES côté Angular (language.service.ts).
     public static readonly string[] SUPPORTED_LANGUAGE_CODES = [DEFAULT_LANGUAGE_CODE, "en"];
