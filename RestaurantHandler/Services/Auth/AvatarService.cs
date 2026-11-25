@@ -58,7 +58,7 @@ public class AvatarService
         // resize
 
         using var inputStream = file.OpenReadStream();
-        using var image = await Image.LoadAsync(inputStream);
+        using var image = await Image.LoadAsync(ImageDecoding.Options, inputStream);
 
         // Rogne au carré depuis le centre (sans déformer) puis redimensionne :
         // ResizeMode.Crop conserve le ratio cible (1:1) en coupant le surplus,

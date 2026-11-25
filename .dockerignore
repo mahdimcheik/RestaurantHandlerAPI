@@ -1,0 +1,14 @@
+# Contexte de build = racine du dépôt (RestaurantHandler/Dockerfile).
+**/bin/
+**/obj/
+**/.env
+**/.env.*
+.git/
+.github/
+.vs/
+.vscode/
+.idea/
+.claude/
+.remember/
+docs/
+**/*.user

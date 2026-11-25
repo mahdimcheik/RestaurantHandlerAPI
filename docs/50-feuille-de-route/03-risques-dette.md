@@ -16,7 +16,7 @@
 | R10 | **Pic de charge** à midi | faible | lenteurs | une instance suffit ; cache carte ; test de charge J6 |
 | R11 | **Panne internet** au restaurant | moyenne | service interrompu | 4G de secours, procédure papier, caisse tierce |
 | R12 | **Couverture de tests** encore minimale (projet créé en J0) | certaine | régressions sur l'argent | tests unitaires des règles avant les services (J2), intégration en CI |
-| R13 | **Licence ImageSharp 4** (Six Labors Split License) : gratuite sous un seuil de chiffre d'affaires, payante au-delà ; le build l'affiche en avertissement | moyenne | coût de licence ou remplacement | vérifier l'éligibilité du restaurant avant la mise en production (J6), sinon remplacer (avatars et photos : redimensionnement seulement) |
+| R13 | **Licence ImageSharp** : à partir de 3.2 / 4.x, le build Release échoue sans clé Six Labors (Split License, gratuite sous un seuil de chiffre d'affaires). Le projet reste donc en **3.1.12**, qui a des failles connues (décodeurs TIFF, égalisation d'histogramme) | moyenne | failles non corrigées en amont | décodage limité à JPEG/PNG/GIF/WebP (`Utilities/ImageDecoding.cs`, testé) : les décodeurs vulnérables sont inatteignables. Passer en 3.2+ / 4.x avec une clé (secret de build) si l'éligibilité est confirmée, sinon remplacer la bibliothèque |
 
 ## Dette héritée du socle
 
@@ -26,11 +26,13 @@
 | D10 | Filtre d'archivage du catalogue retiré à la création du modèle | trancher (M9) | J1 |
 | D11 | Logo des e-mails (`Templates/Assets/logo.png`) et couleurs : charte d'origine ; nom affiché = `HardCode.APP_NAME` provisoire | remplacer par l'identité du restaurant | J4 (question 14) |
 | D12 | Dossier Rider `.idea/.idea.BonProfAPI/` versionné sous l'ancien nom | supprimer ou renommer | à l'occasion |
-| D13 | URL du serveur de test (`test-api.bonprof.fr`) dans `docker-image-test.yml` ; pas de remote GitHub | renseigner domaine et dépôt | J6 |
 
 **Soldées en J0 (2026-11-22)** : image Docker renommée (D1), clé de chiffrement des adresses
-et utilitaires morts retirés (D2), ImageSharp déjà en 4.1.3 sans vulnérabilité connue (D3),
+et utilitaires morts retirés (D2), ImageSharp déjà en 4.1.3 sans vulnérabilité connue (D3 ; ramené en 3.1.12 le 2026-11-25, cf. R13),
 `bin/Debug/net8.0` absent (D4), centre d'aide / envois groupés / maintenance retirés (D5), hub
 renommé `RealtimeHub` avec groupes (D6), projet de tests + CI (D8), fichier
 `BonProf.sln.DotSettings.user` supprimé (D9) ; paquets inutilisés retirés (Bogus,
 HtmlSanitizer, ModelContextProtocol).
+
+**Soldée le 2026-11-25** : workflow et compose du serveur de test BonProf supprimés, dépôts sur
+GitHub, déploiement sur Acer documenté dans l'[exploitation](../30-technique/03-exploitation.md) (D13).
