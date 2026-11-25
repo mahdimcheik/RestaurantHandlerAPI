@@ -250,8 +250,8 @@ public class SignInService
                 return new Response<Login>
                 {
                     Message =
-                        "Aucun compte n'est associé à ce compte Google : inscrivez-vous en acceptant les conditions générales d'utilisation, la politique de confidentialité et le traitement de vos données",
-                    Status = 400,
+                        "Aucun compte n'est associé à ce compte Google. Acceptez les conditions pour le créer.",
+                    Status = HardCode.GOOGLE_CONSENT_REQUIRED_STATUS,
                 };
             }
 
