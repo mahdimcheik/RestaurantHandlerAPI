@@ -46,7 +46,7 @@ Statuts : ✅ terminé · 🟡 en cours · ⬜ à faire.
 démarrage.
 
 **Reste :**
-- Connexion Google (US-E01-2) : `GOOGLE_CLIENT_ID` à renseigner, CSP à autoriser.
+- Connexion Google (US-E01-2) : `GOOGLE_CLIENT_ID` à renseigner dans `src/environments/environment*.ts` (front) et le `.env` de l'API, même valeur ; CSP à autoriser.
 - Profil et téléphone (US-E01-4), suppression du compte (US-E01-6).
 - Appareil partagé Manager (US-E01-7) : déconnexion visible, durée de session.
 - Passage au cookie de session `HttpOnly` quand l'API appliquera
@@ -272,7 +272,9 @@ bandeau, pages légales, PWA, appareils réels).
 - Validation `/commander/valider` (compte exigé, retour après connexion) : dès que possible si
   ouvert, créneaux du jour, aucun → commande impossible ; paiement en ligne / au retrait selon
   `checkout-options` (motif du blocage affiché) ; note ; 409 avec `issues` → retour au panier ;
-  paiement en ligne → redirection vers l'adresse `https` renvoyée par l'API.
+  paiement en ligne → redirection vers l'adresse `https` renvoyée par l'API. Au nouveau design :
+  étapes numérotées (retrait, paiement, note) à gauche, récapitulatif, total et bouton dans un
+  panneau collé à droite sur grand écran (une colonne sur téléphone).
 - Suivi `/commandes/:id` (adresse de retour SumUp) : numéro du jour, statut en termes client,
   retrait, total, paiement, contenu ; relu sur `OrderStatusChanged`, à chaque resynchronisation
   et toutes les 5 s tant que le paiement en ligne est attendu ; « Prête » mise en avant
