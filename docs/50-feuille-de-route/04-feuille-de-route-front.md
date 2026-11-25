@@ -46,7 +46,7 @@ Statuts : ✅ terminé · 🟡 en cours · ⬜ à faire.
 démarrage.
 
 **Reste :**
-- Connexion Google (US-E01-2) : `GOOGLE_CLIENT_ID` à renseigner, CSP à autoriser.
+- Connexion Google (US-E01-2) : `GOOGLE_CLIENT_ID` à renseigner dans `src/environments/environment*.ts` (front) et le `.env` de l'API, même valeur ; CSP à autoriser.
 - Profil et téléphone (US-E01-4), suppression du compte (US-E01-6).
 - Appareil partagé Manager (US-E01-7) : déconnexion visible, durée de session.
 - Passage au cookie de session `HttpOnly` quand l'API appliquera
