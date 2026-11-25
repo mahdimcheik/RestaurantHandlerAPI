@@ -272,7 +272,9 @@ bandeau, pages légales, PWA, appareils réels).
 - Validation `/commander/valider` (compte exigé, retour après connexion) : dès que possible si
   ouvert, créneaux du jour, aucun → commande impossible ; paiement en ligne / au retrait selon
   `checkout-options` (motif du blocage affiché) ; note ; 409 avec `issues` → retour au panier ;
-  paiement en ligne → redirection vers l'adresse `https` renvoyée par l'API.
+  paiement en ligne → redirection vers l'adresse `https` renvoyée par l'API. Au nouveau design :
+  étapes numérotées (retrait, paiement, note) à gauche, récapitulatif, total et bouton dans un
+  panneau collé à droite sur grand écran (une colonne sur téléphone).
 - Suivi `/commandes/:id` (adresse de retour SumUp) : numéro du jour, statut en termes client,
   retrait, total, paiement, contenu ; relu sur `OrderStatusChanged`, à chaque resynchronisation
   et toutes les 5 s tant que le paiement en ligne est attendu ; « Prête » mise en avant
