@@ -74,4 +74,5 @@ public enum SignalRNotificationTypeEnum
 public enum NotificationTypeEnum
 {
     Account,
+    Order,
 }

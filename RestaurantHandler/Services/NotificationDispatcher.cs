@@ -70,7 +70,7 @@ public class NotificationDispatcher(
             await realtime.SendToUserAsync(
                 request.UserId,
                 nameof(SignalRNotificationTypeEnum.Notification),
-                new { Type = request.Type.ToString(), request.Message }
+                new { notification.Id, Type = request.Type.ToString(), request.Message, request.Link, request.Icon }
             );
 
             push.EnqueueNotification(notification.Id);

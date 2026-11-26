@@ -163,7 +163,7 @@ public class OrderWorkflowService(
         );
 
         await SaveAsync();
-        await notifier.StatusChangedAsync(order);
+        await notifier.StatusChangedAsync(order, from, reason);
         return await LoadAsync(orderId);
     }
 
