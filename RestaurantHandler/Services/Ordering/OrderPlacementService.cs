@@ -131,10 +131,12 @@ public class OrderPlacementService(
         order.TotalCents = cart.TotalCents;
 
         // Les composants de menu sont rattachés à la commande en plus de leur ligne parente.
+        // CreatedAt fixe l'ordre des lignes : PostgreSQL ne garde que la microseconde, un écart
+        // plus fin serait perdu et l'ordre relu deviendrait aléatoire.
         var position = 0;
         foreach (var item in cart.Items)
         {
-            item.CreatedAt = now.AddTicks(position++);
+            item.CreatedAt = now.AddMicroseconds(position++);
             order.Items.Add(item);
             foreach (var child in item.Children)
             {
