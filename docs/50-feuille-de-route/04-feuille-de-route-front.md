@@ -313,10 +313,14 @@ clair et sombre.
 
 **Fait (carte à consulter, 2026-11-24) :**
 - Page `/carte` séparée de la page de commande (`features/shop/pages/menu-board-page`) : toutes
-  les rubriques à la suite (« Menus » en premier), avec les mêmes cartes produit que
-  `/commander`, et une barre collante de liens vers chaque rubrique (ancres `#rubrique-…`).
-  Un article ouvre sa fiche de commande (`/commander/produit/:id` ou `/commander/menu/:id`) ;
-  le bouton info affiche les ingrédients sur place. Ni panier ni colonne de commande.
+  les rubriques à la suite (« Menus » en premier), et une barre collante de liens vers chaque
+  rubrique (ancres `#rubrique-…`). Un article ouvre sa fiche de commande
+  (`/commander/produit/:id` ou `/commander/menu/:id`). Ni panier ni colonne de commande.
+- 2026-11-26 : cartes propres à `/carte` (`components/board-card`), plus grandes que celles de
+  `/commander` : deux par ligne sur grand écran (visuel à gauche), une sur mobile (visuel en
+  haut) ; description entière, ingrédients (rupture signalée), groupes d'options avec
+  suppléments, et pour un menu ses rubriques et produits au choix, visibles sans clic (plus de
+  bouton info). Tests et build OK ; rendu navigateur et axe pas encore vérifiés.
 - Le lien « Carte » de la barre du haut et les boutons « Voir la carte » (À propos, pages
   légales) mènent à `/carte` ; « Commander » reste sur `/commander`.
 - Tests unitaires et build OK ; rendu navigateur et axe pas encore vérifiés.
@@ -382,6 +386,15 @@ Menu latéral par rubriques (Service, Carte, Réglages), nom du restaurant en t�
 thème retiré de la barre du haut (sans effet sur un parfum). Tableau de bord recomposé :
 « Bonjour Prénom » et date, trois chiffres phares, pastilles par étape, carte « Service ».
 `/cuisine` inchangé (lisibilité à 2 m). Rendu et axe à vérifier dans le navigateur.
+
+**Nouveau design — suivi de commande (2026-11-26) :** l'historique `/commandes`, le suivi
+`/commandes/:id` (retour SumUp, chemin inchangé) et le reçu `/commandes/:id/recu` reprennent le
+gabarit du panier : surface `.brand .brand-ui`, barre du haut, sur-titre et grand titre, contenu
+en panneaux `.order-panel`, action principale en `.btn-brand`. Le reçu s'imprime sans fond, sans
+vague ni barre du haut. Les bandeaux « commande en cours », « compte non activé » et « nouvelle
+version » prennent le fond et l'encre de la surface. L'ancien en-tête `shared/ui/site-header`
+est supprimé, avec le drapeau de route `data: { header: false }` : chaque page client porte sa
+propre `app-site-topbar`. Rendu, impression et axe à vérifier dans le navigateur.
 
 **Photos en plusieurs tailles (2026-11-24) :** l'API décline chaque photo envoyée en WebP 160,
 320, 640 et 1200 px (`…-w{taille}.webp`, [ADR-0003](../40-decisions/ADR-0003-stockage-objet.md)) ;

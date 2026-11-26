@@ -78,6 +78,13 @@ public static class EnvironmentVariables
     public static string SUMUP_MERCHANT_CODE => GetEnvVar("SUMUP_MERCHANT_CODE", "");
     public static bool SumUpEnabled => SUMUP_API_KEY.Length > 0 && SUMUP_MERCHANT_CODE.Length > 0;
 
+    /// <summary>
+    /// Racine publique où SumUp envoie ses notifications ; défaut <see cref="API_BACK_URL"/>.
+    /// Distincte car API_BACK_URL est aussi l'émetteur des jetons : en local, un tunnel HTTPS.
+    /// </summary>
+    public static string SUMUP_NOTIFICATION_BASE_URL =>
+        GetEnvVar("SUMUP_NOTIFICATION_BASE_URL", "") is { Length: > 0 } url ? url : API_BACK_URL ?? "";
+
     /// <summary>Intervalle de la tâche de réconciliation des paiements en ligne (expression cron).</summary>
     public static string SUMUP_RECONCILE_CRON => GetEnvVar("SUMUP_RECONCILE_CRON", "*/2 * * * *");
 
