@@ -1,7 +1,7 @@
 # Documentation RestaurantHandler
 
 Source de vérité fonctionnelle et technique de **RestaurantHandler**, l'application de
-commande d'un fast-food à emporter : click & collect, saisie au comptoir, écran cuisine,
+commande d'un fast-food à emporter : click & collect payé par carte en ligne, écran cuisine,
 statistiques. Tout désaccord entre le code et ces documents est un bug, de l'un ou de
 l'autre, et doit être tranché explicitement.
 
@@ -37,7 +37,7 @@ de données restaurant. Elle remplace intégralement l'ancienne documentation.
 - [E03 — Ouverture, horaires & ruptures](10-cahier-des-charges/E03-ouverture-ruptures.md)
 - [E04 — Commande en ligne](10-cahier-des-charges/E04-commande-en-ligne.md)
 - [E05 — Paiement](10-cahier-des-charges/E05-paiement.md)
-- [E06 — Comptoir et gestion des commandes](10-cahier-des-charges/E06-comptoir.md)
+- [E06 — Gestion des commandes par le restaurant](10-cahier-des-charges/E06-comptoir.md)
 - [E07 — Cuisine (KDS)](10-cahier-des-charges/E07-cuisine-kds.md)
 - [E08 — Suivi client](10-cahier-des-charges/E08-suivi-client.md)
 - [E09 — Statistiques](10-cahier-des-charges/E09-statistiques.md)

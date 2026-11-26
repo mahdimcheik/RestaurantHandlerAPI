@@ -7,13 +7,14 @@ client.
 
 **Priorité :** V1
 **État :** Implémentée
-**Avancement :** recherche sur le téléphone, filtre par statut, compteur de non-venues sur la
-fiche et `GET /manage/customers/{userId}/orders` ajoutés en F7 ; écran `/gestion/utilisateurs`.
+**Avancement :** recherche sur le téléphone, filtre par statut et `GET /manage/customers/{userId}/orders`
+ajoutés en F7 ; écran `/gestion/utilisateurs`. Compteur de non-venues retiré le 2026-11-26
+(ADR-0013).
 
 **Critères d'acceptation**
 
 - Recherche par nom, e-mail, téléphone ; filtre par rôle et statut.
-- La fiche client montre ses commandes et son compteur de non-venues.
+- La fiche client montre ses commandes.
 
 ### US-E10-2 — Créer un compte Manager
 
@@ -43,14 +44,14 @@ En tant que Manager, je veux bannir ou réactiver un compte afin d'écarter un c
 - Un Manager ne peut pas se bannir lui-même ni bannir le dernier Manager actif (contrôle
   serveur ajouté en F7, `UsersApiTests`).
 
-### US-E10-4 — Lever un blocage « paiement au retrait »
+### US-E10-4 — ~~Lever un blocage « paiement au retrait »~~
 
 En tant que Manager, je veux réautoriser le paiement au retrait pour un client bloqué afin de
 gérer une exception.
 
 **Priorité :** V1
-**État :** Partielle
-**Avancement :** API faite en J5 (`POST /manage/customers/{userId}/no-shows/reset`, historisé dans `NoShowResets` ; compteur visible du Manager dans le détail de commande et sur la fiche utilisateur) ; écran fait (F7, fiche utilisateur).
+**État :** Abandonnée
+**Abandonnée :** plus de paiement au retrait, donc plus de blocage à lever ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md), 2026-11-26).
 
 **Critères d'acceptation**
 
@@ -69,7 +70,6 @@ apparaissent sur la PWA et les reçus.
 
 - Nom commercial, raison sociale, adresse, téléphone, SIRET, n° de TVA intracommunautaire,
   logo.
-- Paramètres de service : délai ASAP, durée et capacité des créneaux, délai de validation
-  Manager, délai de grâce de retrait, seuil de non-venues, délai d'expiration des paiements en
-  ligne.
+- Paramètres de service : délai ASAP, durée et capacité des créneaux, délai de grâce de
+  retrait (avant « non venu »), délai d'expiration des paiements en ligne.
 - Chaque modification est historisée.

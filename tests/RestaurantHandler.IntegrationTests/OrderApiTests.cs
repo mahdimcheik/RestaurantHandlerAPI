@@ -19,8 +19,8 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
 
     private object ClassicLine(int qty = 1, params object[] mods) => new { productId = M.Classic, quantity = qty, modifications = mods };
 
-    private object Order(object[] lines, string payment = "OnSite", string? key = null, string mode = "Asap", DateTimeOffset? slot = null) =>
-        new { idempotencyKey = key ?? Key(), lines, pickupMode = mode, slotStart = slot, paymentChoice = payment };
+    private object Order(object[] lines, string? key = null, string mode = "Asap", DateTimeOffset? slot = null) =>
+        new { idempotencyKey = key ?? Key(), lines, pickupMode = mode, slotStart = slot };
 
     private static async Task<JsonElement> DataAsync(HttpResponseMessage response)
     {
@@ -38,6 +38,14 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
         return (await DataAsync(response)).GetProperty("id").GetGuid();
     }
 
+    /// <summary>Commande validée puis payée en ligne : `Confirmée`, prête pour la cuisine.</summary>
+    private async Task<Guid> PlacePaidAsync(HttpClient client, object order)
+    {
+        var id = await PlaceAsync(client, order);
+        await api.PayAsync(id);
+        return id;
+    }
+
     [Fact]
     public async Task Un_prix_envoye_par_le_client_est_ignore()
     {
@@ -48,7 +56,6 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
             totalCents = 1,
             lines = new[] { new { productId = M.Classic, quantity = 2, priceCents = 1, unitPriceCents = 1 } },
             pickupMode = "Asap",
-            paymentChoice = "OnSite",
         };
 
         var response = await client.PostAsJsonAsync("/orders", order, ApiFixture.Json);
@@ -56,7 +63,7 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var data = await DataAsync(response);
         Assert.Equal(1900, data.GetProperty("totalCents").GetInt32());
-        Assert.Equal("AwaitingApproval", data.GetProperty("status").GetString());
+        Assert.Equal("PendingPayment", data.GetProperty("status").GetString());
     }
 
     [Fact]
@@ -103,7 +110,7 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
 
         var clients = await Task.WhenAll(Enumerable.Range(0, 4).Select(_ => api.NewClientAsync()));
         var responses = await Task.WhenAll(clients.Select(c =>
-            c.Client.PostAsJsonAsync("/orders", Order([ClassicLine()], "Online", mode: "Slot", slot: lastSlot), ApiFixture.Json)));
+            c.Client.PostAsJsonAsync("/orders", Order([ClassicLine()], mode: "Slot", slot: lastSlot), ApiFixture.Json)));
 
         Assert.Equal(1, responses.Count(r => r.StatusCode == HttpStatusCode.Created));
         Assert.All(responses.Where(r => r.StatusCode != HttpStatusCode.Created), r => Assert.Equal(HttpStatusCode.Conflict, r.StatusCode));
@@ -113,15 +120,18 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Un_client_ne_peut_ni_lire_ni_annuler_la_commande_d_un_autre()
+    public async Task Un_client_ne_lit_pas_la_commande_d_un_autre_et_n_annule_pas_la_sienne()
     {
         var (owner, _) = await api.NewClientAsync();
         var (other, _) = await api.NewClientAsync();
-        var id = await PlaceAsync(owner, Order([ClassicLine()]));
+        var id = await PlacePaidAsync(owner, Order([ClassicLine()]));
 
         Assert.Equal(HttpStatusCode.NotFound, (await other.GetAsync($"/orders/{id}")).StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, (await other.PostAsync($"/orders/{id}/cancel", null)).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await owner.GetAsync($"/orders/{id}")).StatusCode);
+
+        // ADR-0013 : pour annuler, le client appelle le restaurant.
+        Assert.Equal(HttpStatusCode.NotFound, (await owner.PostAsync($"/orders/{id}/cancel", null)).StatusCode);
+        Assert.Equal("Confirmed", (await DataAsync(await owner.GetAsync($"/orders/{id}"))).GetProperty("status").GetString());
     }
 
     [Fact]
@@ -138,11 +148,11 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Parcours_au_retrait_validation_cuisine_garde_payee_et_remise()
+    public async Task Parcours_paye_en_ligne_cuisine_et_remise()
     {
         var (client, _) = await api.NewClientAsync();
         var manager = await api.ManagerAsync();
-        var id = await PlaceAsync(client, Order([ClassicLine(1, new { type = "Replace", ingredientId = M.Tomate, substituteIngredientId = M.Cheddar })]));
+        var id = await PlacePaidAsync(client, Order([ClassicLine(1, new { type = "Replace", ingredientId = M.Tomate, substituteIngredientId = M.Cheddar })]));
 
         async Task<JsonElement> Act(string action, object? body = null)
         {
@@ -151,24 +161,17 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
             return await DataAsync(r);
         }
 
-        await Act("accept");
         await Act("start");
         Assert.Equal("Confirmed", (await Act("undo")).GetProperty("status").GetString());
         await Act("start");
-        await Act("ready");
-
-        var unpaid = await manager.PostAsync($"/manage/orders/{id}/complete", null);
-        Assert.Equal(HttpStatusCode.Conflict, unpaid.StatusCode);
-
-        await Act("payments", new { method = "OnSiteCash", amountCents = 500 });
-        var paid = await Act("payments", new { method = "OnSiteCard" });
-        Assert.True(paid.GetProperty("isPaid").GetBoolean());
-        Assert.Equal(1110, paid.GetProperty("paidCents").GetInt32());
+        var ready = await Act("ready");
+        Assert.True(ready.GetProperty("isPaid").GetBoolean());
+        Assert.Equal(1110, ready.GetProperty("paidCents").GetInt32());
 
         var done = await Act("complete");
         Assert.Equal("Completed", done.GetProperty("status").GetString());
         Assert.Equal(
-            ["AwaitingApproval", "Confirmed", "InPreparation", "Confirmed", "InPreparation", "Ready", "Completed"],
+            ["PendingPayment", "Confirmed", "InPreparation", "Confirmed", "InPreparation", "Ready", "Completed"],
             done.GetProperty("history").EnumerateArray().Select(h => h.GetProperty("status").GetString()));
 
         var clientView = await DataAsync(await client.GetAsync($"/orders/{id}"));
@@ -178,9 +181,9 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
     [Fact]
     public async Task Undo_refuse_apres_10_secondes()
     {
+        var (client, _) = await api.NewClientAsync();
         var manager = await api.ManagerAsync();
-        var counter = await manager.PostAsJsonAsync("/manage/orders/counter", new { idempotencyKey = Key(), lines = new[] { ClassicLine() } }, ApiFixture.Json);
-        var id = (await DataAsync(counter)).GetProperty("id").GetGuid();
+        var id = await PlacePaidAsync(client, Order([ClassicLine()]));
         (await manager.PostAsync($"/manage/orders/{id}/start", null)).EnsureSuccessStatusCode();
 
         api.Clock.Advance(TimeSpan.FromSeconds(11));
@@ -189,82 +192,30 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Refus_exige_un_motif_affiche_au_client()
+    public async Task Options_de_validation_annoncent_le_paiement_en_ligne()
     {
         var (client, _) = await api.NewClientAsync();
-        var manager = await api.ManagerAsync();
-        var id = await PlaceAsync(client, Order([ClassicLine()]));
-
-        Assert.Equal(HttpStatusCode.BadRequest, (await manager.PostAsJsonAsync($"/manage/orders/{id}/refuse", new { reason = "" })).StatusCode);
-        (await manager.PostAsJsonAsync($"/manage/orders/{id}/refuse", new { reason = "Trop de monde" })).EnsureSuccessStatusCode();
-
-        var view = await DataAsync(await client.GetAsync($"/orders/{id}"));
-        Assert.Equal("Refused", view.GetProperty("status").GetString());
-        var last = view.GetProperty("history").EnumerateArray().Last();
-        Assert.Equal("Trop de monde", last.GetProperty("reason").GetString());
-        Assert.Equal(JsonValueKind.Null, last.GetProperty("changedBy").ValueKind);
-    }
-
-    [Fact]
-    public async Task Paiement_au_retrait_une_seule_en_cours_et_blocage_apres_non_venues()
-    {
-        var (client, userId) = await api.NewClientAsync();
-        await PlaceAsync(client, Order([ClassicLine()]));
-
-        var second = await client.PostAsJsonAsync("/orders", Order([ClassicLine()]), ApiFixture.Json);
-        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
-        Assert.Equal(HttpStatusCode.Created, (await client.PostAsJsonAsync("/orders", Order([ClassicLine()], "Online"), ApiFixture.Json)).StatusCode);
-
-        var (blocked, blockedId) = await api.NewClientAsync();
-        await api.WithDbAsync(async db =>
-        {
-            db.Users.Single(u => u.Id == blockedId).NoShowCount = 2;
-            await db.SaveChangesAsync();
-        });
-        Assert.Equal(HttpStatusCode.Forbidden, (await blocked.PostAsJsonAsync("/orders", Order([ClassicLine()]), ApiFixture.Json)).StatusCode);
-
-        var manager = await api.ManagerAsync();
-        (await manager.PostAsync($"/manage/customers/{blockedId}/no-shows/reset", null)).EnsureSuccessStatusCode();
-        var reset = await api.WithDbAsync(db => db.NoShowResets.SingleAsync(r => r.UserId == blockedId));
-        Assert.Equal(2, reset.PreviousCount);
-        Assert.Equal(await api.WithDbAsync(db => db.Users.Where(u => u.Email == ApiFixture.ManagerEmail).Select(u => u.Id).SingleAsync()), reset.ResetByUserId);
-        Assert.Equal(HttpStatusCode.Created, (await blocked.PostAsJsonAsync("/orders", Order([ClassicLine()]), ApiFixture.Json)).StatusCode);
-    }
-
-    [Fact]
-    public async Task Options_de_validation_annoncent_le_blocage_du_paiement_au_retrait()
-    {
-        async Task<JsonElement> OptionsAsync(HttpClient c)
-        {
-            var response = await c.GetAsync("/orders/checkout-options");
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            return await DataAsync(response);
-        }
-
-        var (client, _) = await api.NewClientAsync();
-        var free = await OptionsAsync(client);
-        Assert.True(free.GetProperty("canPayOnSite").GetBoolean());
-        Assert.True(free.GetProperty("onlinePaymentEnabled").GetBoolean());
-        Assert.Equal(JsonValueKind.Null, free.GetProperty("payOnSiteBlockedReason").ValueKind);
-
-        await PlaceAsync(client, Order([ClassicLine()]));
-        var pending = await OptionsAsync(client);
-        Assert.False(pending.GetProperty("canPayOnSite").GetBoolean());
-        Assert.Contains("déjà une commande", pending.GetProperty("payOnSiteBlockedReason").GetString());
-
-        var (blocked, blockedId) = await api.NewClientAsync();
-        await api.WithDbAsync(async db =>
-        {
-            db.Users.Single(u => u.Id == blockedId).NoShowCount = 2;
-            await db.SaveChangesAsync();
-        });
-        var noShows = await OptionsAsync(blocked);
-        Assert.False(noShows.GetProperty("canPayOnSite").GetBoolean());
-        Assert.Contains("payez en ligne", noShows.GetProperty("payOnSiteBlockedReason").GetString());
+        var response = await client.GetAsync("/orders/checkout-options");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True((await DataAsync(response)).GetProperty("onlinePaymentEnabled").GetBoolean());
 
         Assert.Equal(HttpStatusCode.Unauthorized, (await api.CreateClient().GetAsync("/orders/checkout-options")).StatusCode);
         var manager = await api.ManagerAsync();
         Assert.Equal(HttpStatusCode.Forbidden, (await manager.GetAsync("/orders/checkout-options")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Les_actions_sur_place_n_existent_plus()
+    {
+        var swagger = await api.CreateClient().GetFromJsonAsync<JsonElement>("/swagger/v1/swagger.json");
+        var paths = swagger.GetProperty("paths");
+        foreach (var removed in new[]
+        {
+            "/orders/{id}/cancel", "/orders/{id}/pay-on-site", "/manage/orders/counter", "/manage/orders/{id}/accept",
+            "/manage/orders/{id}/refuse", "/manage/orders/{id}/payments", "/manage/customers/{userId}/no-shows/reset",
+        })
+            Assert.False(paths.TryGetProperty(removed, out _), removed);
+        Assert.True(paths.TryGetProperty("/manage/orders/{id}/cancel", out _));
     }
 
     [Fact]
@@ -279,12 +230,12 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Non_venu_apres_delai_de_grace_incremente_le_compteur()
+    public async Task Non_venu_seulement_apres_le_delai_de_grace()
     {
-        var (client, userId) = await api.NewClientAsync();
+        var (client, _) = await api.NewClientAsync();
         var manager = await api.ManagerAsync();
-        var id = await PlaceAsync(client, Order([ClassicLine()]));
-        foreach (var action in new[] { "accept", "start", "ready" })
+        var id = await PlacePaidAsync(client, Order([ClassicLine()]));
+        foreach (var action in new[] { "start", "ready" })
             (await manager.PostAsync($"/manage/orders/{id}/{action}", null)).EnsureSuccessStatusCode();
 
         Assert.Equal(HttpStatusCode.Conflict, (await manager.PostAsync($"/manage/orders/{id}/no-show", null)).StatusCode);
@@ -292,11 +243,8 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
         api.Clock.Advance(TimeSpan.FromMinutes(15 + 30));
         (await manager.PostAsync($"/manage/orders/{id}/no-show", null)).EnsureSuccessStatusCode();
 
-        Assert.Equal(1, await api.WithDbAsync(db => db.Users.Where(u => u.Id == userId).Select(u => u.NoShowCount).SingleAsync()));
-        var details = await DataAsync(await manager.GetAsync($"/manage/orders/{id}"));
-        Assert.Equal(1, details.GetProperty("customerNoShowCount").GetInt32());
         var clientView = await DataAsync(await client.GetAsync($"/orders/{id}"));
-        Assert.Equal(JsonValueKind.Null, clientView.GetProperty("customerNoShowCount").ValueKind);
+        Assert.Equal("NoShow", clientView.GetProperty("status").GetString());
     }
 
     [Fact]
@@ -313,7 +261,7 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
                 new { slotId = M.BoissonSlot, productId = M.Cola },
             },
         };
-        var id = await PlaceAsync(client, Order([menuLine], "Online"));
+        var id = await PlaceAsync(client, Order([menuLine]));
 
         var manager = await api.ManagerAsync();
         var category = await api.WithDbAsync(db => db.Products.Where(p => p.Id == M.Classic).Select(p => p.CategoryId).SingleAsync());
@@ -333,32 +281,27 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task La_pause_bloque_le_en_ligne_mais_pas_le_comptoir_et_les_numeros_du_jour_se_suivent()
+    public async Task La_pause_bloque_la_commande_en_ligne_et_les_numeros_du_jour_se_suivent()
     {
         var manager = await api.ManagerAsync();
         (await manager.PostAsJsonAsync("/manage/restaurant/pause", new { durationMinutes = 15 })).EnsureSuccessStatusCode();
 
         var (client, _) = await api.NewClientAsync();
-        Assert.Equal(HttpStatusCode.Conflict, (await client.PostAsJsonAsync("/orders", Order([ClassicLine()], "Online"), ApiFixture.Json)).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await client.PostAsJsonAsync("/orders", Order([ClassicLine()]), ApiFixture.Json)).StatusCode);
 
-        async Task<int> CounterAsync()
+        api.Clock.Advance(TimeSpan.FromMinutes(16));
+        async Task<int> NumberAsync()
         {
-            var r = await manager.PostAsJsonAsync("/manage/orders/counter",
-                new { idempotencyKey = Key(), lines = new[] { ClassicLine() }, customerFirstName = "Léa" }, ApiFixture.Json);
+            var r = await client.PostAsJsonAsync("/orders", Order([ClassicLine()]), ApiFixture.Json);
             Assert.Equal(HttpStatusCode.Created, r.StatusCode);
-            var data = await DataAsync(r);
-            Assert.Equal("Confirmed", data.GetProperty("status").GetString());
-            return data.GetProperty("dailyNumber").GetInt32();
+            return (await DataAsync(r)).GetProperty("dailyNumber").GetInt32();
         }
 
-        var first = await CounterAsync();
-        Assert.Equal(first + 1, await CounterAsync());
+        var first = await NumberAsync();
+        Assert.Equal(first + 1, await NumberAsync());
 
         api.Clock.SetUtcNow(ApiFixture.Monday12h.AddDays(1));
-        Assert.Equal(1, await CounterAsync());
-
-        var kitchen = await DataAsync(await manager.GetAsync("/manage/orders/kitchen"));
-        Assert.Contains(kitchen.EnumerateArray(), o => o.GetProperty("customerLabel").GetString() == "Léa");
+        Assert.Equal(1, await NumberAsync());
     }
 
     [Fact]

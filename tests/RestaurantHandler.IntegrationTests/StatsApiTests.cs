@@ -23,9 +23,15 @@ public class StatsApiTests(ApiFixture api) : IAsyncLifetime
         return (await response.Content.ReadFromJsonAsync<JsonElement>(ApiFixture.Json)).GetProperty("data");
     }
 
-    private static async Task<JsonElement> CounterAsync(HttpClient manager, object line) =>
-        await DataAsync(await manager.PostAsJsonAsync("/manage/orders/counter",
-            new { idempotencyKey = Guid.NewGuid().ToString("N"), lines = new[] { line } }, ApiFixture.Json));
+    /// <summary>Commande en ligne d'un nouveau client, payée par SumUp : `Confirmée`.</summary>
+    private async Task<JsonElement> PaidOrderAsync(object line)
+    {
+        var (client, _) = await api.NewClientAsync();
+        var placed = await DataAsync(await client.PostAsJsonAsync("/orders",
+            new { idempotencyKey = Guid.NewGuid().ToString("N"), lines = new[] { line }, pickupMode = "Asap" }, ApiFixture.Json));
+        await api.PayAsync(placed.GetProperty("id").GetGuid());
+        return placed;
+    }
 
     private static async Task ActAsync(HttpClient manager, Guid id, string action, object? body = null) =>
         await DataAsync(await manager.PostAsJsonAsync($"/manage/orders/{id}/{action}", body ?? new { }, ApiFixture.Json));
@@ -48,21 +54,20 @@ public class StatsApiTests(ApiFixture api) : IAsyncLifetime
             new { optionGroups = new[] { new { optionGroupId = groupId } } }, ApiFixture.Json));
 
         // Retirée : Classic + cheddar, 12 min de préparation.
-        var classic = await CounterAsync(manager, new
+        var classic = await PaidOrderAsync(new
         {
             productId = M.Classic,
             quantity = 1,
             optionChoices = new[] { new { choiceId = cheddarChoice, quantity = 1 } },
         });
         var classicId = classic.GetProperty("id").GetGuid();
-        await ActAsync(manager, classicId, "payments", new { method = "OnSiteCash" });
         await ActAsync(manager, classicId, "start");
         api.Clock.Advance(TimeSpan.FromMinutes(12));
         await ActAsync(manager, classicId, "ready");
         await ActAsync(manager, classicId, "complete");
 
-        // Prête et payée par carte : comptée.
-        var menuId = (await CounterAsync(manager, new
+        // Prête (payée en ligne) : comptée.
+        var menuId = (await PaidOrderAsync(new
         {
             menuId = M.Menu,
             quantity = 1,
@@ -70,26 +75,27 @@ public class StatsApiTests(ApiFixture api) : IAsyncLifetime
         })).GetProperty("id").GetGuid();
         await ActAsync(manager, menuId, "start");
         await ActAsync(manager, menuId, "ready");
-        await ActAsync(manager, menuId, "payments", new { method = "OnSiteCard" });
 
-        // Prête non payée et annulée : jamais comptées.
-        var unpaid = (await CounterAsync(manager, new { productId = M.Classic, quantity = 3 })).GetProperty("id").GetGuid();
-        await ActAsync(manager, unpaid, "start");
-        await ActAsync(manager, unpaid, "ready");
-        var cancelled = (await CounterAsync(manager, new { productId = M.Cola, quantity = 1 })).GetProperty("id").GetGuid();
-        await ActAsync(manager, cancelled, "cancel", new { reason = "Erreur de saisie" });
+        // Non payée (en attente de paiement) et annulée : jamais comptées.
+        var (unpaidClient, _) = await api.NewClientAsync();
+        await DataAsync(await unpaidClient.PostAsJsonAsync("/orders", new
+        {
+            idempotencyKey = Guid.NewGuid().ToString("N"),
+            lines = new[] { new { productId = M.Classic, quantity = 3 } },
+            pickupMode = "Asap",
+        }, ApiFixture.Json));
+        var cancelled = (await PaidOrderAsync(new { productId = M.Cola, quantity = 1 })).GetProperty("id").GetGuid();
+        await ActAsync(manager, cancelled, "cancel", new { reason = "Demandé par téléphone" });
 
         var dashboard = await DataAsync(await manager.GetAsync($"/manage/stats/dashboard?date={Day}"));
         Assert.Equal(1030 + 1340, dashboard.GetProperty("revenueCents").GetInt32());
         Assert.Equal(2, dashboard.GetProperty("orders").GetInt32());
         Assert.Equal(1185, dashboard.GetProperty("averageBasketCents").GetInt32());
-        Assert.Equal(2, dashboard.GetProperty("counter").GetProperty("orders").GetInt32());
-        Assert.Equal(0, dashboard.GetProperty("online").GetProperty("orders").GetInt32());
-        Assert.Equal(2370, dashboard.GetProperty("paidOnSiteCents").GetInt32());
-        Assert.Equal(0, dashboard.GetProperty("paidOnlineCents").GetInt32());
+        Assert.Equal(2370, dashboard.GetProperty("paidOnlineCents").GetInt32());
         var byStatus = dashboard.GetProperty("byStatus");
         Assert.Equal(1, byStatus.GetProperty("Completed").GetInt32());
-        Assert.Equal(2, byStatus.GetProperty("Ready").GetInt32());
+        Assert.Equal(1, byStatus.GetProperty("Ready").GetInt32());
+        Assert.Equal(1, byStatus.GetProperty("PendingPayment").GetInt32());
         Assert.Equal(1, byStatus.GetProperty("Cancelled").GetInt32());
 
         // Le jour même est la valeur par défaut.

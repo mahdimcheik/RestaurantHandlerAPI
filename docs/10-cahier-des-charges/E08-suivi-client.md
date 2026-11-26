@@ -10,12 +10,17 @@ savoir quand venir.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`GET /orders/{id}`, `OrderStatusChanged` envoyé au client, 404 pour un autre client) ; page de suivi faite (F8a : `/commandes/:id`, temps réel, relecture à la reconnexion).
+**Avancement :** API faite en J2 (`GET /orders/{id}`, `OrderStatusChanged` envoyé au client, 404 pour un autre client) ; page de suivi faite (F8a : `/commandes/:id`, temps réel, relecture à la reconnexion) ; bouton d'annulation remplacé par le message « appelez le restaurant » le 2026-11-26.
 
 **Critères d'acceptation**
-- Page de suivi : numéro (en grand), heure de retrait, état (*En attente de paiement / À
-  valider / Confirmée / En préparation / Prête / Retirée / Refusée / Annulée*), contenu, total,
-  payée ou à payer au retrait.
+- Page de suivi : numéro (en grand), heure de retrait, état (*En attente de paiement /
+  Confirmée / En préparation / Prête / Retirée / Non retirée / Annulée*), contenu, total, payée
+  par carte ou paiement en ligne non reçu (nouvel essai possible).
+- Pas de bouton d'annulation ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) :
+  tant que la commande est confirmée, en préparation ou prête, la page affiche « Pour annuler,
+  appelez le restaurant par téléphone ou demandez directement sur place », avec le numéro du
+  restaurant cliquable (`tel:`) s'il est renseigné. Le motif d'une annulation faite par le
+  restaurant est affiché.
 - Mise à jour en moins de 2 secondes après chaque transition.
 - À la reconnexion (téléphone verrouillé, changement de réseau), l'état est relu depuis l'API.
 - Le statut `Prête` est visuellement fort (couleur, animation, vibration si disponible).

@@ -88,7 +88,6 @@ public class OptionGroupApiTests(ApiFixture api) : IAsyncLifetime
         idempotencyKey = Guid.NewGuid().ToString("N"),
         lines = new[] { new { productId, quantity = 1, optionChoices = choiceIds.Select(choiceId => new { choiceId }) } },
         pickupMode = "Asap",
-        paymentChoice = "OnSite",
     };
 
     [Fact]
@@ -288,7 +287,6 @@ public class OptionGroupApiTests(ApiFixture api) : IAsyncLifetime
             idempotencyKey = Guid.NewGuid().ToString("N"),
             lines = new[] { new { productId, quantity = 1, optionChoices = choices.Select(c => new { choiceId = c.ChoiceId, quantity = c.Quantity }) } },
             pickupMode = "Asap",
-            paymentChoice = "OnSite",
         };
 
         var ok = await client.PostAsJsonAsync("/orders", Order(pizza3, (jambon, 2), (oeuf, 1)), ApiFixture.Json);
@@ -297,7 +295,7 @@ public class OptionGroupApiTests(ApiFixture api) : IAsyncLifetime
             .Select(m => (m.GetProperty("label").GetString(), m.GetProperty("quantity").GetInt32()));
         Assert.Equal([($"Ingrédients {suffix} : Jambon", 2), ($"Ingrédients {suffix} : Œuf", 1)], mods);
 
-        // Une seule commande au retrait en cours par client : les autres paniers passent par le devis.
+        // Les autres paniers passent par le devis.
         async Task<string> QuoteAsync(Guid productId, params (Guid ChoiceId, int Quantity)[] choices) =>
             await (await client.PostAsJsonAsync("/orders/quote", Order(productId, choices), ApiFixture.Json)).Content.ReadAsStringAsync();
 

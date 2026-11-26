@@ -6,28 +6,18 @@ namespace RestaurantHandler.Services;
 public class OrderNotifier(RealtimeService realtime)
 {
     public const string OrderCreated = "OrderCreated";
-    public const string OrderAwaitingApproval = "OrderAwaitingApproval";
     public const string OrderStatusChanged = "OrderStatusChanged";
-    public const string OrderUpdated = "OrderUpdated";
 
     public async Task CreatedAsync(Order order)
     {
         var summary = OrderMapping.ToSummary(order);
-        await realtime.SendToRestaurantAsync(
-            order.Status == OrderStatus.AwaitingApproval ? OrderAwaitingApproval : OrderCreated,
-            summary
-        );
+        await realtime.SendToRestaurantAsync(OrderCreated, summary);
     }
 
     public async Task StatusChangedAsync(Order order)
     {
         var summary = OrderMapping.ToSummary(order);
         await realtime.SendToRestaurantAsync(OrderStatusChanged, summary);
-        if (order.CustomerId is { } customerId)
-            await realtime.SendToUserAsync(customerId, OrderStatusChanged, summary);
+        await realtime.SendToUserAsync(order.CustomerId, OrderStatusChanged, summary);
     }
-
-    /// <summary>Paiement déclaré : seul le back-office affiche « payée / à encaisser ».</summary>
-    public Task UpdatedAsync(Order order) =>
-        realtime.SendToRestaurantAsync(OrderUpdated, OrderMapping.ToSummary(order));
 }

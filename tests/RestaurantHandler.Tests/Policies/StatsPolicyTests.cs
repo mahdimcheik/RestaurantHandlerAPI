@@ -38,10 +38,10 @@ public class StatsPolicyTests
         return menu;
     }
 
-    private static Order Counted(DateTimeOffset at, OrderChannel channel = OrderChannel.Counter, PaymentMethod method = PaymentMethod.OnSiteCash,
-        OrderStatus status = OrderStatus.Completed, DateTimeOffset? confirmedAt = null, params OrderItem[] lines)
+    private static Order Counted(DateTimeOffset at, OrderStatus status = OrderStatus.Completed,
+        DateTimeOffset? confirmedAt = null, params OrderItem[] lines)
     {
-        var order = new Order { Channel = channel, Status = status, ReadyAt = at, ConfirmedAt = confirmedAt };
+        var order = new Order { Status = status, ReadyAt = at, ConfirmedAt = confirmedAt };
         if (status == OrderStatus.Completed)
             order.CompletedAt = at;
         foreach (var line in lines)
@@ -52,7 +52,7 @@ public class StatsPolicyTests
         }
         order.TotalCents = order.Items.Where(i => i.ParentItemId is null).Sum(OrderPricing.LineTotal);
         order.PaidAt = at;
-        order.Payments.Add(new Payment { Method = method, Status = PaymentStatus.Successful, AmountCents = order.TotalCents });
+        order.Payments.Add(new Payment { Method = PaymentMethod.SumupOnline, Status = PaymentStatus.Successful, AmountCents = order.TotalCents });
         return order;
     }
 
@@ -61,7 +61,6 @@ public class StatsPolicyTests
     [InlineData(OrderStatus.Ready, true, true)]
     [InlineData(OrderStatus.Ready, false, false)]
     [InlineData(OrderStatus.Cancelled, true, false)]
-    [InlineData(OrderStatus.Refused, false, false)]
     [InlineData(OrderStatus.NoShow, true, false)]
     [InlineData(OrderStatus.InPreparation, true, false)]
     public void Commande_comptee_retiree_ou_prete_payee(OrderStatus status, bool paid, bool expected) =>
@@ -114,9 +113,9 @@ public class StatsPolicyTests
         cancelled.Status = OrderStatus.Cancelled;
         var orders = new[]
         {
-            Counted(Paris(12), OrderChannel.Online, PaymentMethod.SumupOnline, lines: [ProductLine(Classic, "Classic", 950)]),
+            Counted(Paris(12), lines: [ProductLine(Classic, "Classic", 950)]),
             Counted(Paris(12, 10), lines: [MenuLine(1)]),
-            Counted(Paris(13), status: OrderStatus.Ready, method: PaymentMethod.OnSiteCard, lines: [ProductLine(Cola, "Cola", 250, 2)]),
+            Counted(Paris(13), status: OrderStatus.Ready, lines: [ProductLine(Cola, "Cola", 250, 2)]),
             cancelled,
         };
 
@@ -125,10 +124,7 @@ public class StatsPolicyTests
         Assert.Equal(950 + 1340 + 500, stats.RevenueCents);
         Assert.Equal(3, stats.Orders);
         Assert.Equal(2790 / 3, stats.AverageBasketCents);
-        Assert.Equal((1, 950), (stats.Online.Orders, stats.Online.RevenueCents));
-        Assert.Equal((2, 1840), (stats.Counter.Orders, stats.Counter.RevenueCents));
-        Assert.Equal(950, stats.PaidOnlineCents);
-        Assert.Equal(1840, stats.PaidOnSiteCents);
+        Assert.Equal(2790, stats.PaidOnlineCents);
         Assert.Equal(2790, Assert.Single(stats.Vat).GrossCents);
         Assert.Equal(1, stats.ByStatus[OrderStatus.Cancelled]);
         Assert.Equal(0, stats.ByStatus[OrderStatus.NoShow]);

@@ -49,10 +49,10 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 
 | Table | Rôle | Points clés |
 |---|---|---|
-| `Order` | Commande | `OrderNumber` (identity), `ServiceDate` + `DailyNumber` (unique), `IdempotencyKey` (unique par auteur), `CustomerId?`, `CustomerFirstName?`, `CreatedByUserId`, `Channel`, `Status`, `PickupMode`, `PickupAt`, `PaymentChoice`, `TotalCents`, `PaidAt/ConfirmedAt/ReadyAt/CompletedAt`, `PaymentIssue` (anomalie à traiter), jeton `xmin` |
+| `Order` | Commande | `OrderNumber` (identity), `ServiceDate` + `DailyNumber` (unique), `IdempotencyKey` (unique par auteur), `CustomerId`, `CreatedByUserId`, `Status`, `PickupMode`, `PickupAt`, `TotalCents`, `PaidAt/ConfirmedAt/ReadyAt/CompletedAt`, `PaymentIssue` (anomalie à traiter), jeton `xmin` |
 | `OrderItem` | Ligne | produit **ou** menu ; composants de menu en lignes enfants ; snapshots nom/prix/TVA |
 | `OrderItemModification` | Personnalisation | `Remove` / `Replace` / `Supplement` / `Choice`, libellé et prix figés, `Position` ; `OptionChoiceId` ssi `Choice`, `IngredientId` obligatoire sauf pour un `Choice` |
-| `Payment` | Paiement en ligne ou encaissement sur place déclaré | `Method` (`SumupOnline`, `OnSiteCard`, `OnSiteCash`, `OnSiteOther`), `Status`, `AmountCents`, identifiants SumUp uniques (`SumupCheckoutId`, `SumupTransactionCode`, `SumupTransactionId`), `CheckoutUrl`, `RefundedAt`, `DeclaredByUserId` |
+| `Payment` | Tentative de paiement en ligne SumUp | `Method` (`SumupOnline`, seul moyen), `Status`, `AmountCents`, identifiants SumUp uniques (`SumupCheckoutId`, `SumupTransactionCode`, `SumupTransactionId`), `CheckoutUrl`, `RefundedAt` |
 | `OrderStatusHistory` | Journal des statuts | auteur, horodatage, `Reason` |
 
 ## Écarts à combler
@@ -71,6 +71,7 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 | M10 | ✅ Index de lecture pour les statistiques : `Order(Status, CompletedAt)` et `Order(Status, ReadyAt)` ; table `NoShowResets` (historique des levées de blocage, US-E10-4) | E09, E10 | J5 |
 | M11 | Socle : retirer `HelpEntry`, `MailBroadcast`, paramètres de maintenance | J0 | J0 |
 | M12 | ✅ Groupes d'options, partagés entre produits depuis le 2026-11-23 : `OptionGroup`, `OptionChoice`, liaison `ProductOptionGroup`, `ModificationType.Choice`, `OrderItemModification.OptionChoiceId` et `Position` ; choix offerts et prix par choix supplémentaire supprimés le 2026-11-24 (`RemoveOptionGroupFreeChoices`) | sandwichs (pain, sauces), pizzas (taille) — [US-E02-9](../10-cahier-des-charges/E02-carte.md#us-e02-9--définir-les-groupes-doptions-et-les-proposer-sur-les-produits) | J5 |
+| M13 | ✅ Paiement en ligne seul ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) : retrait de `OrderStatus.AwaitingApproval` et `Refused`, de `OrderChannel`, `PaymentChoice`, `PaymentMethod.OnSite*`, `Order.CustomerFirstName`, `Payment.DeclaredByUserId`, `UserApp.NoShowCount`, `RestaurantSettings.ApprovalTimeoutMinutes` / `NoShowThreshold` et de la table `NoShowResets` ; `Order.CustomerId` obligatoire (migration `RemoveOnSiteAndCounter`, qui supprime d'abord les commandes d'essai concernées) | plus de comptoir, de paiement au retrait ni d'annulation client | 2026-11-26 |
 
 Chaque écart est une migration nommée (`dotnet ef migrations add <Nom>`) ; plus de
 régénération d'`InitialCreate` une fois la première mise en production faite.

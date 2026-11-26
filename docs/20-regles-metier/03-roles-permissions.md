@@ -10,17 +10,18 @@ personnel). L'autorisation est déclarée **sur l'opération**, avec **refus par
 | S'inscrire, se connecter, réinitialiser son mot de passe      |   ✅    |        —         |      —      |
 | Gérer son profil, supprimer son compte                        |    —    |        ✅        |     ✅      |
 | Valider une commande en ligne                                 |    —    |        ✅        |      —      |
-| Payer en ligne, annuler sa commande (avant préparation)       |    —    | ✅ (les siennes) |      —      |
+| Payer en ligne (par carte)                                    |    —    | ✅ (les siennes) |      —      |
 | Suivre une commande, voir son historique et ses reçus         |    —    | ✅ (les siennes) | ✅ (toutes) |
-| Saisir une commande comptoir                                  |    —    |        —         |     ✅      |
-| Accepter / refuser une commande à payer au retrait            |    —    |        —         |     ✅      |
 | Faire avancer une commande (KDS), remettre, déclarer non venu |    —    |        —         |     ✅      |
-| Marquer payée sur place, rembourser, annuler côté restaurant  |    —    |        —         |     ✅      |
+| Rembourser, annuler (y compris à la demande du client)        |    —    |        —         |     ✅      |
 | Gérer la carte, les ruptures, les horaires, la pause          |    —    |        —         |     ✅      |
 | Paramétrer Greenadine                                         |    —    |        —         |     ✅      |
 | Consulter les statistiques                                    |    —    |        —         |     ✅      |
 | Gérer les comptes, créer un Manager, bannir                   |    —    |        —         |     ✅      |
 | Tableau de bord Hangfire                                      |    —    |        —         |     ✅      |
+
+Le client n'a aucune action d'annulation : il appelle le restaurant ou le demande sur place
+([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)).
 
 **Propriété** : une commande n'est lisible par un Client que s'il en est le `CustomerId` ;
 toute autre tentative renvoie **404** (pas 403, pour ne pas révéler l'existence).

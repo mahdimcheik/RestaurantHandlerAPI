@@ -1,8 +1,8 @@
 # RestaurantHandler
 
-Application de commande d'**un seul** fast-food à emporter : click & collect (paiement en
-ligne SumUp ou au retrait après validation Manager), saisie au comptoir, écran cuisine (KDS)
-temps réel, statistiques. Développement solo, ouverture visée sous 3 mois.
+Application de commande d'**un seul** fast-food à emporter : click & collect payé **uniquement
+par carte en ligne** (SumUp), écran cuisine (KDS) temps réel, statistiques. Ni comptoir, ni
+paiement au retrait, ni annulation par le client (ADR-0013). Développement solo, ouverture visée sous 3 mois.
 
 **Source de vérité : [`docs/README.md`](../docs/README.md).** Avant toute fonctionnalité, lire
 la story concernée (`docs/10-cahier-des-charges/`), les règles métier
@@ -15,8 +15,9 @@ stories et lancer `./docs/check-docs.sh`.
 - **Rôles :** `Client` (défaut, seul rôle public, compte obligatoire pour commander) et
   `Manager` (tout le personnel). Seul un Manager crée un Manager (`POST /Users`) ; le Manager
   initial vient de `ADMIN_EMAIL` / `ADMIN_PASSWORD` (`AdminAccountsSeeder`).
-- **L'app n'est pas la caisse légale en V1** (ADR-0006) : les ventes sur place passent par une
-  caisse certifiée tierce ; l'app ne fait que **déclarer** l'encaissement.
+- **Paiement en ligne seul** (ADR-0013, remplace ADR-0006 et ADR-0010) : aucune commande ni
+  aucun encaissement sur place dans l'app, qui n'est pas une caisse. Le client n'annule pas : il
+  appelle le restaurant ou le demande sur place ; seul un Manager annule (remboursement SumUp).
 - **Argent :** montants en centimes (`int`), total **toujours recalculé côté serveur**,
   snapshots nom/prix/TVA dans les lignes de commande, catalogue archivé jamais supprimé
   (ADR-0008). Notifications SumUp relues et idempotentes (ADR-0007).

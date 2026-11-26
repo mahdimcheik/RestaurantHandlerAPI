@@ -1,6 +1,6 @@
 # ADR-0006 — Caisse certifiée tierce en V1, caisse maison NF525 en V2
 
-**Statut :** Accepté
+**Statut :** Remplacée par [ADR-0013](ADR-0013-paiement-en-ligne-seul.md) (2026-11-26) : plus aucun encaissement sur place dans l'application
 **Date :** 2026-11-22
 
 ## Contexte

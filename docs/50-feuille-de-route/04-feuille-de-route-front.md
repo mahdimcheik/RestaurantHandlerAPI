@@ -5,8 +5,9 @@ Déclinaison côté client Angular (`RestaurantHandlerClient`) des jalons **J4 �
 est en place ; ce document suit les écrans.
 
 **Hypothèses :** développeur solo, API stable (contrat OpenAPI régénéré par
-`npm run api:update`), ouverture progressive possible (comptoir + KDS d'abord, click & collect
-ensuite, cf. J6). D'où l'ordre retenu : **back-office et KDS d'abord** (F3 à F7, sortie J5),
+`npm run api:update`). Depuis le 2026-11-26 ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)), l'application ne prend que des commandes
+en ligne payées par carte : plus de comptoir, de paiement au retrait ni d'annulation par le
+client. L'ordre retenu : **back-office et KDS d'abord** (F3 à F7, sortie J5),
 **PWA client ensuite** (F8, sortie J4). C'est le **critère de sortie** qui clôt une étape, pas
 la date.
 
@@ -21,11 +22,11 @@ Statuts : ✅ terminé · 🟡 en cours · ⬜ à faire.
 | **F2 — Gestion de la carte** | Le Manager saisit toute la carte à l'écran | E02 | la vraie carte saisie sans Swagger | 🟡 |
 | **F3 — Ouverture & réglages** | Horaires, fermetures, pause, ruptures, créneaux | E03, US-E10-5 | ouvrir, fermer, mettre en pause depuis la tablette | 🟡 |
 | **F4 — Temps réel** | Connexion SignalR fiable et visible | US-E07-3, US-E08-1 | coupure réseau rattrapée sans rechargement | 🟡 |
-| **F5 — Comptoir** | Piloter les commandes du jour | E06, US-E05-3 | une commande comptoir saisie en moins de 30 s | 🟡 |
+| **F5 — Commandes du jour** | Piloter les commandes du jour | E06 | retrouver, remettre ou annuler une commande en moins de 30 s | 🟡 |
 | **F6 — KDS** | La cuisine prépare sans papier | E07 | file lisible à 2 m, gestes annulables | 🟡 |
-| **F7 — Pilotage** | Statistiques et utilisateurs | US-E09-1→3, US-E10-1→4 | chiffres du jour justes | 🟡 |
+| **F7 — Pilotage** | Statistiques et utilisateurs | US-E09-1→3, US-E10-1→3 | chiffres du jour justes | 🟡 |
 | → **Sortie J5** | | | **service simulé de 30 min sans papier** | |
-| **F8 — PWA client** | Commander, payer, suivre | E04, E05, E08, légal | **parcours 1 et 2 sur iPhone et Android réels (sortie J4)** | 🟡 |
+| **F8 — PWA client** | Commander, payer, suivre | E04, E05, E08, légal | **parcours 1 sur iPhone et Android réels (sortie J4)** | 🟡 |
 | **F9 — Qualité** (en continu) | Sûreté, accessibilité, tests de bout en bout | — | axe sans violation, E2E verts en CI | 🟡 |
 
 ## F0 — Socle — ✅
@@ -137,10 +138,25 @@ ouvre la cuisine ; `/cuisine`, `/gestion/comptoir`, `/gestion/commandes(/:id)` r
 Au back-office, un seul lien « Écrans de service » remplace Comptoir, Commandes et Cuisine.
 Styles : `src/styles/_service.scss`.
 
-**Reste :** vérifier sur la tablette réelle (paysage et portrait, où les onglets passent sur
-une seconde ligne) ; encaisser puis remettre depuis la cuisine contre la vraie API.
+**Paiement en ligne seul (2026-11-26, [ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) :** deux touches seulement (Cuisine, Commandes) ;
+plus de nombre « à valider » ni de son des commandes à valider (`ApprovalAlertService`
+supprimé, au back-office aussi).
 
-## F5 — Comptoir (E06) — 🟡
+**Reste :** vérifier sur la tablette réelle (paysage et portrait, où les onglets passent sur
+une seconde ligne) ; remettre depuis la cuisine contre la vraie API.
+
+## F5 — Commandes du jour (E06) — 🟡
+
+**Paiement en ligne seul (2026-11-26, [ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) :** supprimés :
+- la saisie comptoir (`counter-page`, `counter-cart`, `menu-composer`, `product-customizer`) ;
+- l'encaissement (`shared/ordering/payment-panel`) ;
+- accepter / refuser ;
+- les filtres « À valider », « À encaisser » et « Canal ».
+
+La liste garde « Paiement en cours », « En cours », « Prêtes » et « Closes ». Le détail garde la
+remise (dès `Prête`), « non venu », l'annulation (le dialogue rappelle qu'elle se fait à la
+demande du client) et le remboursement. Les puces ci-dessous sont l'historique d'avant ce
+changement.
 
 **Fait (feature `features/ordering`, sous `/service` depuis le 2026-11-26) :**
 - Saisie comptoir `/service/comptoir` (US-E06-1) : catégories en onglets, produits et menus en
@@ -170,13 +186,17 @@ une seconde ligne) ; encaisser puis remettre depuis la cuisine contre la vraie A
 et payée en espèces en 4 touches ; détail (TVA, paiement, historique) et liste à jour.
 
 **Reste :**
-- Vérifier en navigateur : commande en ligne « au retrait » (carillon, badge, accepter /
-  refuser), paiement mixte, remise, non-venue, annulation, 409 à deux onglets ; rendu tablette
-  en portrait ; contrôle axe des trois écrans, thèmes clair et sombre.
-- **Sortie :** une commande comptoir saisie et encaissée en moins de 30 s (atteint sur un
-  produit simple, à confirmer sur une tablette réelle).
+- Vérifier en navigateur : remise, non-venue, annulation avec remboursement, 409 à deux
+  onglets ; rendu tablette en portrait ; contrôle axe des écrans, thèmes clair et sombre.
+- **Sortie :** retrouver une commande par son numéro, la remettre ou l'annuler en moins de
+  30 s sur une tablette réelle.
 
 ## F6 — KDS (E07) — 🟡
+
+**Paiement en ligne seul (2026-11-26, [ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) :** bande « À valider », « À encaisser » et
+encaissement dans le détail supprimés ; le canal n'est plus affiché. Toute commande arrive
+payée : « Remis au client » est proposé dès `Prête`. Les puces ci-dessous sont l'historique
+d'avant ce changement.
 
 **Fait (feature `features/kitchen`, route `/service/cuisine`, `managerGuard`, onglet
 « Cuisine » de la coquille Service) :**
@@ -225,6 +245,11 @@ et sombre.
 
 ## F7 — Pilotage (E09, E10) — 🟡
 
+**Paiement en ligne seul (2026-11-26, [ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) :** tableau de bord sans « Comptoir / En ligne »
+ni « Payé sur place » ; fiche client sans compteur de non-venues ni « Réautoriser le paiement au
+retrait » (US-E10-4 abandonnée) ; réglage « délai de validation » et « seuil de non-venues »
+retirés de la page Restaurant.
+
 **Fait :**
 - Tableau de bord (US-E09-1) : CA, commandes, panier moyen, comptoir / en ligne, payé en ligne /
   sur place, commandes par étape (libellés, jamais la couleur seule), TVA du jour par taux ;
@@ -254,20 +279,31 @@ mois identiques aux réponses brutes de l'API (une commande comptée) ; liste et
 utilisateurs ; « C'est votre compte » sur sa propre fiche ; thèmes clair et sombre.
 
 **Reste :**
-- **Sortie :** rejouer la comparaison sur un jeu de plusieurs commandes (restaurant ouvert :
-  l'API refuse la saisie comptoir hors horaires) ; le jeu connu est couvert côté API par
-  `StatsApiTests`.
-- Vérifier en navigateur : bannir puis réactiver un client, refus du dernier Manager, levée
-  d'un blocage de non-venues, création d'un Manager puis connexion ; axe sur les trois pages.
+- **Sortie :** rejouer la comparaison sur un jeu de plusieurs commandes payées en ligne
+  (restaurant ouvert) ; le jeu connu est couvert côté API par `StatsApiTests`.
+- Vérifier en navigateur : bannir puis réactiver un client, refus du dernier Manager, création
+  d'un Manager puis connexion ; axe sur les trois pages.
 - Statuts de compte : une route de l'API listant les statuts éviterait les identifiants
   recopiés.
 
-**→ Sortie J5 :** service simulé de 30 minutes (comptoir + en ligne + KDS) sans papier.
+**→ Sortie J5 :** service simulé de 30 minutes (commandes en ligne payées + KDS + remise) sans
+papier.
 
 ## F8 — PWA client (E04, E05, E08) — 🟡
 
 Livrée en deux tranches : **F8a** (commander, payer, suivre) puis **F8b** (historique, reçu,
 bandeau, pages légales, PWA, appareils réels).
+
+**Paiement en ligne seul (2026-11-26, [ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) :**
+- Validation : plus de choix du paiement ; seul « Carte bancaire, en ligne » est proposé, et la
+  validation est bloquée avec un message si le paiement en ligne est coupé.
+- Suivi : plus de « Payer au retrait » ni de bouton « Annuler la commande ». Pour une commande
+  confirmée, en préparation ou prête, la page affiche « Pour annuler, appelez le restaurant par
+  téléphone ou demandez directement sur place », avec le numéro en lien `tel:` (depuis
+  `/restaurant/info`).
+- CGV : section « Annulation et remboursement » complétée de cette procédure.
+
+Les puces ci-dessous sont l'historique d'avant ce changement.
 
 **Fait (F8a) :**
 - API : refus de panier documenté dans l'OpenAPI (`CartProblemDetails`, `issues` par ligne,

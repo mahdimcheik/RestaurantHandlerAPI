@@ -35,12 +35,12 @@ public class RestaurantSettingsConfiguration : IEntityTypeConfiguration<Restaura
             t.HasCheckConstraint("CK_RestaurantSettings_Singleton", $"\"Id\" = '{RestaurantSettings.SingletonId}'");
             t.HasCheckConstraint(
                 "CK_RestaurantSettings_Delays",
-                "\"AsapDelayMinutes\" >= 0 AND \"MinLeadMinutes\" >= 0 AND \"ApprovalTimeoutMinutes\" >= 1"
+                "\"AsapDelayMinutes\" >= 0 AND \"MinLeadMinutes\" >= 0"
                     + " AND \"PickupGraceMinutes\" >= 0 AND \"OnlinePaymentExpiryMinutes\" >= 1"
             );
             t.HasCheckConstraint(
                 "CK_RestaurantSettings_Slots",
-                "\"SlotDurationMinutes\" >= 5 AND \"SlotCapacityOrders\" >= 1 AND \"NoShowThreshold\" >= 1"
+                "\"SlotDurationMinutes\" >= 5 AND \"SlotCapacityOrders\" >= 1"
             );
         });
 

@@ -93,7 +93,7 @@ En tant que client, je veux supprimer mon compte afin d'exercer mon droit à l'e
 
 ### US-E01-7 — Connexion Manager sur appareil partagé
 
-En tant que Manager, je veux qu'un appareil du restaurant (tablette comptoir, écran KDS) reste
+En tant que Manager, je veux qu'un appareil du restaurant (tablette de service, écran KDS) reste
 connecté pendant le service afin de ne pas me reconnecter à chaque commande.
 
 **Priorité :** V1

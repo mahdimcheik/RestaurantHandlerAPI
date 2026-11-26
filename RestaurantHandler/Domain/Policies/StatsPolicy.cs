@@ -50,10 +50,7 @@ public static class StatsPolicy
             RevenueCents = revenue,
             Orders = counted.Count,
             AverageBasketCents = counted.Count == 0 ? 0 : revenue / counted.Count,
-            Online = Channel(counted, OrderChannel.Online),
-            Counter = Channel(counted, OrderChannel.Counter),
             PaidOnlineCents = successful.Where(p => p.Method == PaymentMethod.SumupOnline).Sum(p => p.AmountCents),
-            PaidOnSiteCents = successful.Where(p => p.Method != PaymentMethod.SumupOnline).Sum(p => p.AmountCents),
             Vat = VatPolicy.Breakdown(counted.SelectMany(o => o.Items.Where(i => i.ParentItemId is null)))
                 .Select(v => new VatLineDto { Rate = v.Rate, GrossCents = v.GrossCents, NetCents = v.NetCents, VatCents = v.VatCents })
                 .ToList(),
@@ -165,12 +162,6 @@ public static class StatsPolicy
             .ToList();
 
         return new PeakHoursReport { From = range.First, To = range.Last, BucketMinutes = bucketMinutes, Buckets = buckets };
-    }
-
-    private static ChannelStats Channel(List<Order> counted, OrderChannel channel)
-    {
-        var orders = counted.Where(o => o.Channel == channel).ToList();
-        return new ChannelStats { Orders = orders.Count, RevenueCents = orders.Sum(o => o.TotalCents) };
     }
 
     private static (DateOnly, DateOnly) WeekOf(DateOnly day)

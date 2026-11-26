@@ -1,12 +1,14 @@
 # E09 — Statistiques
 
 Les statistiques de l'application sont des **indicateurs de pilotage**, pas des données
-comptables : la référence fiscale des ventes sur place est la caisse certifiée tierce.
+comptables. Toutes les ventes de l'application sont des ventes en ligne payées par carte
+([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) ; les éventuelles ventes au
+comptoir du restaurant sont hors application.
 
 ## Définitions communes
 
-- **Commande comptée** : commande au statut `Retirée`, ou `Prête` payée (une commande annulée,
-  refusée ou non venue n'est jamais comptée dans le CA).
+- **Commande comptée** : commande au statut `Retirée`, ou `Prête` payée (une commande annulée
+  ou non venue n'est jamais comptée dans le CA).
 - **CA TTC** : somme des `TotalCents` des commandes comptées, à la date de **retrait**.
 - **CA HT / TVA** : ventilés par taux à partir des snapshots de lignes.
 - **Journée** : de 00:00 à 23:59 en heure de Paris.
@@ -20,9 +22,9 @@ En tant que gérant, je veux voir l'activité du jour en direct afin de piloter 
 **Avancement :** API faite en J5 (`GET /manage/stats/dashboard`) ; écran fait (F7, tableau de bord du back-office, relu en temps réel).
 
 **Critères d'acceptation**
-- Indicateurs : CA TTC, nombre de commandes, panier moyen (CA / commandes), répartition
-  en ligne / comptoir, répartition payé en ligne / payé sur place.
-- Compteurs opérationnels : commandes en cours par statut, refusées, non venues, annulées.
+- Indicateurs : CA TTC, nombre de commandes, panier moyen (CA / commandes), montant payé en
+  ligne (la répartition par canal et « payé sur place » a été retirée, ADR-0013).
+- Compteurs opérationnels : commandes en cours par statut, non venues, annulées.
 - Rafraîchi en temps réel ou à intervalle court (≤ 1 min).
 
 ### US-E09-2 — Ventes par produit

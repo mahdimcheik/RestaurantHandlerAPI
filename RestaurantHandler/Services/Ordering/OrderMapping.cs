@@ -14,7 +14,7 @@ public static class OrderMapping
         order.Payments.Where(p => p.Status == PaymentStatus.Successful).Sum(p => p.AmountCents);
 
     public static string? CustomerLabel(Order order) =>
-        order.Customer is { } c ? $"{c.FirstName} {c.LastName}".Trim() : order.CustomerFirstName;
+        order.Customer is { } c ? $"{c.FirstName} {c.LastName}".Trim() : null;
 
     public static T FillSummary<T>(T dto, Order o) where T : OrderSummary
     {
@@ -23,10 +23,8 @@ public static class OrderMapping
         dto.DailyNumber = o.DailyNumber;
         dto.ServiceDate = o.ServiceDate;
         dto.Status = o.Status;
-        dto.Channel = o.Channel;
         dto.PickupMode = o.PickupMode;
         dto.PickupAt = o.PickupAt;
-        dto.PaymentChoice = o.PaymentChoice;
         dto.IsPaid = o.PaidAt is not null;
         dto.TotalCents = o.TotalCents;
         dto.CustomerLabel = CustomerLabel(o);
@@ -53,7 +51,6 @@ public static class OrderMapping
                 .OrderByDescending(p => p.CreatedAt).Select(p => p.CheckoutUrl).FirstOrDefault()
             : null;
         details.PaymentIssue = forManager ? o.PaymentIssue : null;
-        details.CustomerNoShowCount = forManager ? o.Customer?.NoShowCount : null;
         details.Items = topLevel.Select(ToItem).ToList();
         details.Vat = Vat(topLevel);
         details.History = o.StatusHistory

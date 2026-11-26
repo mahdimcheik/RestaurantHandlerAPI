@@ -377,35 +377,6 @@ namespace RestaurantHandler.Migrations
                         });
                 });
 
-            modelBuilder.Entity("RestaurantHandler.Models.NoShowReset", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<int>("PreviousCount")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("ResetAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("ResetByUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ResetByUserId");
-
-                    b.HasIndex("UserId", "ResetAt");
-
-                    b.ToTable("NoShowResets");
-                });
-
             modelBuilder.Entity("RestaurantHandler.Models.Notification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -602,11 +573,6 @@ namespace RestaurantHandler.Migrations
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Channel")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
-
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -619,11 +585,7 @@ namespace RestaurantHandler.Migrations
                     b.Property<Guid>("CreatedByUserId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("CustomerFirstName")
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<Guid?>("CustomerId")
+                    b.Property<Guid>("CustomerId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("CustomerNote")
@@ -646,11 +608,6 @@ namespace RestaurantHandler.Migrations
 
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("PaymentChoice")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
 
                     b.Property<string>("PaymentIssue")
                         .HasMaxLength(500)
@@ -920,9 +877,6 @@ namespace RestaurantHandler.Migrations
                         .HasDefaultValue("EUR")
                         .IsFixedLength();
 
-                    b.Property<Guid?>("DeclaredByUserId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Method")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -1121,9 +1075,6 @@ namespace RestaurantHandler.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<int>("ApprovalTimeoutMinutes")
-                        .HasColumnType("integer");
-
                     b.Property<int>("AsapDelayMinutes")
                         .HasColumnType("integer");
 
@@ -1139,9 +1090,6 @@ namespace RestaurantHandler.Migrations
                         .HasColumnType("character varying(500)");
 
                     b.Property<int>("MinLeadMinutes")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("NoShowThreshold")
                         .HasColumnType("integer");
 
                     b.Property<int>("OnlinePaymentExpiryMinutes")
@@ -1183,22 +1131,20 @@ namespace RestaurantHandler.Migrations
 
                     b.ToTable("RestaurantSettings", t =>
                         {
-                            t.HasCheckConstraint("CK_RestaurantSettings_Delays", "\"AsapDelayMinutes\" >= 0 AND \"MinLeadMinutes\" >= 0 AND \"ApprovalTimeoutMinutes\" >= 1 AND \"PickupGraceMinutes\" >= 0 AND \"OnlinePaymentExpiryMinutes\" >= 1");
+                            t.HasCheckConstraint("CK_RestaurantSettings_Delays", "\"AsapDelayMinutes\" >= 0 AND \"MinLeadMinutes\" >= 0 AND \"PickupGraceMinutes\" >= 0 AND \"OnlinePaymentExpiryMinutes\" >= 1");
 
                             t.HasCheckConstraint("CK_RestaurantSettings_Singleton", "\"Id\" = '5e771465-0000-4000-8000-000000000001'");
 
-                            t.HasCheckConstraint("CK_RestaurantSettings_Slots", "\"SlotDurationMinutes\" >= 5 AND \"SlotCapacityOrders\" >= 1 AND \"NoShowThreshold\" >= 1");
+                            t.HasCheckConstraint("CK_RestaurantSettings_Slots", "\"SlotDurationMinutes\" >= 5 AND \"SlotCapacityOrders\" >= 1");
                         });
 
                     b.HasData(
                         new
                         {
                             Id = new Guid("5e771465-0000-4000-8000-000000000001"),
-                            ApprovalTimeoutMinutes = 10,
                             AsapDelayMinutes = 15,
                             IsPaused = false,
                             MinLeadMinutes = 20,
-                            NoShowThreshold = 2,
                             OnlinePaymentExpiryMinutes = 30,
                             PickupGraceMinutes = 30,
                             SlotCapacityOrders = 5,
@@ -1409,9 +1355,6 @@ namespace RestaurantHandler.Migrations
                     b.Property<DateTime?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("NoShowCount")
-                        .HasColumnType("integer");
-
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
@@ -1608,25 +1551,6 @@ namespace RestaurantHandler.Migrations
                     b.Navigation("Slot");
                 });
 
-            modelBuilder.Entity("RestaurantHandler.Models.NoShowReset", b =>
-                {
-                    b.HasOne("RestaurantHandler.Models.UserApp", "ResetByUser")
-                        .WithMany()
-                        .HasForeignKey("ResetByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantHandler.Models.UserApp", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ResetByUser");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("RestaurantHandler.Models.Notification", b =>
                 {
                     b.HasOne("RestaurantHandler.Models.UserApp", "User")
@@ -1667,7 +1591,8 @@ namespace RestaurantHandler.Migrations
                     b.HasOne("RestaurantHandler.Models.UserApp", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("CreatedByUser");
 

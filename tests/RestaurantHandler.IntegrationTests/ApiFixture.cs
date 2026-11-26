@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
 using Amazon.Runtime;
 using Amazon.S3;
 using RestaurantHandler.Integrations.SumUp;
@@ -77,6 +78,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
             ["SUMUP_API_KEY"] = "sup_sk_test_integration",
             ["SUMUP_MERCHANT_CODE"] = "MTEST",
             ["API_BACK_URL"] = "https://api.test",
+            ["SUMUP_NOTIFICATION_BASE_URL"] = "https://api.test",
             ["API_FRONT_URL"] = "https://app.test",
         };
         foreach (var (key, value) in env)
@@ -129,6 +131,22 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         });
 
     public async Task<HttpClient> ManagerAsync() => await LoginAsync(ManagerEmail, ManagerPassword);
+
+    /// <summary>
+    /// Le client paie la tentative SumUp en cours puis SumUp notifie : la commande passe
+    /// `Confirmée` et payée, seul chemin vers la cuisine (ADR-0013).
+    /// </summary>
+    public async Task PayAsync(Guid orderId)
+    {
+        var checkoutId = await WithDbAsync(db => db.Payments
+            .Where(p => p.OrderId == orderId && p.Status == PaymentStatus.Pending)
+            .Select(p => p.SumupCheckoutId!)
+            .SingleAsync());
+        SumUp.Pay(checkoutId);
+        var notified = await CreateClient().PostAsJsonAsync("/payments/sumup/notifications",
+            new { event_type = "CHECKOUT_STATUS_CHANGED", id = checkoutId });
+        notified.EnsureSuccessStatusCode();
+    }
 
     /// <summary>Nouveau compte Client confirmé, connecté.</summary>
     public async Task<(HttpClient Client, Guid UserId)> NewClientAsync()

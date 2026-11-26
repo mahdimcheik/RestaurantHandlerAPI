@@ -10,14 +10,14 @@ dans le bon ordre.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** File faite en J2 (`GET /manage/orders/kitchen`, tri et visibilité des commandes programmées) ; écran `/service/cuisine` fait (F6 : deux colonnes, personnalisations mises en évidence, carillon, bande « À valider » pour accepter ou refuser les commandes à payer au retrait), à éprouver en service simulé.
+**Avancement :** File faite en J2 (`GET /manage/orders/kitchen`, tri et visibilité des commandes programmées) ; écran `/service/cuisine` fait (F6 : deux colonnes, personnalisations mises en évidence, carillon ; la bande « À valider » des commandes à payer au retrait a été retirée le 2026-11-26, ADR-0013), à éprouver en service simulé.
 
 **Critères d'acceptation**
 - Affiche les commandes `Confirmée` et `En préparation`, en colonnes ou en cartes.
 - Tri par **heure de retrait prévue** (ASAP = heure estimée), puis par heure de validation.
 - Une commande programmée n'apparaît qu'à partir de *heure de retrait − délai de préparation*
   (paramètre) pour ne pas encombrer l'écran.
-- Chaque carte montre : numéro, heure de retrait, canal, lignes avec quantités, composants de
+- Chaque carte montre : numéro, heure de retrait, client, lignes avec quantités, composants de
   menus, personnalisations **mises en évidence** (« SANS oignons », « + bacon ×2 », « Pain : Pita »), note client.
 - Une nouvelle commande déclenche un signal sonore.
 - Lisible à 2 mètres (taille de police, contraste) ; utilisable au doigt.
@@ -25,7 +25,7 @@ dans le bon ordre.
 ### US-E07-2 — Faire avancer une commande
 
 En tant que cuisinier, je veux passer une commande en préparation puis prête d'un geste afin de
-tenir le client et le comptoir informés.
+tenir le client et le personnel qui remet les commandes informés.
 
 **Priorité :** V1
 **État :** Partielle
@@ -65,18 +65,18 @@ quitter cet écran.
 **Avancement :** écran fait le 2026-11-26 (F6 : numéro du bon et cartes « Prêtes » ouvrent une
 fenêtre par-dessus l'écran ; aucune API nouvelle, `GET /manage/orders/{id}` et
 `GET /manage/orders?Status=Ready`), testé unitairement ; à vérifier en navigateur et sur la
-tablette de la cuisine ; encaissement depuis la fenêtre ajouté le 2026-11-26.
+tablette de la cuisine ; l'encaissement depuis la fenêtre a été retiré le même jour (ADR-0013 :
+toute commande arrive payée en ligne).
 
 **Critères d'acceptation**
-- Toucher le numéro d'une commande (à valider, à préparer, en préparation, prête) ouvre son
+- Toucher le numéro d'une commande (à préparer, en préparation, prête) ouvre son
   détail dans une fenêtre, sans changer de page ; Fermer ou Échap y ramène.
-- Le détail montre : retrait, canal, client, statut, lignes avec quantité et prix de la ligne
+- Le détail montre : retrait, client, statut, lignes avec quantité et prix de la ligne
   (prix unitaire si quantité > 1), suppléments chiffrés, composants de menus avec leur surcoût,
-  note, total, paiements reçus par moyen, reste à encaisser.
-- Une commande `Prête` et payée se remet au client depuis le détail (« Remis au client », deux
-  touches : la remise ne s'annule pas) ; non payée, elle s'encaisse dans la même fenêtre
-  (déclaration de l'encaissement fait sur la caisse, ADR-0006 ; paiement mixte possible), puis
-  se remet. Toute commande acceptée et non payée s'encaisse de même.
+  note, total, paiement en ligne reçu.
+- Une commande `Prête` se remet au client depuis le détail (« Remis au client », deux
+  touches : la remise ne s'annule pas) ; elle est toujours déjà payée en ligne
+  ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)).
 - Hors ligne, le détail d'une commande déjà à l'écran reste consultable.
 
 ### US-E07-4 — Vue « à préparer » agrégée

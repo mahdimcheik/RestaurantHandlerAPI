@@ -46,9 +46,6 @@ public class UserApp : IdentityUser<Guid>, IArchivable, IUpdateable, ICreatable
     // Dernier envoi du lien d'activation, pour limiter les renvois.
     public DateTimeOffset? ConfirmationEmailSentAt { get; set; }
 
-    /// <summary>Commandes « non venu » ; au seuil, le paiement au retrait est bloqué (US-E04-5).</summary>
-    public int NoShowCount { get; set; }
-
     // notifications
     public ICollection<Notification> Notifications { get; set; }
 

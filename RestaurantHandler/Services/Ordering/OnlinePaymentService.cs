@@ -17,7 +17,6 @@ public class OnlinePaymentService(
     MainContext db,
     SumUpClient sumup,
     OrderWorkflowService workflow,
-    OrderPlacementService placement,
     RealtimeService realtime,
     TimeProvider clock,
     ILogger<OnlinePaymentService> logger
@@ -35,13 +34,13 @@ public class OnlinePaymentService(
     public async Task<OrderDetails> StartCheckoutAsync(Guid orderId, CallerIdentity caller)
     {
         if (!EnvironmentVariables.SumUpEnabled)
-            throw new BusinessConflictException("Le paiement en ligne est indisponible : choisissez le paiement au retrait.");
+            throw new BusinessConflictException("Le paiement en ligne est momentanément indisponible : réessayez plus tard.");
 
         var order = await OwnedAsync(orderId, caller);
         await CloseOpenAttemptsAsync(orderId);
 
         order = await db.Orders.AsNoTracking().FirstAsync(o => o.Id == orderId);
-        if (order.Status != OrderStatus.PendingPayment || order.PaymentChoice != PaymentChoice.Online)
+        if (order.Status != OrderStatus.PendingPayment)
             throw new BusinessConflictException("Cette commande n'attend pas de paiement en ligne.");
 
         var settings = await db.RestaurantSettings.AsNoTracking().FirstAsync();
@@ -79,30 +78,11 @@ public class OnlinePaymentService(
             logger.LogError(ex, "Création du checkout SumUp impossible pour la commande {OrderId}.", orderId);
             payment.Status = PaymentStatus.Failed;
             await db.SaveChangesAsync();
-            throw new BusinessConflictException("Le paiement en ligne est momentanément indisponible : réessayez ou choisissez le paiement au retrait.");
+            throw new BusinessConflictException("Le paiement en ligne est momentanément indisponible : réessayez dans quelques minutes.");
         }
 
         await db.SaveChangesAsync();
         return await DetailsAsync(orderId, false);
-    }
-
-    /// <summary>US-E04-6 : les tentatives ouvertes sont closes, puis tout paiement en ligne reçu est remboursé.</summary>
-    public async Task<OrderDetails> CancelByCustomerAsync(Guid orderId, CallerIdentity caller)
-    {
-        await OwnedAsync(orderId, caller);
-        await CloseOpenAttemptsAsync(orderId);
-        await workflow.CancelByCustomerAsync(orderId, caller);
-        await RefundOnlinePaymentsAsync(orderId);
-        return await DetailsAsync(orderId, false);
-    }
-
-    /// <summary>Paiement en ligne abandonné → paiement au retrait (limites d'US-E04-5).</summary>
-    public async Task<OrderDetails> SwitchToPayOnSiteAsync(Guid orderId, CallerIdentity caller)
-    {
-        await OwnedAsync(orderId, caller);
-        await placement.EnsurePayOnSiteAllowedAsync(caller.UserId);
-        await CloseOpenAttemptsAsync(orderId);
-        return await workflow.SwitchToPayOnSiteAsync(orderId, caller);
     }
 
     // ---------- Manager ----------
@@ -124,8 +104,8 @@ public class OnlinePaymentService(
     {
         var status = await db.Orders.Where(o => o.Id == orderId).Select(o => (OrderStatus?)o.Status).FirstOrDefaultAsync()
             ?? throw new ResourceNotFoundException("Commande introuvable.");
-        if (status is not (OrderStatus.Cancelled or OrderStatus.Refused or OrderStatus.NoShow))
-            throw new BusinessConflictException("Seule une commande annulée, refusée ou non retirée peut être remboursée.");
+        if (status is not (OrderStatus.Cancelled or OrderStatus.NoShow))
+            throw new BusinessConflictException("Seule une commande annulée ou non retirée peut être remboursée.");
 
         if (await RefundOnlinePaymentsAsync(orderId) == 0)
             throw new BusinessConflictException("Aucun paiement en ligne à rembourser sur cette commande.");

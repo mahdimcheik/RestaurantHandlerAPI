@@ -216,9 +216,7 @@ public class RestaurantService(
         settings.SlotDurationMinutes = dto.SlotDurationMinutes;
         settings.SlotCapacityOrders = dto.SlotCapacityOrders;
         settings.MinLeadMinutes = dto.MinLeadMinutes;
-        settings.ApprovalTimeoutMinutes = dto.ApprovalTimeoutMinutes;
         settings.PickupGraceMinutes = dto.PickupGraceMinutes;
-        settings.NoShowThreshold = dto.NoShowThreshold;
         settings.OnlinePaymentExpiryMinutes = dto.OnlinePaymentExpiryMinutes;
 
         await SaveWithHistoryAsync(settings, caller);
@@ -299,8 +297,8 @@ public class RestaurantService(
                 {
                     snapshot.TradeName, snapshot.LegalName, snapshot.Address, snapshot.Phone, snapshot.Siret,
                     snapshot.VatNumber, LogoKey = settings.LogoUrl, snapshot.AsapDelayMinutes, snapshot.SlotDurationMinutes,
-                    snapshot.SlotCapacityOrders, snapshot.MinLeadMinutes, snapshot.ApprovalTimeoutMinutes,
-                    snapshot.PickupGraceMinutes, snapshot.NoShowThreshold, snapshot.OnlinePaymentExpiryMinutes,
+                    snapshot.SlotCapacityOrders, snapshot.MinLeadMinutes,
+                    snapshot.PickupGraceMinutes, snapshot.OnlinePaymentExpiryMinutes,
                 },
                 SnapshotJsonOptions
             ),
@@ -337,9 +335,7 @@ public class RestaurantService(
             SlotDurationMinutes = s.SlotDurationMinutes,
             SlotCapacityOrders = s.SlotCapacityOrders,
             MinLeadMinutes = s.MinLeadMinutes,
-            ApprovalTimeoutMinutes = s.ApprovalTimeoutMinutes,
             PickupGraceMinutes = s.PickupGraceMinutes,
-            NoShowThreshold = s.NoShowThreshold,
             OnlinePaymentExpiryMinutes = s.OnlinePaymentExpiryMinutes,
             IsPaused = s.IsPaused,
             PausedUntil = s.PausedUntil,

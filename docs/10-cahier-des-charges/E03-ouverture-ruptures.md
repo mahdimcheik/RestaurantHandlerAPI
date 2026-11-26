@@ -45,8 +45,8 @@ afin de ne pas être débordé, puis les reprendre.
 **Avancement :** API faite en J1 (pause 15/30/60 min ou sans fin, reprise Hangfire, diffusion temps réel) ; refus du panier en J2.
 
 **Critères d'acceptation**
-- La pause bloque la validation de nouvelles commandes en ligne ; la saisie comptoir reste
-  possible.
+- La pause bloque la validation de nouvelles commandes ; les commandes déjà payées restent à
+  préparer.
 - Une durée facultative (15, 30, 60 min) reprend automatiquement les commandes à son terme.
 - L'état est diffusé en temps réel aux clients qui ont la carte ouverte.
 - Un panier en cours de validation au moment de la pause est refusé avec un message clair.

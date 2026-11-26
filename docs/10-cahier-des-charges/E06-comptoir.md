@@ -1,13 +1,17 @@
-# E06 — Commande au comptoir et gestion des commandes
+# E06 — Gestion des commandes par le restaurant
 
-### US-E06-1 — Saisir une commande au comptoir
+Toutes les commandes sont passées en ligne et payées par carte avant d'arriver en cuisine
+([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) ; le restaurant les suit, les
+remet, les déclare non venues ou les annule à la demande du client.
+
+### US-E06-1 — ~~Saisir une commande au comptoir~~
 
 En tant que Manager, je veux saisir rapidement la commande d'un client présent afin de
 l'envoyer en cuisine.
 
 **Priorité :** V1
-**État :** Partielle
-**Avancement :** API faite en J2 (`POST /manage/orders/counter`, non bloquée par la pause) ; écran tactile fait (F5, `/service/comptoir`), à valider sur tablette réelle.
+**État :** Abandonnée
+**Abandonnée :** plus de saisie au comptoir ; les ventes au comptoir passent par la caisse du restaurant, hors de l'application ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md), 2026-11-26).
 
 **Critères d'acceptation**
 - Interface tactile optimisée tablette : catégories en tuiles, personnalisation en deux
@@ -23,26 +27,26 @@ l'envoyer en cuisine.
 
 ### US-E06-2 — Voir les commandes du jour
 
-En tant que Manager, je veux une liste des commandes du jour filtrable par statut, canal et
-état de paiement afin de piloter le service.
+En tant que Manager, je veux une liste des commandes du jour filtrable par statut et numéro
+afin de piloter le service.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`GET /manage/orders`, filtres statut / canal / payée, détail avec historique) ; écran fait (F5, `/service/commandes`).
+**Avancement :** API faite en J2 (`GET /manage/orders`, filtres statut / payée / numéro, détail avec historique ; filtre canal retiré le 2026-11-26) ; écran fait (F5, `/service/commandes`).
 
 **Critères d'acceptation**
 - Mise à jour en temps réel.
-- Colonnes : numéro, heure de retrait, client, canal, statut, payée / à encaisser, total.
+- Colonnes : numéro, heure de retrait, client, statut, payée / paiement en cours, total.
 - Accès au détail complet (lignes, personnalisations, note, historique des statuts).
 
-### US-E06-3 — Valider une commande à payer au retrait
+### US-E06-3 — ~~Valider une commande à payer au retrait~~
 
 En tant que Manager, je veux accepter ou refuser une commande en ligne à payer au retrait afin
 de ne préparer que des commandes crédibles.
 
 **Priorité :** V1
-**État :** Partielle
-**Avancement :** API faite en J2 (accepter, refuser avec motif, refus automatique Hangfire après `ApprovalTimeoutMinutes`, temps réel) ; son, badge et gestes faits (F5) ; accepter et refuser aussi possibles depuis l'écran cuisine `/service/cuisine` (bande « À valider »).
+**État :** Abandonnée
+**Abandonnée :** plus de paiement au retrait, donc plus de validation Manager ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md), 2026-11-26).
 
 **Critères d'acceptation**
 - Les commandes `À valider` sont mises en évidence (son + badge) dans le back-office.
@@ -58,31 +62,33 @@ En tant que Manager, je veux marquer une commande comme retirée afin de clore s
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`complete`, refusé si non payée) ; recherche par numéro faite en J5 (`GET /manage/orders?number=`) ; écran fait (F5).
+**Avancement :** API faite en J2 (`complete`, refusé si non payée) ; recherche par numéro faite en J5 (`GET /manage/orders?number=`) ; écran fait (F5, et depuis le détail de l'écran cuisine).
 
 **Critères d'acceptation**
-- Possible uniquement depuis `Prête` et si la commande est payée.
+- Possible uniquement depuis `Prête` ; la commande est toujours déjà payée en ligne (le
+  serveur le revérifie).
 - Recherche rapide par numéro.
 
 ### US-E06-5 — Déclarer un client non venu
 
 En tant que Manager, je veux marquer une commande prête non retirée comme « non venu » afin de
-clore la commande et de suivre les abus.
+clore la commande.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`no-show` après retrait + délai de grâce, compteur client) ; écran fait (F5).
+**Avancement :** API faite en J2 (`no-show` après retrait + délai de grâce ; compteur client retiré le 2026-11-26) ; écran fait (F5).
 
 **Critères d'acceptation**
 - Possible depuis `Prête` après l'heure de retrait + délai de grâce.
 - Une commande payée en ligne non retirée **n'est pas** remboursée automatiquement (décision
   Manager).
-- Incrémente le compteur de non-venues du client (cf. [US-E04-5](E04-commande-en-ligne.md#us-e04-5--limiter-les-abus-du-paiement-au-retrait)).
+- Aucune sanction ni compteur : le paiement au retrait, qu'elle protégeait, n'existe plus
+  ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)).
 
 ### US-E06-6 — Annuler une commande côté restaurant
 
 En tant que Manager, je veux annuler une commande avec un motif afin de gérer un imprévu
-(rupture découverte, erreur de saisie).
+(rupture découverte) ou la demande d'un client, qui ne peut pas annuler lui-même.
 
 **Priorité :** V1
 **État :** Partielle
@@ -90,5 +96,8 @@ En tant que Manager, je veux annuler une commande avec un motif afin de gérer u
 
 **Critères d'acceptation**
 - Possible à tout statut avant `Retirée` ; motif obligatoire ; historisé.
+- C'est la seule annulation à la main : le client appelle le restaurant ou le demande sur
+  place ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) ; une commande non
+  payée expire seule ([US-E05-2](E05-paiement.md)).
 - Une commande payée en ligne est remboursée ([US-E05-4](E05-paiement.md#us-e05-4--rembourser-une-commande-payée-en-ligne)).
 - Le client en ligne est notifié en temps réel sur sa page de suivi.

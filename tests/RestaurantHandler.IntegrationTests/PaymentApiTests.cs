@@ -29,7 +29,6 @@ public class PaymentApiTests(ApiFixture api) : IAsyncLifetime
             idempotencyKey = Guid.NewGuid().ToString("N"),
             lines = new[] { new { productId = M.Classic, quantity = 2 } },
             pickupMode = "Asap",
-            paymentChoice = "Online",
         }, ApiFixture.Json);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -147,10 +146,11 @@ public class PaymentApiTests(ApiFixture api) : IAsyncLifetime
     [Fact]
     public async Task Paiement_arrive_apres_annulation_est_rembourse()
     {
-        var (id, checkoutId, client) = await PlaceOnlineAsync();
-        // Le client paie, puis annule avant que la notification n'arrive.
+        var (id, checkoutId, _) = await PlaceOnlineAsync();
+        // Le client paie, le restaurant annule avant que la notification n'arrive.
         api.SumUp.Pay(checkoutId);
-        (await client.PostAsync($"/orders/{id}/cancel", null)).EnsureSuccessStatusCode();
+        var manager = await api.ManagerAsync();
+        (await manager.PostAsJsonAsync($"/manage/orders/{id}/cancel", new { reason = "Client au téléphone" }, ApiFixture.Json)).EnsureSuccessStatusCode();
 
         var order = await OrderAsync(id);
         Assert.Equal(OrderStatus.Cancelled, order.Status);
@@ -169,21 +169,24 @@ public class PaymentApiTests(ApiFixture api) : IAsyncLifetime
         api.SumUp.Pay(checkoutId);
         await NotifyAsync(checkoutId);
 
+        // Le client ne peut pas annuler lui-même (ADR-0013) : il appelle le restaurant.
+        Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsync($"/orders/{id}/cancel", null)).StatusCode);
+
         api.SumUp.FailRefund = true;
-        (await client.PostAsync($"/orders/{id}/cancel", null)).EnsureSuccessStatusCode();
+        var manager = await api.ManagerAsync();
+        (await manager.PostAsJsonAsync($"/manage/orders/{id}/cancel", new { reason = "Demandé sur place" }, ApiFixture.Json)).EnsureSuccessStatusCode();
         var failed = await OrderAsync(id);
         Assert.Equal(PaymentStatus.Successful, failed.Payments.Single().Status);
         Assert.NotNull(failed.PaymentIssue);
 
         api.SumUp.FailRefund = false;
-        var manager = await api.ManagerAsync();
         (await manager.PostAsync($"/manage/orders/{id}/refund", null)).EnsureSuccessStatusCode();
         Assert.Equal(PaymentStatus.Refunded, (await OrderAsync(id)).Payments.Single().Status);
         Assert.Equal(HttpStatusCode.Conflict, (await manager.PostAsync($"/manage/orders/{id}/refund", null)).StatusCode);
     }
 
     [Fact]
-    public async Task Echec_de_paiement_puis_nouvelle_tentative_ou_bascule_au_retrait()
+    public async Task Echec_de_paiement_puis_nouvelle_tentative()
     {
         var (id, firstCheckout, client) = await PlaceOnlineAsync();
 
@@ -191,11 +194,7 @@ public class PaymentApiTests(ApiFixture api) : IAsyncLifetime
         var secondCheckout = retry.GetProperty("paymentUrl").GetString()!.Split('/').Last();
         Assert.NotEqual(firstCheckout, secondCheckout);
         Assert.True(api.SumUp.Checkouts[firstCheckout].Deactivated);
-
-        var switched = await DataAsync(await client.PostAsync($"/orders/{id}/pay-on-site", null));
-        Assert.Equal("AwaitingApproval", switched.GetProperty("status").GetString());
-        Assert.Equal("OnSite", switched.GetProperty("paymentChoice").GetString());
-        Assert.True(api.SumUp.Checkouts[secondCheckout].Deactivated);
+        Assert.False(api.SumUp.Checkouts[secondCheckout].Deactivated);
     }
 
     [Fact]
@@ -208,7 +207,6 @@ public class PaymentApiTests(ApiFixture api) : IAsyncLifetime
             idempotencyKey = Guid.NewGuid().ToString("N"),
             lines = new[] { new { productId = M.Cola, quantity = 1 } },
             pickupMode = "Asap",
-            paymentChoice = "Online",
         }, ApiFixture.Json);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -221,20 +219,9 @@ public class PaymentApiTests(ApiFixture api) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Une_commande_au_retrait_n_accepte_pas_de_paiement_en_ligne_ni_de_recu_avant_paiement()
+    public async Task Pas_de_recu_avant_paiement()
     {
-        var (client, _) = await api.NewClientAsync();
-        var response = await client.PostAsJsonAsync("/orders", new
-        {
-            idempotencyKey = Guid.NewGuid().ToString("N"),
-            lines = new[] { new { productId = M.Cola, quantity = 1 } },
-            pickupMode = "Asap",
-            paymentChoice = "OnSite",
-        }, ApiFixture.Json);
-        var id = (await DataAsync(response)).GetProperty("id").GetGuid();
-
-        Assert.Equal(HttpStatusCode.Conflict, (await client.PostAsync($"/orders/{id}/payment", null)).StatusCode);
+        var (id, _, client) = await PlaceOnlineAsync();
         Assert.Equal(HttpStatusCode.Conflict, (await client.GetAsync($"/orders/{id}/receipt")).StatusCode);
-        Assert.Empty(api.SumUp.Checkouts);
     }
 }

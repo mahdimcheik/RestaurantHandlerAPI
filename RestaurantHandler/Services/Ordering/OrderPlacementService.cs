@@ -1,4 +1,3 @@
-using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using RestaurantHandler.Contexts;
 using RestaurantHandler.Domain.Policies;
@@ -9,7 +8,7 @@ using RestaurantHandler.Utilities;
 namespace RestaurantHandler.Services;
 
 /// <summary>
-/// Validation d'une commande en ligne (US-E04-4) ou comptoir (US-E06-1). Tout est revérifié côté
+/// Validation d'une commande en ligne payée par carte (US-E04-4, ADR-0013). Tout est revérifié côté
 /// serveur ; la création se fait sous un verrou applicatif unique pour que capacité des créneaux,
 /// numéro du jour et idempotence restent justes en cas de validations simultanées (R7, R8, R10).
 /// </summary>
@@ -18,7 +17,6 @@ public class OrderPlacementService(
     CartService carts,
     RestaurantService restaurant,
     OrderNotifier notifier,
-    IBackgroundJobClient jobs,
     TimeProvider clock
 )
 {
@@ -27,20 +25,19 @@ public class OrderPlacementService(
 
     public async Task<OrderDetails> PlaceOnlineAsync(OrderCreate dto, CallerIdentity caller)
     {
-        if (await FindExistingAsync(caller.UserId, dto.IdempotencyKey, false) is { } replay)
+        if (await FindExistingAsync(caller.UserId, dto.IdempotencyKey) is { } replay)
             return replay;
 
         var cart = await carts.PriceAsync(dto.Lines);
         if (!cart.IsValid)
             throw new CartRejectedException(cart.Issues);
 
-        var settings = await ReadSettingsAsync();
-        if (dto.PaymentChoice == PaymentChoice.OnSite)
-            await EnsurePayOnSiteAllowedAsync(caller.UserId, settings);
-        else if (!EnvironmentVariables.SumUpEnabled)
+        if (!EnvironmentVariables.SumUpEnabled)
             throw new BusinessConflictException(
-                "Le paiement en ligne est indisponible : choisissez le paiement au retrait."
+                "Le paiement en ligne est momentanément indisponible : la commande ne peut pas être validée."
             );
+
+        var settings = await ReadSettingsAsync();
 
         var (order, created) = await CreateUnderLockAsync(
             caller.UserId,
@@ -84,71 +81,9 @@ public class OrderPlacementService(
                 return new Order
                 {
                     CustomerId = caller.UserId,
-                    Channel = OrderChannel.Online,
-                    Status =
-                        dto.PaymentChoice == PaymentChoice.OnSite
-                            ? OrderStatus.AwaitingApproval
-                            : OrderStatus.PendingPayment,
+                    Status = OrderStatus.PendingPayment,
                     PickupMode = dto.PickupMode,
                     PickupAt = pickupAt,
-                    PaymentChoice = dto.PaymentChoice,
-                    CustomerNote = Clean(dto.CustomerNote),
-                };
-            },
-            cart
-        );
-
-        if (!created)
-            return await LoadDetailsAsync(order.Id, false);
-
-        if (order.Status == OrderStatus.AwaitingApproval)
-        {
-            jobs.Schedule<OrderWorkflowService>(
-                s => s.AutoRefuseAsync(order.Id),
-                TimeSpan.FromMinutes(settings.ApprovalTimeoutMinutes)
-            );
-        }
-
-        await notifier.CreatedAsync(order);
-        return await LoadDetailsAsync(order.Id, false);
-    }
-
-    /// <summary>Comptoir : client de passage, `Confirmée` d'emblée ; seule la fermeture bloque (R7).</summary>
-    public async Task<OrderDetails> PlaceCounterAsync(CounterOrderCreate dto, CallerIdentity caller)
-    {
-        if (await FindExistingAsync(caller.UserId, dto.IdempotencyKey, true) is { } replay)
-            return replay;
-
-        var cart = await carts.PriceAsync(dto.Lines);
-        if (!cart.IsValid)
-            throw new CartRejectedException(cart.Issues);
-
-        var settings = await ReadSettingsAsync();
-        var (order, created) = await CreateUnderLockAsync(
-            caller.UserId,
-            dto.IdempotencyKey,
-            async now =>
-            {
-                var schedule = await restaurant.GetScheduleAsync();
-                var opening = OpeningPolicy.Compute(
-                    now,
-                    schedule.Hours,
-                    schedule.Closures,
-                    settings.IsPaused,
-                    settings.PausedUntil
-                );
-                if (opening.Status == OpeningStatus.Closed)
-                    throw new BusinessConflictException("Greenadine est fermé.");
-
-                return new Order
-                {
-                    Channel = OrderChannel.Counter,
-                    Status = OrderStatus.Confirmed,
-                    ConfirmedAt = now,
-                    PickupMode = PickupMode.Asap,
-                    PickupAt = now.AddMinutes(settings.AsapDelayMinutes),
-                    PaymentChoice = PaymentChoice.OnSite,
-                    CustomerFirstName = Clean(dto.CustomerFirstName),
                     CustomerNote = Clean(dto.CustomerNote),
                 };
             },
@@ -157,7 +92,7 @@ public class OrderPlacementService(
 
         if (created)
             await notifier.CreatedAsync(order);
-        return await LoadDetailsAsync(order.Id, true);
+        return await LoadDetailsAsync(order.Id);
     }
 
     /// <summary>
@@ -222,73 +157,25 @@ public class OrderPlacementService(
         return (order, true);
     }
 
-    /// <summary>US-E04-5 : une seule commande « au retrait » en cours, et pas au-delà du seuil de non-venues.</summary>
-    public async Task EnsurePayOnSiteAllowedAsync(Guid customerId) =>
-        await EnsurePayOnSiteAllowedAsync(customerId, await ReadSettingsAsync());
+    /// <summary>Disponibilité du paiement en ligne, pour l'écran de validation.</summary>
+    public static CheckoutOptions CheckoutOptions() =>
+        new() { OnlinePaymentEnabled = EnvironmentVariables.SumUpEnabled };
 
-    /// <summary>Modes de paiement proposables, pour l'écran de validation.</summary>
-    public async Task<CheckoutOptions> CheckoutOptionsAsync(Guid customerId)
-    {
-        var blocked = await PayOnSiteBlockAsync(customerId, await ReadSettingsAsync());
-        return new CheckoutOptions
-        {
-            OnlinePaymentEnabled = EnvironmentVariables.SumUpEnabled,
-            CanPayOnSite = blocked is null,
-            PayOnSiteBlockedReason = blocked?.Message,
-        };
-    }
-
-    private async Task EnsurePayOnSiteAllowedAsync(Guid customerId, RestaurantSettings settings)
-    {
-        if (await PayOnSiteBlockAsync(customerId, settings) is { } blocked)
-            throw blocked;
-    }
-
-    private async Task<BusinessException?> PayOnSiteBlockAsync(
-        Guid customerId,
-        RestaurantSettings settings
-    )
-    {
-        var noShows = await db
-            .Users.Where(u => u.Id == customerId)
-            .Select(u => u.NoShowCount)
-            .FirstOrDefaultAsync();
-        if (noShows >= settings.NoShowThreshold)
-            return new BusinessForbiddenException(
-                "Le paiement au retrait n'est plus disponible sur votre compte : payez en ligne."
-            );
-
-        var pending = await db.Orders.AnyAsync(o =>
-            o.CustomerId == customerId
-            && o.PaymentChoice == PaymentChoice.OnSite
-            && OrderTransitionPolicy.ActiveStatuses.Contains(o.Status)
-        );
-        return pending
-            ? new BusinessConflictException(
-                "Vous avez déjà une commande à payer au retrait en cours."
-            )
-            : null;
-    }
-
-    private async Task<OrderDetails?> FindExistingAsync(
-        Guid authorId,
-        string idempotencyKey,
-        bool forManager
-    )
+    private async Task<OrderDetails?> FindExistingAsync(Guid authorId, string idempotencyKey)
     {
         var id = await db
             .Orders.Where(o => o.CreatedByUserId == authorId && o.IdempotencyKey == idempotencyKey)
             .Select(o => (Guid?)o.Id)
             .FirstOrDefaultAsync();
-        return id is null ? null : await LoadDetailsAsync(id.Value, forManager);
+        return id is null ? null : await LoadDetailsAsync(id.Value);
     }
 
-    private async Task<OrderDetails> LoadDetailsAsync(Guid id, bool forManager)
+    private async Task<OrderDetails> LoadDetailsAsync(Guid id)
     {
         var order = await OrderQueryService
             .WithDetails(db.Orders.AsNoTrackingWithIdentityResolution())
             .FirstAsync(o => o.Id == id);
-        return OrderMapping.ToDetails(order, forManager);
+        return OrderMapping.ToDetails(order, false);
     }
 
     private async Task<RestaurantSettings> ReadSettingsAsync() =>

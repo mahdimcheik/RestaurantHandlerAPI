@@ -86,8 +86,6 @@ public class OrderCreate : QuoteRequest, IValidatableObject
     /// <summary>Début du créneau choisi (tel que renvoyé par /restaurant/slots), si PickupMode = Slot.</summary>
     public DateTimeOffset? SlotStart { get; set; }
 
-    [Required] public PaymentChoice PaymentChoice { get; set; }
-
     [MaxLength(500)] public string? CustomerNote { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
@@ -95,16 +93,6 @@ public class OrderCreate : QuoteRequest, IValidatableObject
         if (PickupMode == PickupMode.Slot && SlotStart is null)
             yield return new("Choisissez un créneau.", [nameof(SlotStart)]);
     }
-}
-
-public class CounterOrderCreate : QuoteRequest
-{
-    [Required]
-    [StringLength(64, MinimumLength = 8)]
-    public string IdempotencyKey { get; set; } = string.Empty;
-
-    [MaxLength(64)] public string? CustomerFirstName { get; set; }
-    [MaxLength(500)] public string? CustomerNote { get; set; }
 }
 
 public class QuoteLine
@@ -145,15 +133,12 @@ public class CartProblemDetails
 }
 
 /// <summary>
-/// Modes de paiement proposables au client connecté avant la validation (US-E04-5, US-E05-1).
-/// Indication pour l'écran : <c>POST /orders</c> revérifie tout.
+/// Disponibilité du paiement en ligne avant la validation (US-E05-1) ; seule la carte en ligne
+/// est acceptée (ADR-0013). Indication pour l'écran : <c>POST /orders</c> revérifie tout.
 /// </summary>
 public class CheckoutOptions
 {
     [Required] public bool OnlinePaymentEnabled { get; set; }
-    [Required] public bool CanPayOnSite { get; set; }
-    /// <summary>Motif à afficher quand le paiement au retrait est indisponible.</summary>
-    public string? PayOnSiteBlockedReason { get; set; }
 }
 
 // ---------- Lecture ----------
@@ -217,21 +202,19 @@ public class OrderSummary
     [Required] public int DailyNumber { get; set; }
     [Required] public DateOnly ServiceDate { get; set; }
     [Required] public OrderStatus Status { get; set; }
-    [Required] public OrderChannel Channel { get; set; }
     [Required] public PickupMode PickupMode { get; set; }
     [Required] public DateTimeOffset PickupAt { get; set; }
-    [Required] public PaymentChoice PaymentChoice { get; set; }
     [Required] public bool IsPaid { get; set; }
     [Required] public int TotalCents { get; set; }
 
-    /// <summary>Nom du client ou prénom saisi au comptoir.</summary>
+    /// <summary>Nom du client.</summary>
     public string? CustomerLabel { get; set; }
     [Required] public DateTimeOffset CreatedAt { get; set; }
 }
 
 public class OrderDetails : OrderSummary
 {
-    public Guid? CustomerId { get; set; }
+    [Required] public Guid CustomerId { get; set; }
     public string? CustomerNote { get; set; }
     public DateTimeOffset? ConfirmedAt { get; set; }
     public DateTimeOffset? ReadyAt { get; set; }
@@ -245,8 +228,6 @@ public class OrderDetails : OrderSummary
     /// <summary>Anomalie de paiement à traiter (Manager uniquement).</summary>
     public string? PaymentIssue { get; set; }
 
-    /// <summary>Non-venues du client (Manager uniquement) ; au seuil, le paiement au retrait est bloqué.</summary>
-    public int? CustomerNoShowCount { get; set; }
     [Required] public List<OrderItemDto> Items { get; set; } = [];
     [Required] public List<VatLineDto> Vat { get; set; } = [];
     [Required] public List<OrderHistoryDto> History { get; set; } = [];
@@ -262,24 +243,11 @@ public class ReasonRequest
     public string Reason { get; set; } = string.Empty;
 }
 
-public class PaymentDeclare
-{
-    [Required]
-    [AllowedValues(PaymentMethod.OnSiteCard, PaymentMethod.OnSiteCash, PaymentMethod.OnSiteOther,
-        ErrorMessage = "Moyen : carte, espèces ou autre (encaissement sur place).")]
-    public PaymentMethod Method { get; set; }
-
-    /// <summary>Par défaut, le reste à payer ; plusieurs déclarations pour un paiement mixte.</summary>
-    [Range(1, 10_000_000)]
-    public int? AmountCents { get; set; }
-}
-
 public class OrderFilter
 {
     /// <summary>Jour de service (heure de Paris) ; aujourd'hui par défaut.</summary>
     public DateOnly? Date { get; set; }
     public OrderStatus? Status { get; set; }
-    public OrderChannel? Channel { get; set; }
     public bool? IsPaid { get; set; }
 
     /// <summary>Numéro d'appel du jour (recherche rapide à la remise).</summary>

@@ -4,7 +4,6 @@ namespace RestaurantHandler.Domain.Policies;
 
 public enum OrderActor
 {
-    Customer,
     Manager,
 
     /// <summary>Tâches planifiées et notifications de paiement.</summary>
@@ -33,7 +32,6 @@ public static class OrderTransitionPolicy
     [
         OrderStatus.Completed,
         OrderStatus.NoShow,
-        OrderStatus.Refused,
         OrderStatus.Cancelled,
     ];
 
@@ -41,7 +39,6 @@ public static class OrderTransitionPolicy
     public static readonly OrderStatus[] ActiveStatuses =
     [
         OrderStatus.PendingPayment,
-        OrderStatus.AwaitingApproval,
         OrderStatus.Confirmed,
         OrderStatus.InPreparation,
         OrderStatus.Ready,
@@ -57,7 +54,6 @@ public static class OrderTransitionPolicy
 
         var manager = actor == OrderActor.Manager;
         var system = actor == OrderActor.System;
-        var customer = actor == OrderActor.Customer;
         var hasReason = !string.IsNullOrWhiteSpace(ctx.Reason);
 
         string? Denied() => $"Transition {from} → {to} non autorisée.";
@@ -66,20 +62,11 @@ public static class OrderTransitionPolicy
         return (from, to) switch
         {
             (OrderStatus.PendingPayment, OrderStatus.Confirmed) => system ? null : Denied(),
-            // Paiement en ligne échoué : le client bascule au retrait (validation Manager ensuite).
-            (OrderStatus.PendingPayment, OrderStatus.AwaitingApproval) => customer ? null : Denied(),
             (OrderStatus.PendingPayment, OrderStatus.Cancelled) =>
-                customer || system ? null : manager ? RequireReason() : Denied(),
-
-            (OrderStatus.AwaitingApproval, OrderStatus.Confirmed) => manager ? null : Denied(),
-            (OrderStatus.AwaitingApproval, OrderStatus.Refused) =>
                 system ? null : manager ? RequireReason() : Denied(),
-            (OrderStatus.AwaitingApproval, OrderStatus.Cancelled) =>
-                customer ? null : manager ? RequireReason() : Denied(),
 
             (OrderStatus.Confirmed, OrderStatus.InPreparation) => manager ? null : Denied(),
-            (OrderStatus.Confirmed, OrderStatus.Cancelled) =>
-                customer ? null : manager ? RequireReason() : Denied(),
+            (OrderStatus.Confirmed, OrderStatus.Cancelled) => manager ? RequireReason() : Denied(),
 
             (OrderStatus.InPreparation, OrderStatus.Ready) => manager ? null : Denied(),
             (OrderStatus.InPreparation, OrderStatus.Confirmed) => manager ? Undo(ctx) : Denied(),
@@ -88,7 +75,7 @@ public static class OrderTransitionPolicy
             (OrderStatus.Ready, OrderStatus.Completed) =>
                 !manager ? Denied()
                 : ctx.IsPaid ? null
-                : "La commande n'est pas payée : déclarez l'encaissement avant de la remettre.",
+                : "La commande n'est pas payée : elle ne peut pas être remise.",
             (OrderStatus.Ready, OrderStatus.NoShow) =>
                 !manager ? Denied()
                 : ctx.Now >= ctx.PickupAt.AddMinutes(ctx.PickupGraceMinutes) ? null

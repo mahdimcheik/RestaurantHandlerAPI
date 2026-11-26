@@ -4,19 +4,20 @@
 
 | # | Risque | Probabilité | Impact | Parade |
 |---|---|---|---|---|
-| R1 | **Délai** : 3 mois en solo pour back + front + mise en service | élevée | ouverture repoussée | jalons à critère de sortie ; V2 assumée ; ouverture progressive (comptoir + KDS avant click & collect) ; couper US-E09-3 et les créneaux programmés en dernier recours |
-| R2 | **Légal caisse** : la caisse tierce + paiements en ligne hors caisse ne suffit pas | moyenne | amende, remise en cause du périmètre | jalon G0 avec l'expert-comptable avant la fin de J2 |
+| R1 | **Délai** : 3 mois en solo pour back + front + mise en service | élevée | ouverture repoussée | jalons à critère de sortie ; V2 assumée ; ouverture progressive (click & collect sur un service calme d'abord) ; couper US-E09-3 et les créneaux programmés en dernier recours |
+| R2 | **Légal caisse** : des paiements en ligne SumUp hors caisse certifiée ne suffisent pas | moyenne | amende, remise en cause du périmètre | jalon G0 avec l'expert-comptable avant la fin de J2 |
 | R3 | **Allergènes en ligne** non intégrés | moyenne | non-conformité INCO | document lié depuis la carte dès J4 ; intégration V2 avancée si G0 l'exige |
-| R4 | **Double saisie** comptoir (app + caisse tierce) ralentit le service | élevée | files, erreurs, abandon de l'app au comptoir | saisie comptoir ultra rapide ; recette terrain ; V2 caisse maison en priorité 1 |
+| R4 | ~~**Double saisie** comptoir (app + caisse tierce)~~ | — | — | **clos le 2026-11-26** : plus de comptoir dans l'app ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) |
 | R5 | **SumUp** : API en ligne moins documentée / notifications différentes de l'attendu | moyenne | retard J3 | prototype sandbox dès J1 (½ journée) pour lever l'inconnue tôt |
 | R6 | **PWA sur iOS** : limites (push seulement si installée, mise en veille des connexions temps réel) | élevée | suivi client figé | resynchronisation REST à chaque retour au premier plan ; push en V2 |
 | R7 | **Temps réel** coupé sur le KDS | moyenne | commande oubliée | bandeau de déconnexion, resynchronisation complète, son à chaque nouvelle commande |
 | R8 | **Appareils partagés** avec droits Manager complets | moyenne | modification accidentelle de la carte, accès aux chiffres | sessions révocables ; rôle équipier en V2 |
-| R9 | **Paiement au retrait** non honoré | moyenne | perte de marchandise | validation Manager, une commande en cours, blocage après non-venues |
+| R9 | ~~**Paiement au retrait** non honoré~~ | — | — | **clos le 2026-11-26** : paiement par carte avant préparation ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) |
 | R10 | **Pic de charge** à midi | faible | lenteurs | une instance suffit ; cache carte ; test de charge J6 |
-| R11 | **Panne internet** au restaurant | moyenne | service interrompu | 4G de secours, procédure papier, caisse tierce |
+| R11 | **Panne internet** au restaurant | moyenne | service interrompu | 4G de secours, procédure papier, caisse du restaurant pour les clients présents |
 | R12 | **Couverture de tests** encore minimale (projet créé en J0) | certaine | régressions sur l'argent | tests unitaires des règles avant les services (J2), intégration en CI |
 | R13 | **Licence ImageSharp** : à partir de 3.2 / 4.x, le build Release échoue sans clé Six Labors (Split License, gratuite sous un seuil de chiffre d'affaires). Le projet reste donc en **3.1.12**, qui a des failles connues (décodeurs TIFF, égalisation d'histogramme) | moyenne | failles non corrigées en amont | décodage limité à JPEG/PNG/GIF/WebP (`Utilities/ImageDecoding.cs`, testé) : les décodeurs vulnérables sont inatteignables. Passer en 3.2+ / 4.x avec une clé (secret de build) si l'éligibilité est confirmée, sinon remplacer la bibliothèque |
+| R14 | **Paiement en ligne seul** : une panne SumUp bloque toute commande ; un client qui veut annuler doit joindre le restaurant | moyenne | ventes perdues pendant la panne, appels au restaurant | message clair à la validation ; numéro du restaurant affiché sur le suivi ; réconciliation SumUp ; annulation Manager avec remboursement ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) |
 
 ## Dette héritée du socle
 
