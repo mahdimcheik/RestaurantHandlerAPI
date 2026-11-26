@@ -696,6 +696,10 @@ namespace RestaurantHandler.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 

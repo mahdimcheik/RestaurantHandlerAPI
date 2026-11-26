@@ -135,6 +135,10 @@ public class OrderItem : BaseModel
 
     public decimal VatRate { get; set; }
 
+    /// <summary>Précision du client pour la cuisine (« bien cuite »).</summary>
+    [MaxLength(200)]
+    public string? Note { get; set; }
+
     public ICollection<OrderItemModification> Modifications { get; set; } =
         new List<OrderItemModification>();
 }

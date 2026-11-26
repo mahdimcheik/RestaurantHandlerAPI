@@ -23,6 +23,9 @@ je veux.
   choix distincts et disponibles ([US-E02-9](E02-carte.md#us-e02-9--définir-les-groupes-doptions-et-les-proposer-sur-les-produits)).
 - Le prix de la ligne se met à jour à chaque choix (prix de base + surcoûts).
 - Le panier est conservé sur l'appareil (rechargement, fermeture de l'onglet).
+- Une note facultative par article (200 caractères, « bien cuite », « sauce à part ») se saisit
+  sur la fiche, ou au récapitulatif des options ; sans effet sur le prix. Deux produits identiques
+  ne se cumulent sur une ligne que s'ils n'ont pas de note.
 
 ### US-E04-2 — Composer un menu
 
@@ -38,6 +41,7 @@ personnaliser) afin de commander une formule.
 - Le nombre de choix par emplacement respecte son minimum et son maximum ; un emplacement
   obligatoire non rempli bloque l'ajout.
 - Le surcoût d'une option (ex. grande boisson) s'ajoute au prix du menu.
+- Une note facultative (200 caractères) vaut pour tout le menu, pas pour chaque produit choisi.
 - Chaque produit choisi peut être personnalisé comme en US-E04-1.
 
 ### US-E04-3 — Choisir le moment du retrait
@@ -75,7 +79,8 @@ commande soit transmise au restaurant.
   produit et ingrédient, validité des personnalisations, contraintes de menus.
 - En cas d'écart (prix changé, rupture), la commande est refusée avec le détail des lignes en
   cause et le panier est mis à jour ; rien n'est créé.
-- Une note client facultative (500 caractères) est acceptée.
+- Une note client facultative pour toute la commande (500 caractères) est acceptée, en plus des
+  notes par article.
 - Seul moyen de paiement : la **carte bancaire en ligne** ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)).
   La commande passe en `En attente de paiement` et le client est redirigé vers SumUp
   ([E05](E05-paiement.md)) ; elle n'entre en cuisine qu'une fois payée.
