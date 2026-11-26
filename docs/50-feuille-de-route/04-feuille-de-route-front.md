@@ -306,6 +306,10 @@ bandeau, pages légales, PWA, appareils réels).
 Les puces ci-dessous sont l'historique d'avant ce changement.
 
 **Fait (F8a) :**
+- Note facultative par article (produit ou menu, 200 caractères ; API `CartLineDto.note`,
+  `OrderItemDto.note`, migration `AddOrderItemNote`) : saisie `shared/ordering/line-note.ts` sur
+  la fiche produit sans options, au récapitulatif de l'assistant d'options et sur la fiche menu ;
+  affichée dans le panier, la validation, la cuisine, les commandes du jour, le suivi et le reçu.
 - API : refus de panier documenté dans l'OpenAPI (`CartProblemDetails`, `issues` par ligne,
   409 sur `POST /orders/quote` et `POST /orders`) ; `GET /orders/checkout-options` (rôle Client :
   paiement en ligne actif, paiement au retrait possible ou motif du blocage, même règle que la

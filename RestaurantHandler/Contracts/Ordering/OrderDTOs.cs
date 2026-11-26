@@ -48,6 +48,9 @@ public class CartLineDto
     /// <summary>Choix dans les groupes d'options d'un produit (pain, sauces, taille) ; vide pour un menu.</summary>
     public List<CartOptionChoiceDto> OptionChoices { get; set; } = [];
 
+    /// <summary>Précision du client pour la cuisine sur cet article (« bien cuite »), sans effet sur le prix.</summary>
+    [MaxLength(CartPolicy.MaxNoteLength)] public string? Note { get; set; }
+
     public CartLine ToCartLine() =>
         new(
             ProductId,
@@ -57,7 +60,8 @@ public class CartLineDto
             Choices
                 .Select(c => new CartMenuChoice(c.SlotId, c.ProductId, c.Modifications.Select(ToCart).ToList(), c.OptionChoices.Select(ToCart).ToList()))
                 .ToList(),
-            OptionChoices.Select(ToCart).ToList()
+            OptionChoices.Select(ToCart).ToList(),
+            Note
         );
 
     private static CartModification ToCart(CartModificationDto m) =>
@@ -169,6 +173,9 @@ public class OrderItemDto
     [Required] public int UnitPriceCents { get; set; }
     [Required] public int LineTotalCents { get; set; }
     [Required] public List<OrderModificationDto> Modifications { get; set; } = [];
+
+    /// <summary>Précision du client pour cet article.</summary>
+    public string? Note { get; set; }
 
     /// <summary>Produits choisis dans les emplacements d'un menu.</summary>
     [Required] public List<OrderItemDto> Components { get; set; } = [];

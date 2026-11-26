@@ -26,6 +26,18 @@ public class CartPolicyTests
         Assert.Equal(10m, item.VatRate);
     }
 
+    [Theory]
+    [InlineData("  Bien cuite  ", "Bien cuite")]
+    [InlineData("   ", null)]
+    [InlineData(null, null)]
+    public void La_note_de_ligne_est_recopiee_sans_changer_le_prix(string? note, string? attendue)
+    {
+        var cart = Price(Product(_c.Classic.Id, 2) with { Note = note });
+
+        Assert.Equal(attendue, cart.Items.Single().Note);
+        Assert.Equal(1900, cart.TotalCents);
+    }
+
     [Fact]
     public void Remplacement_au_meme_prix_gratuit()
     {

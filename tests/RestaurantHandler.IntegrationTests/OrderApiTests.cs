@@ -274,6 +274,21 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task La_note_d_un_article_est_conservee_et_relue()
+    {
+        var (client, _) = await api.NewClientAsync();
+        var line = new { productId = M.Classic, quantity = 1, note = "  Bien cuite, coupée en 8 " };
+        var id = await PlaceAsync(client, Order([line, ClassicLine()]));
+
+        var items = (await DataAsync(await client.GetAsync($"/orders/{id}"))).GetProperty("items");
+        Assert.Equal("Bien cuite, coupée en 8", items[0].GetProperty("note").GetString());
+        Assert.True(!items[1].TryGetProperty("note", out var none) || none.ValueKind == JsonValueKind.Null);
+
+        var tooLong = await client.PostAsJsonAsync("/orders", Order([new { productId = M.Classic, quantity = 1, note = new string('x', 201) }]), ApiFixture.Json);
+        Assert.Equal(HttpStatusCode.BadRequest, tooLong.StatusCode);
+    }
+
+    [Fact]
     public async Task Les_snapshots_ne_changent_pas_quand_la_carte_change()
     {
         var (client, _) = await api.NewClientAsync();

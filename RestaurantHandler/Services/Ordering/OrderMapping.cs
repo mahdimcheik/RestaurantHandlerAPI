@@ -97,6 +97,7 @@ public static class OrderMapping
                     UnitPriceCents = m.UnitPriceCents,
                 })
                 .ToList(),
+            Note = i.Note,
             Components = i.Children.OrderBy(c => c.MenuSlot?.Position ?? 0).Select(ToItem).ToList(),
         };
 }

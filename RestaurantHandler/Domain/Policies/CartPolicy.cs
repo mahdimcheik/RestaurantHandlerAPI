@@ -21,7 +21,8 @@ public sealed record CartLine(
     int Quantity,
     IReadOnlyList<CartModification> Modifications,
     IReadOnlyList<CartMenuChoice> Choices,
-    IReadOnlyList<CartOptionChoice>? OptionChoices = null
+    IReadOnlyList<CartOptionChoice>? OptionChoices = null,
+    string? Note = null
 );
 
 /// <summary>Écart sur une ligne du panier (index dans la requête) ; la commande est refusée.</summary>
@@ -42,6 +43,7 @@ public static class CartPolicy
 {
     public const int MaxLineQuantity = 20;
     public const int MaxLines = 50;
+    public const int MaxNoteLength = 200;
 
     public static PricedCart Price(
         IReadOnlyList<CartLine> lines,
@@ -80,6 +82,7 @@ public static class CartPolicy
             if (item is null)
                 continue;
             item.Quantity = line.Quantity;
+            item.Note = string.IsNullOrWhiteSpace(line.Note) ? null : line.Note.Trim();
             items.Add(item);
         }
 
