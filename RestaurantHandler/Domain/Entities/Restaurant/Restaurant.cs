@@ -68,9 +68,7 @@ public class RestaurantSettings
     /// <summary>Délai minimal entre maintenant et le début du premier créneau proposé.</summary>
     public int MinLeadMinutes { get; set; } = 20;
 
-    public int ApprovalTimeoutMinutes { get; set; } = 10;
     public int PickupGraceMinutes { get; set; } = 30;
-    public int NoShowThreshold { get; set; } = 2;
     public int OnlinePaymentExpiryMinutes { get; set; } = 30;
 
     // Pause des commandes en ligne

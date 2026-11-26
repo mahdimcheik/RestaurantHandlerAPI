@@ -33,26 +33,15 @@ public class PeakHoursQuery : StatsPeriodQuery
 
 // ---------- US-E09-1 : tableau du jour ----------
 
-public class ChannelStats
-{
-    [Required] public int Orders { get; set; }
-    [Required] public int RevenueCents { get; set; }
-}
-
 public class DashboardStats
 {
     [Required] public DateOnly Date { get; set; }
     [Required] public int RevenueCents { get; set; }
     [Required] public int Orders { get; set; }
     [Required] public int AverageBasketCents { get; set; }
-    [Required] public ChannelStats Online { get; set; } = new();
-    [Required] public ChannelStats Counter { get; set; } = new();
 
     /// <summary>Paiements SumUp réussis des commandes comptées.</summary>
     [Required] public int PaidOnlineCents { get; set; }
-
-    /// <summary>Encaissements déclarés sur place des commandes comptées.</summary>
-    [Required] public int PaidOnSiteCents { get; set; }
     [Required] public List<VatLineDto> Vat { get; set; } = [];
 
     /// <summary>Commandes du jour de service par statut (tous statuts, y compris 0).</summary>

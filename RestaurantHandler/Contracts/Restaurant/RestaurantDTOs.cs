@@ -92,9 +92,7 @@ public class RestaurantSettingsWrite
     [Range(5, 120)] public int SlotDurationMinutes { get; set; } = 15;
     [Range(1, 500)] public int SlotCapacityOrders { get; set; } = 5;
     [Range(0, 240)] public int MinLeadMinutes { get; set; } = 20;
-    [Range(1, 120)] public int ApprovalTimeoutMinutes { get; set; } = 10;
     [Range(0, 240)] public int PickupGraceMinutes { get; set; } = 30;
-    [Range(1, 20)] public int NoShowThreshold { get; set; } = 2;
     [Range(5, 30)] public int OnlinePaymentExpiryMinutes { get; set; } = 30;
 }
 

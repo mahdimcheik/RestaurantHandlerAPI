@@ -16,7 +16,7 @@ public enum PaymentOutcome
     /// <summary>Paiement reçu mais montant ou devise différents : anomalie, aucune transition (R9).</summary>
     Anomaly,
 
-    /// <summary>Paiement reçu alors que la commande n'en attend plus (annulée, déjà payée, basculée au retrait) : remboursement.</summary>
+    /// <summary>Paiement reçu alors que la commande n'en attend plus (annulée, expirée, déjà payée) : remboursement.</summary>
     RefundUnexpected,
 }
 

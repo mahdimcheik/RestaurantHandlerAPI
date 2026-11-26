@@ -56,10 +56,6 @@ public class UserAdminDetails : UserDetails
     /// <summary>Date d'inscription du compte.</summary>
     public DateTimeOffset CreatedAt { get; set; }
 
-    /// <summary>Non-venues comptées depuis la dernière remise à zéro (blocage du paiement au retrait).</summary>
-    [Required]
-    public int NoShowCount { get; set; }
-
     public UserAdminDetails() { }
 
     [SetsRequiredMembers]
@@ -67,7 +63,6 @@ public class UserAdminDetails : UserDetails
         : base(user, roles)
     {
         CreatedAt = user.CreatedAt;
-        NoShowCount = user.NoShowCount;
     }
 }
 

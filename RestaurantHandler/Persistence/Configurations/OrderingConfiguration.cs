@@ -23,10 +23,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasIndex(o => o.CustomerId);
         builder.HasIndex(o => o.CreatedByUserId);
 
-        builder.Property(o => o.Channel).HasConversion<string>().HasMaxLength(16);
         builder.Property(o => o.Status).HasConversion<string>().HasMaxLength(32);
         builder.Property(o => o.PickupMode).HasConversion<string>().HasMaxLength(16);
-        builder.Property(o => o.PaymentChoice).HasConversion<string>().HasMaxLength(16);
 
         // Une commande passée reste en base pour la compta : on n'efface pas un compte qui en a.
         builder

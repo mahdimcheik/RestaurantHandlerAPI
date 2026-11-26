@@ -11,7 +11,7 @@ using static RestaurantHandler.Controllers.ApiResponses;
 
 namespace RestaurantHandler.Controllers;
 
-/// <summary>Commandes côté client : devis du panier, validation, suivi, annulation.</summary>
+/// <summary>Commandes côté client : devis du panier, validation, paiement, suivi. Pas d'annulation par le client (ADR-0013).</summary>
 [ApiController]
 [Route("orders")]
 [Produces("application/json")]
@@ -59,11 +59,11 @@ public class OrdersController(
         }
     }
 
-    /// <summary>Modes de paiement proposables avant la validation (paiement au retrait bloqué, SumUp coupé).</summary>
+    /// <summary>Disponibilité du paiement en ligne avant la validation (SumUp coupé).</summary>
     [HttpGet("checkout-options")]
     [Authorize(Roles = nameof(RoleEnum.Client))]
-    public async Task<ActionResult<Response<CheckoutOptions>>> CheckoutOptions() =>
-        Success(await placement.CheckoutOptionsAsync((await CallerAsync()).UserId));
+    public ActionResult<Response<CheckoutOptions>> CheckoutOptions() =>
+        Success(OrderPlacementService.CheckoutOptions());
 
     /// <summary>Nouvelle tentative de paiement en ligne (après échec ou abandon).</summary>
     [HttpPost("{id:guid}/payment")]
@@ -71,12 +71,6 @@ public class OrdersController(
     [EnableRateLimiting(RateLimitingSetup.OrderPolicy)]
     public async Task<ActionResult<Response<OrderDetails>>> RetryPayment(Guid id) =>
         Success(await payments.StartCheckoutAsync(id, await CallerAsync()));
-
-    /// <summary>Abandonne le paiement en ligne pour le paiement au retrait (validation Manager).</summary>
-    [HttpPost("{id:guid}/pay-on-site")]
-    [Authorize(Roles = nameof(RoleEnum.Client))]
-    public async Task<ActionResult<Response<OrderDetails>>> PayOnSite(Guid id) =>
-        Success(await payments.SwitchToPayOnSiteAsync(id, await CallerAsync()));
 
     /// <summary>Justificatif d'une commande payée (US-E05-5).</summary>
     [HttpGet("{id:guid}/receipt")]
@@ -100,33 +94,22 @@ public class OrdersController(
     public async Task<ActionResult<Response<OrderDetails>>> Get(Guid id) =>
         Success(await queries.GetAsync(id, await CallerAsync()));
 
-    /// <summary>Avant préparation ; un paiement en ligne est remboursé automatiquement.</summary>
-    [HttpPost("{id:guid}/cancel")]
-    public async Task<ActionResult<Response<OrderDetails>>> Cancel(Guid id) =>
-        Success(await payments.CancelByCustomerAsync(id, await CallerAsync()), "Commande annulée");
-
     private async Task<CallerIdentity> CallerAsync() =>
         await this.GetCallerAsync() ?? throw new BusinessForbiddenException("Compte introuvable.");
 }
 
-/// <summary>Commandes côté restaurant : comptoir, liste du jour, KDS, transitions, encaissements.</summary>
+/// <summary>Commandes côté restaurant : liste du jour, KDS, transitions, annulation, remboursement.</summary>
 [ApiController]
 [Route("manage/orders")]
 [Produces("application/json")]
 [EnableCors]
 [Authorize(Roles = nameof(RoleEnum.Manager))]
 public class ManageOrdersController(
-    OrderPlacementService placement,
     OrderQueryService queries,
     OrderWorkflowService workflow,
     OnlinePaymentService payments
 ) : ControllerBase
 {
-    /// <summary>Saisie comptoir (US-E06-1) : `Confirmée` d'emblée, non bloquée par la pause.</summary>
-    [HttpPost("counter")]
-    public async Task<ActionResult<Response<OrderDetails>>> Counter([FromBody] CounterOrderCreate dto) =>
-        CreatedWith(await placement.PlaceCounterAsync(dto, await CallerAsync()), "Commande envoyée en cuisine");
-
     /// <summary>Commandes d'un jour de service (aujourd'hui par défaut), filtrables.</summary>
     [HttpGet]
     public async Task<ActionResult<Response<List<OrderSummary>>>> List([FromQuery] OrderFilter filter) =>
@@ -139,14 +122,6 @@ public class ManageOrdersController(
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<Response<OrderDetails>>> Get(Guid id) =>
         Success(await queries.GetAsync(id, await CallerAsync()));
-
-    [HttpPost("{id:guid}/accept")]
-    public async Task<ActionResult<Response<OrderDetails>>> Accept(Guid id) =>
-        Success(await workflow.AcceptAsync(id, await CallerAsync()));
-
-    [HttpPost("{id:guid}/refuse")]
-    public async Task<ActionResult<Response<OrderDetails>>> Refuse(Guid id, [FromBody] ReasonRequest dto) =>
-        Success(await workflow.RefuseAsync(id, dto.Reason, await CallerAsync()));
 
     [HttpPost("{id:guid}/start")]
     public async Task<ActionResult<Response<OrderDetails>>> Start(Guid id) =>
@@ -161,7 +136,7 @@ public class ManageOrdersController(
     public async Task<ActionResult<Response<OrderDetails>>> Undo(Guid id) =>
         Success(await workflow.UndoAsync(id, await CallerAsync()));
 
-    /// <summary>Remise au client : la commande doit être payée.</summary>
+    /// <summary>Remise au client (commande payée en ligne).</summary>
     [HttpPost("{id:guid}/complete")]
     public async Task<ActionResult<Response<OrderDetails>>> Complete(Guid id) =>
         Success(await workflow.CompleteAsync(id, await CallerAsync()));
@@ -175,14 +150,9 @@ public class ManageOrdersController(
     public async Task<ActionResult<Response<OrderDetails>>> Cancel(Guid id, [FromBody] ReasonRequest dto) =>
         Success(await payments.CancelByManagerAsync(id, dto.Reason, await CallerAsync()));
 
-    /// <summary>Remboursement total des paiements en ligne d'une commande annulée, refusée ou non retirée.</summary>
+    /// <summary>Remboursement total des paiements en ligne d'une commande annulée ou non retirée.</summary>
     [HttpPost("{id:guid}/refund")]
     public async Task<ActionResult<Response<OrderDetails>>> Refund(Guid id) => Success(await payments.RefundAsync(id));
-
-    /// <summary>Déclare un encaissement sur place (carte, espèces, autre) ; montant par défaut = reste à payer.</summary>
-    [HttpPost("{id:guid}/payments")]
-    public async Task<ActionResult<Response<OrderDetails>>> DeclarePayment(Guid id, [FromBody] PaymentDeclare dto) =>
-        Success(await workflow.DeclarePaymentAsync(id, dto, await CallerAsync()));
 
     /// <summary>Commandes d'un client, les plus récentes d'abord (fiche client, US-E10-1).</summary>
     [HttpGet("/manage/customers/{userId:guid}/orders")]
@@ -191,14 +161,6 @@ public class ManageOrdersController(
     {
         var (items, total) = await queries.ListForCustomerAsync(userId, page, pageSize);
         return new OkObjectResult(new Response<List<OrderSummary>> { Status = 200, Message = "Ok", Data = items, Count = total });
-    }
-
-    /// <summary>Lève le blocage du paiement au retrait d'un client.</summary>
-    [HttpPost("/manage/customers/{userId:guid}/no-shows/reset")]
-    public async Task<ActionResult<Response<object>>> ResetNoShows(Guid userId)
-    {
-        await workflow.ResetNoShowsAsync(userId, await CallerAsync());
-        return Done("Compteur de non-venues remis à zéro");
     }
 
     private async Task<CallerIdentity> CallerAsync() =>

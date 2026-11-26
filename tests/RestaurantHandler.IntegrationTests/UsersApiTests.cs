@@ -55,7 +55,7 @@ public class UsersApiTests(ApiFixture api) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Fiche_client_avec_compteur_de_non_venues_et_commandes()
+    public async Task Fiche_client_avec_ses_commandes()
     {
         var manager = await api.ManagerAsync();
         var (client, userId) = await api.NewClientAsync();
@@ -64,17 +64,8 @@ public class UsersApiTests(ApiFixture api) : IAsyncLifetime
             idempotencyKey = Guid.NewGuid().ToString("N"),
             lines = new[] { new { productId = M.Classic, quantity = 1 } },
             pickupMode = "Asap",
-            paymentChoice = "OnSite",
         }, ApiFixture.Json);
         var orderId = (await DataAsync(placed)).GetProperty("id").GetGuid();
-        await api.WithDbAsync(async db =>
-        {
-            db.Users.Single(u => u.Id == userId).NoShowCount = 1;
-            await db.SaveChangesAsync();
-        });
-
-        var user = await DataAsync(await manager.GetAsync($"/users/{userId}"));
-        Assert.Equal(1, user.GetProperty("noShowCount").GetInt32());
 
         var response = await manager.GetAsync($"/manage/customers/{userId}/orders?page=1&pageSize=10");
         var body = await BodyAsync(response);

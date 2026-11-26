@@ -16,37 +16,27 @@ public class OrderTransitionPolicyTests
 
     [Theory]
     [InlineData(PendingPayment, Confirmed, OrderActor.System)]
-    [InlineData(PendingPayment, Cancelled, OrderActor.Customer)]
     [InlineData(PendingPayment, Cancelled, OrderActor.System)]
-    [InlineData(AwaitingApproval, Confirmed, OrderActor.Manager)]
-    [InlineData(AwaitingApproval, Refused, OrderActor.System)]
-    [InlineData(AwaitingApproval, Cancelled, OrderActor.Customer)]
     [InlineData(Confirmed, InPreparation, OrderActor.Manager)]
-    [InlineData(Confirmed, Cancelled, OrderActor.Customer)]
     [InlineData(InPreparation, Ready, OrderActor.Manager)]
-    [InlineData(PendingPayment, AwaitingApproval, OrderActor.Customer)]
     public void Transitions_listees_autorisees(OrderStatus from, OrderStatus to, OrderActor actor) =>
         Assert.Null(Check(from, to, actor));
 
     [Theory]
     [InlineData(PendingPayment, Confirmed, OrderActor.Manager)]
-    [InlineData(PendingPayment, Confirmed, OrderActor.Customer)]
-    [InlineData(AwaitingApproval, Confirmed, OrderActor.Customer)]
-    [InlineData(Confirmed, InPreparation, OrderActor.Customer)]
-    [InlineData(InPreparation, Cancelled, OrderActor.Customer)]
-    [InlineData(Ready, Cancelled, OrderActor.Customer)]
+    [InlineData(Confirmed, InPreparation, OrderActor.System)]
+    [InlineData(Confirmed, Cancelled, OrderActor.System)]
+    [InlineData(InPreparation, Cancelled, OrderActor.System)]
+    [InlineData(Ready, Cancelled, OrderActor.System)]
     [InlineData(Confirmed, Ready, OrderActor.Manager)]
-    [InlineData(AwaitingApproval, InPreparation, OrderActor.Manager)]
     [InlineData(Ready, Confirmed, OrderActor.Manager)]
-    [InlineData(PendingPayment, Refused, OrderActor.Manager)]
-    [InlineData(PendingPayment, AwaitingApproval, OrderActor.Manager)]
+    [InlineData(PendingPayment, InPreparation, OrderActor.Manager)]
     public void Transitions_non_listees_ou_mauvais_acteur_refusees(OrderStatus from, OrderStatus to, OrderActor actor) =>
         Assert.NotNull(Check(from, to, actor));
 
     [Theory]
     [InlineData(Completed)]
     [InlineData(NoShow)]
-    [InlineData(Refused)]
     [InlineData(Cancelled)]
     public void Etats_finaux_immuables(OrderStatus final)
     {
@@ -56,16 +46,20 @@ public class OrderTransitionPolicyTests
     }
 
     [Theory]
-    [InlineData(AwaitingApproval, Refused)]
-    [InlineData(AwaitingApproval, Cancelled)]
+    [InlineData(PendingPayment, Cancelled)]
     [InlineData(Confirmed, Cancelled)]
     [InlineData(InPreparation, Cancelled)]
     [InlineData(Ready, Cancelled)]
-    public void Refus_et_annulation_Manager_exigent_un_motif(OrderStatus from, OrderStatus to)
+    public void Annulation_Manager_exige_un_motif(OrderStatus from, OrderStatus to)
     {
         Assert.NotNull(Check(from, to, OrderActor.Manager));
         Assert.Null(Check(from, to, OrderActor.Manager, Ctx(reason: "Rupture découverte")));
     }
+
+    [Fact]
+    public void Seuls_le_restaurant_et_le_systeme_agissent_sur_une_commande() =>
+        // ADR-0013 : le client n'annule plus lui-même, il appelle le restaurant.
+        Assert.Equal([OrderActor.Manager, OrderActor.System], Enum.GetValues<OrderActor>());
 
     [Fact]
     public void Retiree_exige_une_commande_payee()

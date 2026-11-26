@@ -3,25 +3,15 @@ using RestaurantHandler.Models.Interfaces;
 
 namespace RestaurantHandler.Models;
 
-public enum OrderChannel
-{
-    Online,
-
-    /// <summary>Saisie au comptoir par un Manager.</summary>
-    Counter,
-}
-
 /// <summary>Avancement (docs/20-regles-metier/02-machine-etats-commande.md) ; « payée » est à part.</summary>
 public enum OrderStatus
 {
     PendingPayment,
-    AwaitingApproval,
     Confirmed,
     InPreparation,
     Ready,
     Completed,
     NoShow,
-    Refused,
     Cancelled,
 }
 
@@ -30,14 +20,6 @@ public enum PickupMode
     /// <summary>Dès que possible : heure estimée = validation + délai ASAP.</summary>
     Asap,
     Slot,
-}
-
-public enum PaymentChoice
-{
-    Online,
-
-    /// <summary>Au retrait, après validation Manager (ADR-0010) ; toujours le cas au comptoir.</summary>
-    OnSite,
 }
 
 public enum ModificationType
@@ -50,14 +32,10 @@ public enum ModificationType
     Choice,
 }
 
+/// <summary>Seul le paiement en ligne SumUp existe (ADR-0013).</summary>
 public enum PaymentMethod
 {
     SumupOnline,
-
-    // Encaissements sur place déclarés par un Manager (la caisse certifiée tierce fait foi, ADR-0006).
-    OnSiteCard,
-    OnSiteCash,
-    OnSiteOther,
 }
 
 public enum PaymentStatus
@@ -82,26 +60,18 @@ public class Order : BaseModel
     [MaxLength(64)]
     public string IdempotencyKey { get; set; } = string.Empty;
 
-    /// <summary>Prénom pour l'appel d'un client de passage au comptoir.</summary>
-    [MaxLength(64)]
-    public string? CustomerFirstName { get; set; }
-
     public PickupMode PickupMode { get; set; }
 
     /// <summary>Heure de retrait prévue : estimée (ASAP) ou début du créneau.</summary>
     public DateTimeOffset PickupAt { get; set; }
 
-    public PaymentChoice PaymentChoice { get; set; }
-
-    /// <summary>Nul pour un client de passage.</summary>
-    public Guid? CustomerId { get; set; }
+    public Guid CustomerId { get; set; }
     public UserApp? Customer { get; set; }
 
-    /// <summary>Le client lui-même, ou le Manager au comptoir.</summary>
+    /// <summary>Le client lui-même.</summary>
     public Guid CreatedByUserId { get; set; }
     public UserApp? CreatedByUser { get; set; }
 
-    public OrderChannel Channel { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.PendingPayment;
 
     [MaxLength(500)]
@@ -232,9 +202,6 @@ public class Payment : BaseModel
 
     public DateTimeOffset? RefundedAt { get; set; }
 
-    /// <summary>Manager qui a déclaré un encaissement sur place.</summary>
-    public Guid? DeclaredByUserId { get; set; }
-
     public DateTimeOffset? CompletedAt { get; set; }
 }
 
@@ -252,7 +219,7 @@ public class OrderStatusHistory
 
     public DateTimeOffset ChangedAt { get; set; } = DateTimeOffset.UtcNow;
 
-    /// <summary>Motif de refus ou d'annulation, affiché au client.</summary>
+    /// <summary>Motif d'annulation, affiché au client.</summary>
     [MaxLength(500)]
     public string? Reason { get; set; }
 }

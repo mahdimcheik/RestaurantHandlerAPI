@@ -85,8 +85,6 @@ public class OrderQueryService(MainContext db, TimeProvider clock)
         var query = db.Orders.AsNoTracking().Include(o => o.Customer).Where(o => o.ServiceDate == date);
         if (filter.Status is { } status)
             query = query.Where(o => o.Status == status);
-        if (filter.Channel is { } channel)
-            query = query.Where(o => o.Channel == channel);
         if (filter.IsPaid is { } paid)
             query = query.Where(o => (o.PaidAt != null) == paid);
         if (filter.Number is { } number)

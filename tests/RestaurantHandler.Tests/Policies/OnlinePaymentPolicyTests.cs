@@ -29,7 +29,7 @@ public class OnlinePaymentPolicyTests
     [Theory]
     [InlineData(OrderStatus.Cancelled)]
     [InlineData(OrderStatus.Confirmed)]
-    [InlineData(OrderStatus.AwaitingApproval)]
+    [InlineData(OrderStatus.InPreparation)]
     public void Paiement_recu_sur_une_commande_qui_ne_l_attend_plus_rembourse(OrderStatus order) =>
         Assert.Equal(PaymentOutcome.RefundUnexpected, Decide("PAID", order: order));
 
