@@ -313,10 +313,14 @@ clair et sombre.
 
 **Fait (carte à consulter, 2026-11-24) :**
 - Page `/carte` séparée de la page de commande (`features/shop/pages/menu-board-page`) : toutes
-  les rubriques à la suite (« Menus » en premier), avec les mêmes cartes produit que
-  `/commander`, et une barre collante de liens vers chaque rubrique (ancres `#rubrique-…`).
-  Un article ouvre sa fiche de commande (`/commander/produit/:id` ou `/commander/menu/:id`) ;
-  le bouton info affiche les ingrédients sur place. Ni panier ni colonne de commande.
+  les rubriques à la suite (« Menus » en premier), et une barre collante de liens vers chaque
+  rubrique (ancres `#rubrique-…`). Un article ouvre sa fiche de commande
+  (`/commander/produit/:id` ou `/commander/menu/:id`). Ni panier ni colonne de commande.
+- 2026-11-26 : cartes propres à `/carte` (`components/board-card`), plus grandes que celles de
+  `/commander` : deux par ligne sur grand écran (visuel à gauche), une sur mobile (visuel en
+  haut) ; description entière, ingrédients (rupture signalée), groupes d'options avec
+  suppléments, et pour un menu ses rubriques et produits au choix, visibles sans clic (plus de
+  bouton info). Tests et build OK ; rendu navigateur et axe pas encore vérifiés.
 - Le lien « Carte » de la barre du haut et les boutons « Voir la carte » (À propos, pages
   légales) mènent à `/carte` ; « Commander » reste sur `/commander`.
 - Tests unitaires et build OK ; rendu navigateur et axe pas encore vérifiés.
