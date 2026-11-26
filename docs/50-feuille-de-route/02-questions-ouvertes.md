@@ -14,6 +14,9 @@ question tranchée est déplacée en bas avec sa réponse et, si structurante, u
 | 13  | **Session** : bascule complète en cookie `httpOnly` (ADR-0002) avant l'ouverture, ou après ?                                                                                                                      | dev                       | J4          |
 | 14  | **Nom de domaine** et identité visuelle (logo, couleurs) de la PWA.                                                                                                                                               | gérant                    | J4          |
 | 15  | **Seuils** : délai de grâce au retrait (avant « non venu »), durée d'expiration d'un paiement en ligne.                                                                                            | gérant                    | J2          |
+| 16  | **Plateforme agréée** de facturation électronique : laquelle (coût, API, formats Factur-X / UBL / CII) ? Un adaptateur sera écrit derrière `IEInvoicingGateway` (ADR-0014). | gérant / expert-comptable | sept. 2027 |
+| 17  | **Numérotation des factures** : tenue par la plateforme ou par l'application (séquence chronologique sans trou) ? Quel statut pour le reçu d'une commande facturée ? | expert-comptable | branchement PA |
+| 18  | **E-reporting** des ventes aux particuliers payées en ligne : obligatoire pour ce restaurant, à quelle échéance et par quel canal ? | expert-comptable | sept. 2027 |
 
 ## Tranchées
 

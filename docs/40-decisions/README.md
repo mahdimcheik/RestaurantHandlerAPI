@@ -21,5 +21,6 @@ celles encore valides pour le socle ont été reprises et adaptées : 0001 à 00
 | [0011](ADR-0011-francais-uniquement.md) | Français uniquement, carte sans traductions | Accepté |
 | [0012](ADR-0012-remplacements-prix-ingredient.md) | Remplacements au prix de référence de l'ingrédient, suppléments en groupe d'options | Accepté |
 | [0013](ADR-0013-paiement-en-ligne-seul.md) | Commande en ligne payée par carte uniquement, sans comptoir ni annulation par le client | Accepté |
+| [0014](ADR-0014-facturation-electronique-interface.md) | Facturation électronique via une plateforme agréée derrière une interface, demandes en outbox | Accepté |
 
 Format : `**Statut**`, `**Date**`, puis *Contexte*, *Décision*, *Conséquences*.

@@ -46,6 +46,11 @@ Statuts : ✅ terminé · 🟡 en cours · ⬜ à faire.
 `guestGuard`, `managerGuard`, retour filtré par `safeReturnUrl`, reprise de session au
 démarrage.
 
+**Fait le 2026-11-26 (US-E05-6) :** compte professionnel `/compte/professionnel`
+(`features/account`) : SIREN, SIRET, raison sociale, TVA (calculée par l'API si vide), adresse
+de facturation, « Redevenir particulier » ; lien « Compte professionnel » dans le panneau
+Compte d'un client.
+
 **Reste :**
 - Connexion Google (US-E01-2) : `GOOGLE_CLIENT_ID` à renseigner dans `src/environments/environment*.ts` (front) et le `.env` de l'API, même valeur ; CSP à autoriser.
 - Profil et téléphone (US-E01-4), suppression du compte (US-E01-6).
@@ -400,6 +405,10 @@ clair et sombre.
   commande, lignes, total HT, TVA par taux, TTC, paiements réussis ; imprimable (en-tête et
   boutons masqués). Proposé depuis le suivi pour une commande payée en ligne seulement (sur
   place, le ticket vient de la caisse certifiée). Contenu provisoire (question 2).
+- Facture professionnelle (US-E05-6, 2026-11-26) : à la validation, étape « Facture » pour un
+  client professionnel, case cochée par défaut (`requestInvoice`) ; sur le reçu, état de la
+  demande en termes client (un échec technique reste « en cours de préparation »). **Reste :**
+  liste des demandes et relance au back-office (`/manage/invoice-requests`).
 - Notifications de suivi (US-E08-2), à la place du bandeau « commande en cours » (2026-11-26 :
   les bandeaux s'empilaient au-dessus de la barre du haut et ne partaient qu'à la clôture de la
   commande) : toast à chaque notification poussée (`shared/ui/toast-stack`, mis en avant à

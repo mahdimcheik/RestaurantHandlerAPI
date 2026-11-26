@@ -54,6 +54,8 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 | `OrderItemModification` | Personnalisation | `Remove` / `Replace` / `Supplement` / `Choice`, libellé et prix figés, `Position` ; `OptionChoiceId` ssi `Choice`, `IngredientId` obligatoire sauf pour un `Choice` |
 | `Payment` | Tentative de paiement en ligne SumUp | `Method` (`SumupOnline`, seul moyen), `Status`, `AmountCents`, identifiants SumUp uniques (`SumupCheckoutId`, `SumupTransactionCode`, `SumupTransactionId`), `CheckoutUrl`, `RefundedAt` |
 | `OrderStatusHistory` | Journal des statuts | auteur, horodatage, `Reason` |
+| `BusinessProfiles` | Profil professionnel d'un client (facultatif) | clé `UserId` (1-1, suppression en cascade), `Siren`, `Siret`, `LegalName`, `VatNumber`, adresse de facturation |
+| `InvoiceRequests` | Demande de facture électronique (outbox, ADR-0014) | `OrderId` unique, snapshots acheteur et vendeur, `Status`, `Provider`, `ExternalId`, `Attempts`, `LastError` ; créée au paiement si `Order.InvoiceRequested` |
 
 ## Écarts à combler
 
@@ -72,6 +74,7 @@ Source : [`Catalog.cs`](../../RestaurantHandler/Domain/Entities/Catalog/Catalog.
 | M11 | Socle : retirer `HelpEntry`, `MailBroadcast`, paramètres de maintenance | J0 | J0 |
 | M12 | ✅ Groupes d'options, partagés entre produits depuis le 2026-11-23 : `OptionGroup`, `OptionChoice`, liaison `ProductOptionGroup`, `ModificationType.Choice`, `OrderItemModification.OptionChoiceId` et `Position` ; choix offerts et prix par choix supplémentaire supprimés le 2026-11-24 (`RemoveOptionGroupFreeChoices`) | sandwichs (pain, sauces), pizzas (taille) — [US-E02-9](../10-cahier-des-charges/E02-carte.md#us-e02-9--définir-les-groupes-doptions-et-les-proposer-sur-les-produits) | J5 |
 | M13 | ✅ Paiement en ligne seul ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) : retrait de `OrderStatus.AwaitingApproval` et `Refused`, de `OrderChannel`, `PaymentChoice`, `PaymentMethod.OnSite*`, `Order.CustomerFirstName`, `Payment.DeclaredByUserId`, `UserApp.NoShowCount`, `RestaurantSettings.ApprovalTimeoutMinutes` / `NoShowThreshold` et de la table `NoShowResets` ; `Order.CustomerId` obligatoire (migration `RemoveOnSiteAndCounter`, qui supprime d'abord les commandes d'essai concernées) | plus de comptoir, de paiement au retrait ni d'annulation client | 2026-11-26 |
+| M14 | ✅ Facturation électronique ([ADR-0014](../40-decisions/ADR-0014-facturation-electronique-interface.md)) : table `BusinessProfiles` (1-1 avec `Users`, SIREN, SIRET, raison sociale, TVA, adresse), `Order.InvoiceRequested`, table `InvoiceRequests` (une par commande, snapshots acheteur et vendeur, statut `Pending` / `Submitted` / `Accepted` / `Rejected` / `Failed` en texte, plateforme, identifiant externe, tentatives) — migration `AddBusinessInvoicing` | [US-E05-6](../10-cahier-des-charges/E05-paiement.md#us-e05-6--demander-une-facture-professionnelle) | 2026-11-26 |
 
 Chaque écart est une migration nommée (`dotnet ef migrations add <Nom>`) ; plus de
 régénération d'`InitialCreate` une fois la première mise en production faite.

@@ -88,3 +88,23 @@ Annulation ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) : le
 n'annule pas en ligne ; il appelle le restaurant ou le demande sur place, et le restaurant
 rembourse la carte. La section correspondante de la page CGV le dit déjà ; délais et conditions
 de remboursement restent à compléter.
+
+## 7. Facturation électronique
+
+- **Calendrier :** réception des factures électroniques obligatoire pour toutes les entreprises
+  au 1er septembre 2026 ; émission obligatoire pour les TPE et PME au 1er septembre 2027
+  *(à valider)*. Les factures passent par une **plateforme agréée** (PA).
+- **B2B seulement :** une facture électronique n'est due que pour une vente à une entreprise.
+  Les ventes aux particuliers relèvent de l'**e-reporting** (transmission des données de
+  vente), hors périmètre actuel (question 18).
+- **Dans l'application** ([ADR-0014](../40-decisions/ADR-0014-facturation-electronique-interface.md),
+  [US-E05-6](../10-cahier-des-charges/E05-paiement.md#us-e05-6--demander-une-facture-professionnelle)) :
+  un client professionnel renseigne SIREN, raison sociale, n° de TVA et adresse de
+  facturation, puis coche « facture » au panier. La demande, figée au paiement, attend d'être
+  transmise à la plateforme, qui n'est pas encore choisie (question 16).
+- **Mentions nouvelles** prévues par la réforme et portées par le document transmis : SIREN
+  de l'acheteur, catégorie d'opération (livraison de biens), option pour la TVA sur les débits
+  *(à valider)*.
+- **Numérotation** : suite chronologique continue, sans trou ; qui la tient (la plateforme ou
+  l'application) reste à décider (question 17).
+

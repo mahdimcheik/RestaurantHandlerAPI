@@ -51,6 +51,7 @@ public static class OrderMapping
                 .OrderByDescending(p => p.CreatedAt).Select(p => p.CheckoutUrl).FirstOrDefault()
             : null;
         details.PaymentIssue = forManager ? o.PaymentIssue : null;
+        details.InvoiceRequested = o.InvoiceRequested;
         details.Items = topLevel.Select(ToItem).ToList();
         details.Vat = Vat(topLevel);
         details.History = o.StatusHistory

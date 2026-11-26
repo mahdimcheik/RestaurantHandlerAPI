@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Amazon.Runtime;
 using Amazon.S3;
+using RestaurantHandler.Integrations.EInvoicing;
 using RestaurantHandler.Integrations.SumUp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -46,6 +47,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     public TestClock Clock { get; } = new(Monday12h);
     public FakeSumUp SumUp { get; } = new();
     public FakeS3 Storage { get; } = new();
+    public FakeEInvoicing EInvoicing { get; } = new();
     public SeededMenu Menu { get; private set; } = null!;
 
     public async Task InitializeAsync()
@@ -102,6 +104,8 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
             services.RemoveAll<TimeProvider>();
             services.AddSingleton<TimeProvider>(Clock);
             services.AddHttpClient<SumUpClient>().ConfigurePrimaryHttpMessageHandler(() => SumUp);
+            services.RemoveAll<IEInvoicingGateway>();
+            services.AddSingleton<IEInvoicingGateway>(EInvoicing);
             services.RemoveAll<IAmazonS3>();
             services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client(
                 new BasicAWSCredentials("test", "test"),
@@ -225,6 +229,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         {
             Clock.SetUtcNow(Monday12h);
             SumUp.Reset();
+            EInvoicing.Reset();
             var s = db.RestaurantSettings.Single();
             s.IsPaused = false;
             s.PausedUntil = null;

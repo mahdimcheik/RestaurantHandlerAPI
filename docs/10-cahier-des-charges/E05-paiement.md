@@ -90,3 +90,29 @@ présenter (note de frais).
   (raison sociale, adresse, SIRET, n° TVA), date, numéro, lignes, total HT / TVA par taux / TTC,
   moyen de paiement.
 - Le contenu exact est à valider avec l'expert-comptable (question ouverte n° 2).
+
+### US-E05-6 — Demander une facture professionnelle
+
+En tant que client professionnel, je veux demander une facture au nom de mon entreprise afin de
+la recevoir en facture électronique.
+
+**Priorité :** V1
+**État :** Partielle
+**Avancement :** API faite le 2026-11-26 : profil professionnel (`GET/PUT/DELETE /users/me/business-profile`), `OrderCreate.requestInvoice`, demande enregistrée à la confirmation du paiement, suivi `GET /orders/{id}/invoice-request`, liste et relance Manager (`/manage/invoice-requests`) ; transmission derrière `IEInvoicingGateway` ([ADR-0014](../40-decisions/ADR-0014-facturation-electronique-interface.md)), **aucune plateforme agréée branchée** : les demandes restent `Pending`. Écrans faits : `/compte/professionnel`, case « facture » à la validation, statut sur le reçu ; liste Manager à faire.
+
+**Critères d'acceptation**
+- Un client devient professionnel en renseignant SIREN, raison sociale, adresse de facturation
+  et, facultativement, SIRET et n° de TVA. Le SIREN (et le SIRET) est contrôlé par sa clé, sans
+  appel externe ; le n° de TVA doit correspondre au SIREN et en est calculé s'il est omis. Il
+  peut redevenir particulier.
+- À la validation, un client professionnel voit une case « Je souhaite une facture », cochée par
+  défaut. Demander une facture sans profil professionnel est refusé.
+- La demande n'est créée qu'à la **confirmation du paiement**, une seule par commande (une
+  notification SumUp rejouée n'en crée pas d'autre). Elle fige acheteur et vendeur
+  ([ADR-0008](../40-decisions/ADR-0008-centimes-snapshots.md)).
+- Elle est transmise à la plateforme agréée par une tâche récurrente ; un échec technique est
+  retenté (10 fois au plus), puis un Manager peut la relancer.
+- Le client voit où en est sa facture depuis le reçu ; seul le Manager voit les erreurs.
+- Numérotation légale des factures, choix de la plateforme et e-reporting : questions ouvertes
+  16 à 18.
+

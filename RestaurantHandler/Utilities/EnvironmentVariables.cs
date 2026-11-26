@@ -89,6 +89,15 @@ public static class EnvironmentVariables
     public static string SUMUP_RECONCILE_CRON => GetEnvVar("SUMUP_RECONCILE_CRON", "*/2 * * * *");
 
     /// <summary>
+    /// Plateforme agréée de facturation électronique (ADR-0014) : <c>none</c> tant qu'aucune n'est
+    /// branchée ; les demandes de facture restent alors en attente.
+    /// </summary>
+    public static string EINVOICING_PROVIDER => GetEnvVar("EINVOICING_PROVIDER", "none").Trim().ToLowerInvariant();
+
+    /// <summary>Intervalle de transmission des demandes de facture en attente (expression cron).</summary>
+    public static string EINVOICING_SUBMIT_CRON => GetEnvVar("EINVOICING_SUBMIT_CRON", "*/5 * * * *");
+
+    /// <summary>
     /// Clés VAPID des notifications natives (Web Push). Facultatives : sans la paire, aucune
     /// notification native n'est envoyée et le front masque l'option.
     /// </summary>

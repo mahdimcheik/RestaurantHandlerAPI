@@ -92,6 +92,9 @@ public class OrderCreate : QuoteRequest, IValidatableObject
 
     [MaxLength(500)] public string? CustomerNote { get; set; }
 
+    /// <summary>Facture professionnelle souhaitée ; exige un profil professionnel (US-E05-6).</summary>
+    public bool RequestInvoice { get; set; }
+
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (PickupMode == PickupMode.Slot && SlotStart is null)
@@ -234,6 +237,9 @@ public class OrderDetails : OrderSummary
 
     /// <summary>Anomalie de paiement à traiter (Manager uniquement).</summary>
     public string? PaymentIssue { get; set; }
+
+    /// <summary>Facture professionnelle demandée au panier (US-E05-6).</summary>
+    [Required] public bool InvoiceRequested { get; set; }
 
     [Required] public List<OrderItemDto> Items { get; set; } = [];
     [Required] public List<VatLineDto> Vat { get; set; } = [];
