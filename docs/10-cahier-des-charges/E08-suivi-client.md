@@ -1,7 +1,8 @@
 # E08 — Suivi client
 
-Seul canal de notification en V1 : **la PWA en temps réel** (SignalR). Pas de push, e-mail ni
-SMS de suivi.
+Canal de notification en V1 : **les notifications de la PWA** (toast en temps réel par SignalR,
+historique dans la cloche de la barre du haut). Pas d'e-mail ni de SMS de suivi ; notifications
+natives (Web Push) en V2 (US-E08-4).
 
 ### US-E08-1 — Suivre sa commande en temps réel
 
@@ -33,11 +34,20 @@ de ne pas la chercher.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`GET /orders/mine/current`) ; bandeau fait (F8b).
+**Avancement :** API faite en J2 (`GET /orders/mine/current`) ; bandeau fait (F8b), remplacé
+le 2026-11-26 par les notifications : l'API enregistre une notification à chaque étape
+(`OrderNotifier`), le client affiche toasts et cloche.
 
 **Critères d'acceptation**
-- Un bandeau « Commande n° 42 — En préparation » est affiché sur toutes les pages tant qu'une
-  commande est en cours.
+- À chaque étape de la commande (confirmée après paiement, en préparation, prête, annulée avec
+  le motif, non retirée), le client reçoit une notification « Commande n° 42 prête, vous pouvez
+  venir la chercher. » avec un lien vers le suivi. Pas de notification à la remise ni pour un
+  retour arrière du restaurant.
+- Application ouverte : un toast s'affiche quelques secondes sans décaler la page, mis en avant
+  (et vibration si disponible) à « Prête ».
+- Une cloche dans la barre du haut montre le nombre de non-lues et les dernières
+  notifications ; en ouvrir une la marque lue et mène au suivi ; « Tout marquer comme lu ».
+- Les commandes en cours restent accessibles depuis « Mes commandes » (`/commandes`).
 
 ### US-E08-3 — Consulter son historique
 
@@ -57,7 +67,9 @@ En tant que client, je veux être prévenu que ma commande est prête même si l
 afin de ne pas surveiller l'écran.
 
 **Priorité :** V2
-**État :** Partielle (Web Push natif présent dans le socle, non branché)
+**État :** Partielle (Web Push natif présent dans le socle ; les notifications de commande sont
+enregistrées et mises en file pour le push depuis le 2026-11-26, mais le client ne s'abonne pas
+encore : demande de consentement, abonnement et service worker à faire)
 
 **Critères d'acceptation**
 - Notification push à `Prête` si le client y a consenti (sur iOS : PWA installée requise).

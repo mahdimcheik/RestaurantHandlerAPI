@@ -179,6 +179,32 @@ public class OrderApiTests(ApiFixture api) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Le_client_recoit_une_notification_a_chaque_etape_sauf_la_remise()
+    {
+        var (client, _) = await api.NewClientAsync();
+        var manager = await api.ManagerAsync();
+        var id = await PlacePaidAsync(client, Order([ClassicLine()]));
+        foreach (var action in new[] { "start", "ready", "complete" })
+            (await manager.PostAsJsonAsync($"/manage/orders/{id}/{action}", new { }, ApiFixture.Json)).EnsureSuccessStatusCode();
+
+        var list = await DataAsync(await client.PostAsJsonAsync("/notifications", new { first = 0, row = 10 }, ApiFixture.Json));
+        var items = list.EnumerateArray().ToList();
+        var messages = items.Select(n => n.GetProperty("message").GetString()!).ToList();
+        Assert.Equal(3, messages.Count);
+        Assert.Contains(messages, m => m.Contains("confirmée, paiement reçu"));
+        Assert.Contains(messages, m => m.Contains("en préparation"));
+        Assert.Contains(messages, m => m.Contains("prête"));
+        Assert.All(items, n =>
+        {
+            Assert.Equal($"/commandes/{id}", n.GetProperty("link").GetString());
+            Assert.False(n.GetProperty("isSeen").GetBoolean());
+        });
+
+        var managerList = await DataAsync(await manager.PostAsJsonAsync("/notifications", new { first = 0, row = 10 }, ApiFixture.Json));
+        Assert.Empty(managerList.EnumerateArray());
+    }
+
+    [Fact]
     public async Task Undo_refuse_apres_10_secondes()
     {
         var (client, _) = await api.NewClientAsync();
