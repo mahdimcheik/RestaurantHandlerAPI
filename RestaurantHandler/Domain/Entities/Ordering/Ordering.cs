@@ -80,6 +80,9 @@ public class Order : BaseModel
     /// <summary>Toujours recalculé côté serveur.</summary>
     public int TotalCents { get; set; }
 
+    /// <summary>Le client professionnel a demandé une facture : elle est enregistrée au paiement (US-E05-6).</summary>
+    public bool InvoiceRequested { get; set; }
+
     /// <summary>Renseigné quand les paiements réussis couvrent le total (R9).</summary>
     public DateTimeOffset? PaidAt { get; set; }
 

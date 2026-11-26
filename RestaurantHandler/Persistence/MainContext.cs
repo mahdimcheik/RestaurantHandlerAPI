@@ -43,6 +43,10 @@ public class MainContext : IdentityDbContext<UserApp, RoleApp, Guid>
     public DbSet<Payment> Payments { get; set; }
     public DbSet<OrderStatusHistory> OrderStatusHistory { get; set; }
 
+    // facturation électronique (ADR-0014)
+    public DbSet<BusinessProfile> BusinessProfiles { get; set; }
+    public DbSet<InvoiceRequest> InvoiceRequests { get; set; }
+
     public MainContext(DbContextOptions options)
         : base(options) { }
 

@@ -1,3 +1,4 @@
+using RestaurantHandler.Integrations.EInvoicing;
 using RestaurantHandler.Integrations.SumUp;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -77,6 +78,16 @@ if (EnvironmentVariables.SumUpEnabled)
         "sumup-reconcile",
         s => s.ReconcileAllAsync(),
         EnvironmentVariables.SUMUP_RECONCILE_CRON
+    );
+}
+
+// Facturation électronique : transmission des demandes en attente, si une plateforme est branchée.
+if (EnvironmentVariables.EINVOICING_PROVIDER != NoEInvoicingGateway.Name)
+{
+    app.Services.GetRequiredService<IRecurringJobManager>().AddOrUpdate<EInvoicingService>(
+        "einvoicing-submit",
+        s => s.SubmitPendingAsync(),
+        EnvironmentVariables.EINVOICING_SUBMIT_CRON
     );
 }
 
@@ -164,6 +175,20 @@ static void ConfigureServices(IServiceCollection services)
     // Paiement en ligne SumUp (J3)
     services.AddHttpClient<SumUpClient>(SumUpClient.Configure);
     services.AddScoped<OnlinePaymentService>();
+
+    // Facturation électronique (ADR-0014) : une seule plateforme active, choisie par EINVOICING_PROVIDER.
+    services.AddScoped<BusinessProfileService>();
+    services.AddScoped<EInvoicingService>();
+    switch (EnvironmentVariables.EINVOICING_PROVIDER)
+    {
+        case NoEInvoicingGateway.Name:
+            services.AddSingleton<IEInvoicingGateway, NoEInvoicingGateway>();
+            break;
+        default:
+            throw new InvalidOperationException(
+                $"EINVOICING_PROVIDER inconnu : « {EnvironmentVariables.EINVOICING_PROVIDER} »."
+            );
+    }
 
     // Statistiques (J5)
     services.AddScoped<StatsService>();

@@ -64,6 +64,9 @@ d'être joignable.
 
 - `PUT /Auth/me` met à jour nom, prénom et téléphone ; l'e-mail ne se change pas par ce biais.
 - Le téléphone est facultatif, validé (format téléphone, 20 caractères max) ; vide = effacé.
+- Un client peut aussi renseigner un **profil professionnel** (SIREN, raison sociale, adresse
+  de facturation) pour demander des factures :
+  [US-E05-6](E05-paiement.md#us-e05-6--demander-une-facture-professionnelle).
 
 ### US-E01-5 — Réinitialiser son mot de passe
 

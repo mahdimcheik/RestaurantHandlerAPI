@@ -14,6 +14,7 @@ namespace RestaurantHandler.Services;
 public class OrderWorkflowService(
     MainContext db,
     OrderNotifier notifier,
+    EInvoicingService invoicing,
     TimeProvider clock
 )
 {
@@ -71,16 +72,30 @@ public class OrderWorkflowService(
 
     // ---------- Système ----------
 
-    /// <summary>Paiement en ligne confirmé par SumUp (après relecture) : `Confirmée` et payée.</summary>
-    public Task<OrderDetails> ConfirmPaidOnlineAsync(Guid orderId) =>
-        TransitionAsync(
+    /// <summary>
+    /// Paiement en ligne confirmé par SumUp (après relecture) : `Confirmée` et payée. La demande de
+    /// facture d'un client professionnel est enregistrée dans la même sauvegarde (US-E05-6).
+    /// </summary>
+    public async Task<OrderDetails> ConfirmPaidOnlineAsync(Guid orderId)
+    {
+        var order =
+            await db.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == orderId)
+            ?? throw new ResourceNotFoundException("Commande introuvable.");
+        var invoice = await invoicing.PrepareForPaidOrderAsync(order);
+        return await TransitionAsync(
             orderId,
             OrderStatus.Confirmed,
             OrderActor.System,
             null,
             null,
-            apply: o => o.PaidAt = clock.GetUtcNow()
+            apply: o =>
+            {
+                o.PaidAt = clock.GetUtcNow();
+                if (invoice is not null)
+                    db.InvoiceRequests.Add(invoice);
+            }
         );
+    }
 
     /// <summary>Aucun paiement réussi dans le délai : annulation automatique (US-E05-2).</summary>
     public Task<OrderDetails> ExpireUnpaidAsync(Guid orderId) =>

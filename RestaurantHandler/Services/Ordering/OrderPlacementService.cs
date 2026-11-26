@@ -16,6 +16,7 @@ public class OrderPlacementService(
     MainContext db,
     CartService carts,
     RestaurantService restaurant,
+    BusinessProfileService businessProfiles,
     OrderNotifier notifier,
     TimeProvider clock
 )
@@ -35,6 +36,11 @@ public class OrderPlacementService(
         if (!EnvironmentVariables.SumUpEnabled)
             throw new BusinessConflictException(
                 "Le paiement en ligne est momentanément indisponible : la commande ne peut pas être validée."
+            );
+
+        if (dto.RequestInvoice && !await businessProfiles.ExistsAsync(caller.UserId))
+            throw new BusinessRuleException(
+                "Complétez votre profil professionnel pour demander une facture."
             );
 
         var settings = await ReadSettingsAsync();
@@ -85,6 +91,7 @@ public class OrderPlacementService(
                     PickupMode = dto.PickupMode,
                     PickupAt = pickupAt,
                     CustomerNote = Clean(dto.CustomerNote),
+                    InvoiceRequested = dto.RequestInvoice,
                 };
             },
             cart
