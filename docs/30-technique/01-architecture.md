@@ -7,7 +7,7 @@
  ┌───────────────────────────┐   HTTPS   ┌───────────────────────────────────────┐
  │ Site client  /            │──────────►│ API RestaurantHandler (.NET 10)       │
  │ Back-office  /gestion     │◄──────────│  ├─ contrôleurs → services → EF Core  │
- │ KDS          /cuisine     │ SignalR   │  ├─ hub temps réel                    │
+ │ Service      /service     │ SignalR   │  ├─ hub temps réel                    │
  └───────────────────────────┘           │  ├─ Hangfire (tâches planifiées)      │
                                          │  └─ HybridCache (carte, ouverture)    │
                                          │ PostgreSQL                            │
@@ -71,8 +71,9 @@ attribués par le serveur, jamais demandés par le client.
 
 ## Front — PWA Angular mobile-first
 
-- Une seule application, trois zones : client (`/`), back-office (`/gestion`), KDS
-  (`/cuisine`), routes protégées par rôle.
+- Une seule application, trois zones : client (`/`), back-office (`/gestion`), écrans de
+  service (`/service` : cuisine/KDS, comptoir, commandes, barre de navigation en haut pour
+  tablette paysage), routes protégées par rôle.
 - Installable (manifest + service worker) ; le service worker met en cache les ressources
   statiques et la carte, **jamais** les commandes ni les paiements.
 - Client API généré depuis le Swagger de l'API.
