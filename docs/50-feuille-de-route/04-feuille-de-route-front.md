@@ -387,6 +387,15 @@ thème retiré de la barre du haut (sans effet sur un parfum). Tableau de bord r
 « Bonjour Prénom » et date, trois chiffres phares, pastilles par étape, carte « Service ».
 `/cuisine` inchangé (lisibilité à 2 m). Rendu et axe à vérifier dans le navigateur.
 
+**Nouveau design — suivi de commande (2026-11-26) :** l'historique `/commandes`, le suivi
+`/commandes/:id` (retour SumUp, chemin inchangé) et le reçu `/commandes/:id/recu` reprennent le
+gabarit du panier : surface `.brand .brand-ui`, barre du haut, sur-titre et grand titre, contenu
+en panneaux `.order-panel`, action principale en `.btn-brand`. Le reçu s'imprime sans fond, sans
+vague ni barre du haut. Les bandeaux « commande en cours », « compte non activé » et « nouvelle
+version » prennent le fond et l'encre de la surface. L'ancien en-tête `shared/ui/site-header`
+est supprimé, avec le drapeau de route `data: { header: false }` : chaque page client porte sa
+propre `app-site-topbar`. Rendu, impression et axe à vérifier dans le navigateur.
+
 **Photos en plusieurs tailles (2026-11-24) :** l'API décline chaque photo envoyée en WebP 160,
 320, 640 et 1200 px (`…-w{taille}.webp`, [ADR-0003](../40-decisions/ADR-0003-stockage-objet.md)) ;
 le client fournit un `IMAGE_LOADER` (`core/images/catalog-image-loader.ts`) qui choisit la taille
