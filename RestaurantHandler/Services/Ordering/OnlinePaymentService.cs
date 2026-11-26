@@ -67,7 +67,7 @@ public class OnlinePaymentService(
                 payment.Id.ToString("N"),
                 order.TotalCents,
                 $"Commande n° {order.DailyNumber}",
-                Url(EnvironmentVariables.API_BACK_URL, NotificationPath),
+                Url(EnvironmentVariables.SUMUP_NOTIFICATION_BASE_URL, NotificationPath),
                 Url(EnvironmentVariables.API_FRONT_URL, $"/commandes/{order.Id}"),
                 validUntil
             );
