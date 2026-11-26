@@ -3,6 +3,9 @@
 **Statut :** Accepté
 **Date :** 2026-11-22
 
+> 2026-11-26, [ADR-0013](ADR-0013-paiement-en-ligne-seul.md) : plus de commande comptoir ni de
+> paiement au retrait ; toute commande est rattachée à un compte client.
+
 ## Contexte
 
 Commander en invité maximise la conversion mais complique le suivi, le paiement au retrait

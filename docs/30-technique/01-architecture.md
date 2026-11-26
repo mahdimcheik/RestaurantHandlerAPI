@@ -16,7 +16,7 @@
                                      SumUp (paiement en ligne)   Stockage objet S3 (OVH)
                                      Google (connexion)          SMTP (e-mails de compte)
 
- Hors système : caisse certifiée tierce (encaissement sur place)
+ Hors système : caisse du restaurant (ventes au comptoir, sans lien avec l'app)
 ```
 
 ## Backend — existant réutilisé
@@ -55,8 +55,7 @@ métier testables sans base.
 | Événement | Destinataires |
 |---|---|
 | `OrderStatusChanged` | client propriétaire (`SendToUserAsync`), groupe `restaurant` |
-| `OrderCreated` / `OrderAwaitingApproval` | groupe `restaurant` |
-| `OrderUpdated` (encaissement déclaré) | groupe `restaurant` |
+| `OrderCreated` | groupe `restaurant` |
 | `PaymentAnomaly` (montant SumUp ≠ total, remboursement en échec) | groupe `restaurant` |
 | `AvailabilityChanged` (rupture, pause, ouverture) | tous (y compris anonymes sur la carte) |
 
@@ -72,7 +71,7 @@ attribués par le serveur, jamais demandés par le client.
 ## Front — PWA Angular mobile-first
 
 - Une seule application, trois zones : client (`/`), back-office (`/gestion`), écrans de
-  service (`/service` : cuisine/KDS, comptoir, commandes, barre de navigation en haut pour
+  service (`/service` : cuisine/KDS et commandes, barre de navigation en haut pour
   tablette paysage), routes protégées par rôle.
 - Installable (manifest + service worker) ; le service worker met en cache les ressources
   statiques et la carte, **jamais** les commandes ni les paiements.
@@ -85,5 +84,5 @@ attribués par le serveur, jamais demandés par le client.
 - Paiement en ligne : création d'un *checkout* côté serveur, paiement par le widget ou la page
   hébergée SumUp, confirmation par notification + relecture de l'état. Détails :
   [ADR-0007](../40-decisions/ADR-0007-sumup-psp.md).
-- Terminal SumUp au comptoir : utilisé **via la caisse certifiée tierce**, pas piloté par
-  l'app en V1.
+- Seul moyen de paiement de l'app ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) ; pas de terminal ni d'encaissement sur place
+  piloté par l'app.

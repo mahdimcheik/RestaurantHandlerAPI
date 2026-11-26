@@ -13,18 +13,19 @@ justifié par une **certification** (NF525 ou équivalent LNE). L'attestation in
 l'éditeur n'est plus admise depuis la loi de finances 2025 *(à valider)*. Sanction : amende par
 système non conforme.
 
-**Décision V1** ([ADR-0006](../40-decisions/ADR-0006-caisse-certifiee-tierce-v1.md)) :
+**Décision V1** ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md), qui remplace
+[ADR-0006](../40-decisions/ADR-0006-caisse-certifiee-tierce-v1.md)) :
 
-- toute vente encaissée sur place (comptoir, paiement au retrait ; CB, espèces, mixte) est
-  **saisie et encaissée sur une caisse certifiée tierce** ;
-- l'application **ne fait pas office de caisse** : son marquage « payée » est une information de
-  suivi, et ses statistiques sont des indicateurs de pilotage ;
-- les paiements **en ligne** via SumUp sont des ventes à distance encaissées par un prestataire
-  de paiement ; leur traitement fiscal (enregistrement dans la caisse certifiée ou non,
-  justificatif à délivrer) est **à valider**.
+- l'application n'enregistre **aucun encaissement sur place** : plus de comptoir, plus de
+  paiement au retrait. Une vente faite au comptoir du restaurant passe par sa propre caisse
+  (certifiée), hors de l'application ;
+- l'application **ne fait pas office de caisse** : ses statistiques sont des indicateurs de
+  pilotage ;
+- les paiements **en ligne** via SumUp, seul moyen de paiement de l'application, sont des
+  ventes à distance encaissées par un prestataire de paiement ; leur traitement fiscal
+  (enregistrement dans une caisse certifiée ou non, justificatif à délivrer) est **à valider**.
 
-**Conséquence opérationnelle :** double saisie au comptoir (app pour la cuisine + caisse tierce
-pour l'encaissement). C'est le prix de la V1 ; la V2 la supprime.
+Il n'y a plus de double saisie dans l'application.
 
 **V2 — caisse maison certifiée :** journal des ventes chaîné et signé, clôtures journalières /
 mensuelles / annuelles (« Z »), tickets numérotés, gestion des annulations par écritures
@@ -35,7 +36,8 @@ suppression physique de commande.
 ## 2. Ticket et justificatif
 
 - Depuis 2023, le ticket de caisse n'est plus imprimé systématiquement mais **reste dû à la
-  demande** du client : il est fourni par la caisse certifiée tierce en V1.
+  demande** du client : pour une vente au comptoir (hors application), il vient de la caisse du
+  restaurant.
 - Paiement en ligne : la page reçu ([US-E05-5](../10-cahier-des-charges/E05-paiement.md#us-e05-5--délivrer-un-justificatif-de-paiement-en-ligne))
   porte les mentions utiles ; contenu exact **à valider**.
 - Affichage obligatoire des prix TTC (carte en ligne comprise).
@@ -78,6 +80,11 @@ En V1, l'application ne gère pas les allergènes ([US-E02-8](../10-cahier-des-c
 
 ## 6. CGV de vente en ligne
 
-À rédiger (hors code) : identité du vendeur, prix TTC, modalités de retrait, de paiement,
-d'annulation et de remboursement, non-application du droit de rétractation aux denrées
-périssables (C. consom. L221-28), médiation de la consommation.
+À rédiger (hors code) : identité du vendeur, prix TTC, modalités de retrait, de paiement (carte
+bancaire en ligne uniquement), d'annulation et de remboursement, non-application du droit de
+rétractation aux denrées périssables (C. consom. L221-28), médiation de la consommation.
+
+Annulation ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) : le client
+n'annule pas en ligne ; il appelle le restaurant ou le demande sur place, et le restaurant
+rembourse la carte. La section correspondante de la page CGV le dit déjà ; délais et conditions
+de remboursement restent à compléter.

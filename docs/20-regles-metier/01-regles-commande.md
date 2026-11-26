@@ -83,8 +83,9 @@ actif et si chaque emplacement à minimum > 0 a au moins une option commandable.
 - La capacité d'un créneau est vérifiée à la validation **sous verrou** (transaction
   sérialisable ou verrou applicatif sur le créneau) pour qu'aucune commande concurrente ne la
   dépasse.
-- Une commande comptoir n'exige que l'ouverture.
-- Toute commande active (tous canaux) dont l'heure de retrait tombe dans un créneau l'occupe :
+- Toute commande se passe en ligne ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) :
+  il n'y a plus de saisie au comptoir.
+- Toute commande active dont l'heure de retrait tombe dans un créneau l'occupe :
   la capacité protège la cuisine. Les créations de commandes sont sérialisées par un verrou
   `pg_advisory_xact_lock` (capacité, numéro du jour, idempotence).
 - Un ingrédient retirable en rupture doit figurer en retrait (ou remplacement) dans la ligne :
@@ -99,11 +100,15 @@ actif et si chaque emplacement à minimum > 0 a au moins une option commandable.
 
 ## R9 — Paiement
 
-- Une commande est **payée** si : un paiement en ligne `Successful` couvre le total, **ou** des
-  encaissements sur place déclarés par un Manager totalisent le total.
+- Seul moyen de paiement : la **carte bancaire en ligne** via SumUp ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)).
+  Une commande est **payée** quand un paiement en ligne `Successful` couvre le total ; elle
+  n'entre en cuisine (`Confirmée`) qu'à ce moment.
 - Le montant confirmé par SumUp doit être **exactement** le total ; tout écart met la commande
   en anomalie (pas de transition automatique).
-- Une commande non payée ne peut pas être `Retirée`.
+- Une commande non payée ne peut pas être `Retirée` (garde-fou : toute commande en cuisine est
+  déjà payée).
+- Le client n'annule pas lui-même : il appelle le restaurant ou le demande sur place ; seul un
+  Manager annule, et un paiement en ligne est alors remboursé.
 
 ## R10 — Idempotence
 

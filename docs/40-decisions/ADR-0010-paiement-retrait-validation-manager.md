@@ -1,6 +1,6 @@
 # ADR-0010 — Paiement au retrait soumis à validation Manager
 
-**Statut :** Accepté
+**Statut :** Remplacée par [ADR-0013](ADR-0013-paiement-en-ligne-seul.md) (2026-11-26) : paiement par carte en ligne uniquement
 **Date :** 2026-11-22
 
 ## Contexte

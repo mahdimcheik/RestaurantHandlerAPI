@@ -60,7 +60,7 @@ ma commande quand cela m'arrange.
 
 ### US-E04-4 — Valider la commande
 
-En tant que client connecté, je veux valider mon panier avec un mode de paiement afin que ma
+En tant que client connecté, je veux valider mon panier et le payer par carte afin que ma
 commande soit transmise au restaurant.
 
 **Priorité :** V1
@@ -76,19 +76,22 @@ commande soit transmise au restaurant.
 - En cas d'écart (prix changé, rupture), la commande est refusée avec le détail des lignes en
   cause et le panier est mis à jour ; rien n'est créé.
 - Une note client facultative (500 caractères) est acceptée.
-- Mode « payer en ligne » → statut `En attente de paiement` et redirection vers SumUp ([E05](E05-paiement.md)).
-- Mode « payer au retrait » → statut `À valider` et attente de la validation Manager ([US-E06-3](E06-comptoir.md#us-e06-3--valider-une-commande-à-payer-au-retrait)).
+- Seul moyen de paiement : la **carte bancaire en ligne** ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)).
+  La commande passe en `En attente de paiement` et le client est redirigé vers SumUp
+  ([E05](E05-paiement.md)) ; elle n'entre en cuisine qu'une fois payée.
+- Paiement en ligne indisponible (SumUp coupé) : la validation est refusée avec un message
+  clair, rien n'est créé.
 - Un double clic ou un rejeu ne crée pas deux commandes (clé d'idempotence).
 - Un numéro de commande unique est attribué et affiché.
 
-### US-E04-5 — Limiter les abus du paiement au retrait
+### US-E04-5 — ~~Limiter les abus du paiement au retrait~~
 
 En tant que restaurant, je veux limiter le paiement au retrait afin de réduire les commandes non
 retirées.
 
 **Priorité :** V1
-**État :** Partielle
-**Avancement :** API faite en J2 (une commande au retrait en cours, blocage au seuil de non-venues, levée par `POST /manage/customers/{id}/no-shows/reset`) ; `GET /orders/checkout-options` annonce le blocage avant la validation (F8a).
+**État :** Abandonnée
+**Abandonnée :** plus de paiement au retrait, donc plus de limite ni de blocage ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md), 2026-11-26).
 
 **Critères d'acceptation**
 
@@ -96,14 +99,14 @@ retirées.
 - Un client marqué « non venu » N fois (paramètre, ex. 2) ne peut plus choisir le paiement au
   retrait ; le Manager peut lever le blocage.
 
-### US-E04-6 — Annuler sa commande
+### US-E04-6 — ~~Annuler sa commande~~
 
 En tant que client, je veux annuler ma commande tant qu'elle n'est pas en préparation afin de
 corriger une erreur.
 
 **Priorité :** V1
-**État :** Partielle
-**Avancement :** API faite en J2 (`POST /orders/{id}/cancel`) ; remboursement en ligne en J3 ; bouton sur le suivi (F8a).
+**État :** Abandonnée
+**Abandonnée :** le client n'annule plus en ligne ; sa page de suivi l'invite à appeler le restaurant ou à demander sur place ([US-E08-1](E08-suivi-client.md#us-e08-1--suivre-sa-commande-en-temps-réel)), le Manager annule ([US-E06-6](E06-comptoir.md#us-e06-6--annuler-une-commande-côté-restaurant)) ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md), 2026-11-26).
 
 **Critères d'acceptation**
 

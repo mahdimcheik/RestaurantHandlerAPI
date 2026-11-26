@@ -3,6 +3,9 @@
 **Statut :** Accepté
 **Date :** 2026-11-22
 
+> 2026-11-26, [ADR-0013](ADR-0013-paiement-en-ligne-seul.md) : SumUp en ligne devient le seul moyen
+> de paiement de l'application ; il n'y a plus de « sur place » à rapprocher.
+
 ## Contexte
 
 Greenadine utilise SumUp (terminal et, potentiellement, caisse SumUp POS). Un seul

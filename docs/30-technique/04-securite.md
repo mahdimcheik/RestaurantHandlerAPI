@@ -28,7 +28,8 @@
 
 - Rate limiting existant (par IP, par utilisateur, auth) appliqué aussi à la validation de
   commande.
-- Limite d'une commande « payer au retrait » en cours par client, blocage après non-venues.
+- Paiement par carte en ligne obligatoire avant toute préparation (ADR-0013) : pas de commande
+  non payée en cuisine, donc pas de limite de commandes au retrait.
 - Taille de panier bornée (nombre de lignes, quantités) pour éviter les commandes absurdes.
 
 ## Données

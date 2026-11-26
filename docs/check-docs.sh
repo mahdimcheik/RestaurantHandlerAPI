@@ -31,7 +31,7 @@ dup=$(grep -rhoE '^#{2,3} US-E[0-9]{2}-[0-9]+[a-z]?' "$DOCS/10-cahier-des-charge
 for f in "$DOCS/10-cahier-des-charges"/E*.md; do
   s=$(grep -cE '^#{2,3} US-' "$f"); c=$(grep -c "^\*\*Critères d'acceptation\*\*" "$f")
   [ "$s" -ne "$c" ] && ko "$(basename "$f") : $s stories mais $c blocs de critères"
-  e=$(grep -cE '^\*\*État :\*\* (Implémentée|Partielle|Absente)' "$f")
+  e=$(grep -cE '^\*\*État :\*\* (Implémentée|Partielle|Absente|Abandonnée)' "$f")
   [ "$s" -ne "$e" ] && ko "$(basename "$f") : $s stories mais $e lignes d'état valides"
   p=$(grep -cE '^\*\*Priorité :\*\* V[12]' "$f")
   [ "$s" -ne "$p" ] && ko "$(basename "$f") : $s stories mais $p lignes de priorité valides"

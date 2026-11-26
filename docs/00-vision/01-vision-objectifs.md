@@ -13,12 +13,12 @@ compositions, ses « sans oignons », ses menus à choix.
 **RestaurantHandler** est l'outil de commande d'**un seul restaurant** de type fast-food /
 snack à emporter. Il permet :
 
-- au **client** de commander et (s'il le souhaite) payer **en ligne** depuis son téléphone, pour
-  un retrait **dès que possible** ou **à un créneau choisi**, puis de suivre sa commande en
-  temps réel jusqu'à « Prête » ;
-- au **personnel** (compte Manager) de saisir les commandes **au comptoir**, de valider les
-  commandes à payer au retrait, de piloter la **cuisine** sur un écran (KDS) et de gérer la
-  carte, les horaires et les ruptures ;
+- au **client** de commander et payer **par carte, en ligne**, depuis son téléphone, pour un
+  retrait **dès que possible** ou **à un créneau choisi**, puis de suivre sa commande en temps
+  réel jusqu'à « Prête » ;
+- au **personnel** (compte Manager) de piloter la **cuisine** sur un écran (KDS), de remettre
+  les commandes, d'annuler à la demande d'un client et de gérer la carte, les horaires et les
+  ruptures ;
 - au **gérant** de suivre l'activité (chiffre d'affaires, panier moyen, ventes par produit,
   heures de pointe).
 
@@ -34,18 +34,17 @@ une ouverture **sous 3 mois**.
 | Horaires, fermetures exceptionnelles, pause des commandes | Gestion de stock chiffrée |
 | Ruptures d'ingrédients et de produits en temps réel | Multi-restaurants, multi-langue |
 | Click & collect : retrait ASAP ou sur créneau à capacité limitée | Livraison, commande à table, borne |
-| Paiement en ligne SumUp **ou** paiement au retrait (après validation Manager) | **Caisse enregistreuse certifiée maison** (V2, NF525) |
-| Saisie comptoir par le Manager | Impression de tickets pilotée par l'app (V2) |
+| Paiement **par carte en ligne** (SumUp), seul moyen de paiement ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) | Paiement au retrait, saisie au comptoir, encaissement sur place dans l'app |
+| Annulation par le restaurant, à la demande du client (téléphone ou sur place) | Annulation en ligne par le client |
+| — | **Caisse enregistreuse** et impression de tickets pilotées par l'app |
 | Écran cuisine (KDS) temps réel | Notifications push / e-mail / SMS de suivi |
 | Suivi de commande temps réel dans la PWA | Codes promo, fidélité |
 | Statistiques Manager | Export comptable |
 
-**Point structurant :** en V1, **l'application n'est pas la caisse légale**. Toute vente
-encaissée sur place (comptoir, paiement au retrait, espèces, carte, paiement mixte) est
-enregistrée sur une **caisse certifiée tierce** (SumUp POS ou équivalent). L'application
-prend la commande, l'envoie en cuisine et en suit l'état ; le Manager y marque la commande
-« payée ». Voir [ADR-0006](../40-decisions/ADR-0006-caisse-certifiee-tierce-v1.md) et
-[conformité légale](../20-regles-metier/04-conformite-legale.md).
+**Point structurant :** l'application ne prend que des **commandes en ligne payées par carte**
+et n'enregistre **aucun encaissement sur place** ; elle n'est pas une caisse. Une vente faite au
+comptoir du restaurant passe par sa propre caisse, hors application. Voir [ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md) (qui remplace
+ADR-0006 et ADR-0010) et [conformité légale](../20-regles-metier/04-conformite-legale.md).
 
 ## Critères de succès de la V1
 
@@ -62,4 +61,4 @@ prend la commande, l'envoie en cuisine et en suit l'état ; le Manager y marque 
 - **Le montant est toujours calculé par le serveur**, jamais repris du client.
 - **Une commande n'est jamais modifiée après validation** sur ses prix : nom, prix et TVA sont
   copiés dans la ligne au moment de la commande.
-- **La conformité légale** : pas d'encaissement sur place hors caisse certifiée.
+- **La conformité légale** : aucun encaissement sur place dans l'application.

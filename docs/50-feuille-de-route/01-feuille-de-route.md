@@ -1,8 +1,8 @@
 # Feuille de route
 
 **Hypothèses :** développeur solo (back + front), ouverture visée **sous 3 mois** (~12
-semaines à partir du 2026-11-23), V1 sans caisse maison
-([ADR-0006](../40-decisions/ADR-0006-caisse-certifiee-tierce-v1.md)). Les semaines sont
+semaines à partir du 2026-11-23), V1 sans caisse, commandes en ligne payées par carte
+uniquement ([ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md), qui remplace ADR-0006 et ADR-0010). Les semaines sont
 indicatives ; c'est le **critère de sortie** qui clôt un jalon, pas la date.
 
 Ordre retenu : **backend métier d'abord** (J1–J3, testé), puis **front** (J4–J5), parce que les
@@ -125,21 +125,24 @@ Détail et avancement des écrans : [feuille de route du front](04-feuille-de-ro
 - Projet Angular PWA (manifest, service worker), client API généré, auth (mot de passe +
   Google).
 - Carte, fiche produit avec personnalisation, composition de menu, panier persistant.
-- Choix ASAP / créneau, validation, paiement en ligne ou au retrait.
+- Choix ASAP / créneau, validation, paiement par carte en ligne (seul moyen, ADR-0013).
 - Suivi temps réel, bandeau de commande en cours, historique et reçu.
 - Pages légales (CGV, confidentialité, mentions, lien allergènes).
-- **Sortie :** parcours 1 et 2 complets sur un iPhone et un Android réels.
+- **Sortie :** parcours 1 complet sur un iPhone et un Android réels (le parcours 2, paiement
+  au retrait, a été supprimé).
 
 ## J5 — Back-office & KDS (S8–S10) — 🟡 API terminée le 2026-11-22, écrans en cours
 
 Détail et avancement des écrans : [feuille de route du front](04-feuille-de-route-front.md) (étapes F2 à F7).
 
-- Back-office tablette : commandes du jour, validation `AValider` (son + badge), saisie
-  comptoir rapide, encaissement déclaré, remise, non venu, annulation.
+- Back-office tablette : commandes du jour, remise, non venu, annulation à la demande du client
+  (validation `AValider`, saisie comptoir et encaissement déclaré retirés le 2026-11-26,
+  ADR-0013).
 - KDS plein écran : file triée, gestes, annulation de geste, son, resynchronisation.
 - Gestion de la carte, ruptures, pause, horaires, paramètres (écrans sur l'API de J1).
 - Statistiques : tableau du jour, ventes par produit, heures de pointe (écart M10).
-- **Sortie :** service simulé de 30 minutes (comptoir + en ligne + KDS) sans papier.
+- **Sortie :** service simulé de 30 minutes (commandes en ligne payées + KDS + remise) sans
+  papier.
 
 **Bilan J5 (API, 2026-11-22) :** J4 sauté pour l'instant ; côté serveur seulement (le front a
 démarré depuis : socle, comptes et gestion de la carte, cf. [feuille de route du
@@ -183,6 +186,15 @@ et `ProductSupplement` supprimés (migration `IngredientReplacementPrices`), `re
 la carte publique, statistiques des suppléments étendues aux choix payants. 154 tests unitaires,
 36 tests d'intégration.
 
+**Paiement en ligne seul (API + front, 2026-11-26, [ADR-0013](../40-decisions/ADR-0013-paiement-en-ligne-seul.md)) :** suppression du paiement au
+retrait (statuts `AValider` et `Refusée`, validation Manager, refus automatique, compteur et
+blocage des non-venues), de la saisie au comptoir, des encaissements déclarés et de
+l'annulation par le client (`POST /orders/{id}/cancel`). Le suivi client affiche « Pour
+annuler, appelez le restaurant par téléphone ou demandez directement sur place » avec le
+numéro du restaurant ; seul le Manager annule, avec remboursement SumUp. Migration
+`RemoveOnSiteAndCounter` (écart M13). Stories abandonnées : US-E04-5, US-E04-6, US-E05-3,
+US-E06-1, US-E06-3, US-E10-4. API : 150 tests unitaires, 47 d'intégration ; front : 289 tests.
+
 ## J6 — Mise en service (S10–S12)
 
 - Production : VPS, domaine, TLS, variables, SumUp en mode réel, sauvegardes + test de
@@ -191,14 +203,16 @@ la carte publique, statistiques des suppléments étendues aux choix payants. 15
 - Recette terrain avec l'équipe sur les appareils réels ; procédure de mode dégradé testée
   (bascule 4G).
 - Formation de l'équipe (1 h) ; affichage de la procédure papier.
-- Ouverture progressive possible : comptoir + KDS d'abord, click & collect une semaine après.
+- Ouverture progressive possible : click & collect sur un service calme d'abord, puis tous
+  les services (plus de comptoir dans l'application, ADR-0013).
 - **Sortie :** ouverture, puis gel des déploiements pendant les services.
 
 ## V2 — après l'ouverture
 
 Par ordre de valeur estimée (à reprioriser après un mois d'exploitation) :
 
-1. Caisse maison certifiée NF525 + imprimante ePOS/WebPRNT (supprime la double saisie).
+1. Imprimante de bons de cuisine ePOS/WebPRNT (la caisse maison NF525 n'a plus d'objet tant
+   que l'application n'encaisse rien sur place, ADR-0013).
 2. Allergènes dans la carte (US-E02-8).
 3. Notification push « c'est prêt » (US-E08-4).
 4. Rôle équipier distinct du gérant.
