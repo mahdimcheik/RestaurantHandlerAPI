@@ -176,6 +176,20 @@ et payée en espèces en 4 touches ; détail (TVA, paiement, historique) et list
 - Relue à chaque événement de commande, à chaque `resync` (reconnexion, retour au premier plan)
   et chaque minute (une commande programmée entre dans la file sans événement) ; la dernière
   file connue reste affichée si une relecture échoue.
+- Commandes « à payer au retrait » à valider (US-E06-3) dans une bande « À valider » au-dessus
+  des colonnes, visible seulement s'il y en a : bon complet avec total, touches « Accepter »
+  (la commande passe dans « À préparer », sans carillon de la cuisine) et « Refuser » (motif
+  obligatoire dans une boîte de dialogue). Liste et carillon d'`ApprovalAlertService`, partagés
+  avec le back-office ; le Manager n'a plus à quitter `/cuisine`.
+- Colonne « Prêtes » (`GET /manage/orders?Status=Ready`, par heure de retrait) jusqu'à la
+  remise : numéro, heure, prénom, « Payée » ou « À encaisser » avec le total ; trois colonnes
+  à partir de 80rem (US-E07-2, décision du 2026-11-26).
+- Détail sans quitter l'écran (US-E07-5) : le numéro de chaque bon et chaque carte « Prête »
+  ouvrent une fenêtre (`components/kitchen-order-details.ts`) : lignes avec prix, suppléments
+  chiffrés, composants de menus, note, total, paiements, reste à encaisser ; relue à
+  l'ouverture et à chaque événement, la version déjà à l'écran s'affiche d'abord (hors ligne
+  compris). « Remis au client » pour une commande prête et payée ; sinon lien vers le
+  back-office pour encaisser.
 - Une touche par étape : « Commencer », « Prête » ; pas de mise à jour optimiste. Barre
   « N° 12 : Prête — Annuler (9 s) » après chaque geste, proposée 9 s (marge sous les 10 s du
   serveur), refus du serveur affiché (US-E07-2).

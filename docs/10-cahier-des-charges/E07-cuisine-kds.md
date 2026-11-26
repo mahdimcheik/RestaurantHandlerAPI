@@ -10,7 +10,7 @@ dans le bon ordre.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** File faite en J2 (`GET /manage/orders/kitchen`, tri et visibilité des commandes programmées) ; écran `/cuisine` fait (F6 : deux colonnes, personnalisations mises en évidence, carillon), à éprouver en service simulé.
+**Avancement :** File faite en J2 (`GET /manage/orders/kitchen`, tri et visibilité des commandes programmées) ; écran `/cuisine` fait (F6 : deux colonnes, personnalisations mises en évidence, carillon, bande « À valider » pour accepter ou refuser les commandes à payer au retrait), à éprouver en service simulé.
 
 **Critères d'acceptation**
 - Affiche les commandes `Confirmée` et `En préparation`, en colonnes ou en cartes.
@@ -29,12 +29,14 @@ tenir le client et le comptoir informés.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`start`, `ready`, `undo` sous 10 s, historique) ; écran fait (F6 : une touche par étape, annulation proposée 9 s).
+**Avancement :** API faite en J2 (`start`, `ready`, `undo` sous 10 s, historique) ; écran fait (F6 : une touche par étape, annulation proposée 9 s ; colonne « Prêtes » jusqu'à la remise, décision du 2026-11-26).
 
 **Critères d'acceptation**
 - `Confirmée → En préparation → Prête`, une touche par transition.
 - Annulation de la dernière transition possible pendant 10 secondes (erreur de doigt).
-- Une commande `Prête` quitte le KDS et apparaît dans « à remettre » du back-office.
+- Une commande `Prête` quitte les colonnes de préparation et passe dans une colonne « Prêtes »
+  du KDS jusqu'à sa remise (elle reste aussi dans « à remettre » du back-office) : le
+  cuisinier / Manager n'a pas à quitter l'écran pendant le service.
 - Chaque transition est historisée (qui, quand).
 
 ### US-E07-3 — Résister aux coupures
@@ -51,6 +53,30 @@ perdre aucune commande.
 - À la reconnexion, l'écran se resynchronise entièrement depuis l'API (pas seulement par
   événements manqués).
 - Une transition tentée hors ligne est refusée visiblement, jamais perdue en silence.
+
+### US-E07-5 — Consulter le détail d'une commande sans quitter le KDS
+
+En tant que cuisinier / Manager, je veux voir le détail et les prix d'une commande en cours ou
+prête depuis l'écran cuisine afin de renseigner le client et de remettre sa commande sans
+quitter cet écran.
+
+**Priorité :** V1
+**État :** Partielle
+**Avancement :** écran fait le 2026-11-26 (F6 : numéro du bon et cartes « Prêtes » ouvrent une
+fenêtre par-dessus l'écran ; aucune API nouvelle, `GET /manage/orders/{id}` et
+`GET /manage/orders?Status=Ready`), testé unitairement ; à vérifier en navigateur et sur la
+tablette de la cuisine.
+
+**Critères d'acceptation**
+- Toucher le numéro d'une commande (à valider, à préparer, en préparation, prête) ouvre son
+  détail dans une fenêtre, sans changer de page ; Fermer ou Échap y ramène.
+- Le détail montre : retrait, canal, client, statut, lignes avec quantité et prix de la ligne
+  (prix unitaire si quantité > 1), suppléments chiffrés, composants de menus avec leur surcoût,
+  note, total, paiements reçus par moyen, reste à encaisser.
+- Une commande `Prête` et payée se remet au client depuis le détail (« Remis au client », deux
+  touches : la remise ne s'annule pas) ; non payée, le détail indique le reste à encaisser et
+  renvoie au back-office pour l'encaissement.
+- Hors ligne, le détail d'une commande déjà à l'écran reste consultable.
 
 ### US-E07-4 — Vue « à préparer » agrégée
 

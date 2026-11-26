@@ -42,7 +42,7 @@ de ne préparer que des commandes crédibles.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (accepter, refuser avec motif, refus automatique Hangfire après `ApprovalTimeoutMinutes`, temps réel) ; son, badge et gestes faits (F5).
+**Avancement :** API faite en J2 (accepter, refuser avec motif, refus automatique Hangfire après `ApprovalTimeoutMinutes`, temps réel) ; son, badge et gestes faits (F5) ; accepter et refuser aussi possibles depuis l'écran cuisine `/cuisine` (bande « À valider »).
 
 **Critères d'acceptation**
 - Les commandes `À valider` sont mises en évidence (son + badge) dans le back-office.
