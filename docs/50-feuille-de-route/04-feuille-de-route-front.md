@@ -491,6 +491,14 @@ profiter). Reste : poids des images de `/commander` mesuré dans le navigateur a
 **Fait :** tests unitaires Vitest sur le socle, l'auth et le back-office ; contrôles axe
 ponctuels sur l'auth ; budgets de build.
 
+**Fait (navigation en bas sur petit écran, 2026-11-26) :**
+- Sous 64rem (téléphone et tablette), barre d'onglets fixée en bas sur toutes les pages client
+  (accueil, carte, à propos, commande, panier, validation, suivi, reçu, pages légales) : Accueil,
+  Carte, Commander, Panier, Compte (À propos et Gestion pour le Manager). En haut ne restent que
+  le logo et la cloche. Pas sur les écrans de compte, `/gestion` ni `/service`.
+- L'onglet Compte ouvre le panneau du compte vers le haut ; le pied de page, le bandeau de
+  commande de `/commander` et les toasts passent au-dessus de la barre.
+
 **Reste :**
 - `strict` + `strictTemplates` dans `tsconfig.json`, ESLint.
 - Playwright : parcours auth, saisie carte, comptoir, KDS, commande client ; axe dans chaque
