@@ -7,7 +7,7 @@ l'envoyer en cuisine.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`POST /manage/orders/counter`, non bloquée par la pause) ; écran tactile fait (F5, `/gestion/comptoir`), à valider sur tablette réelle.
+**Avancement :** API faite en J2 (`POST /manage/orders/counter`, non bloquée par la pause) ; écran tactile fait (F5, `/service/comptoir`), à valider sur tablette réelle.
 
 **Critères d'acceptation**
 - Interface tactile optimisée tablette : catégories en tuiles, personnalisation en deux
@@ -28,7 +28,7 @@ En tant que Manager, je veux une liste des commandes du jour filtrable par statu
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (`GET /manage/orders`, filtres statut / canal / payée, détail avec historique) ; écran fait (F5, `/gestion/commandes`).
+**Avancement :** API faite en J2 (`GET /manage/orders`, filtres statut / canal / payée, détail avec historique) ; écran fait (F5, `/service/commandes`).
 
 **Critères d'acceptation**
 - Mise à jour en temps réel.
@@ -42,7 +42,7 @@ de ne préparer que des commandes crédibles.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J2 (accepter, refuser avec motif, refus automatique Hangfire après `ApprovalTimeoutMinutes`, temps réel) ; son, badge et gestes faits (F5) ; accepter et refuser aussi possibles depuis l'écran cuisine `/cuisine` (bande « À valider »).
+**Avancement :** API faite en J2 (accepter, refuser avec motif, refus automatique Hangfire après `ApprovalTimeoutMinutes`, temps réel) ; son, badge et gestes faits (F5) ; accepter et refuser aussi possibles depuis l'écran cuisine `/service/cuisine` (bande « À valider »).
 
 **Critères d'acceptation**
 - Les commandes `À valider` sont mises en évidence (son + badge) dans le back-office.

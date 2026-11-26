@@ -127,10 +127,23 @@ bandeau après 5 s sur les événements `offline` / `online` du navigateur.
   `ConnectionBanner`.
 - **Sortie :** couper le réseau 1 min pendant un flux de commandes, tout se recale seul.
 
+## Écrans de service (F5, F6) — ✅ coquille
+
+**Fait (2026-11-26) :** coquille `shared/ui/service-layout` sous `/service` (`managerGuard`),
+pour tablette tactile en paysage : pas de menu à gauche, barre du haut collante avec trois
+grandes touches (Cuisine, Comptoir, Commandes ; nombre à valider sur Commandes), état
+d'ouverture et pause, son des commandes à valider, connexion, lien « Gestion ». `/service`
+ouvre la cuisine ; `/cuisine`, `/gestion/comptoir`, `/gestion/commandes(/:id)` redirigent.
+Au back-office, un seul lien « Écrans de service » remplace Comptoir, Commandes et Cuisine.
+Styles : `src/styles/_service.scss`.
+
+**Reste :** vérifier sur la tablette réelle (paysage et portrait, où les onglets passent sur
+une seconde ligne) ; encaisser puis remettre depuis la cuisine contre la vraie API.
+
 ## F5 — Comptoir (E06) — 🟡
 
-**Fait (feature `features/ordering`, sous `/gestion`) :**
-- Saisie comptoir `/gestion/comptoir` (US-E06-1) : catégories en onglets, produits et menus en
+**Fait (feature `features/ordering`, sous `/service` depuis le 2026-11-26) :**
+- Saisie comptoir `/service/comptoir` (US-E06-1) : catégories en onglets, produits et menus en
   tuiles, ticket à côté. Un produit sans choix obligatoire s'ajoute en une touche ; un choix
   obligatoire unique s'ajoute à la deuxième touche (les options facultatives restent sous
   « Personnaliser »). Personnalisation : « Sans X », remplacement par un ingrédient proposé
@@ -138,11 +151,11 @@ bandeau après 5 s sur les événements `offline` / `online` du navigateur.
   bornes ; menus emplacement par emplacement. Prénom et note facultatifs. Total et totaux de
   ligne par le devis `POST /orders/quote` (R2). Clé d'idempotence dans le corps, gardée pour un
   nouvel essai. Après l'envoi : numéro du jour en très grand et encaissement en une touche.
-- Commandes du jour `/gestion/commandes` (US-E06-2) : jour précédent / suivant, filtres par étape
+- Commandes du jour `/service/commandes` (US-E06-2) : jour précédent / suivant, filtres par étape
   (à valider, en cours, prêtes, à encaisser, closes) avec leurs nombres, canal, recherche par
   numéro du jour ; à valider en tête, closes en bas ; relue à chaque événement de commande et à
   chaque `resync` ; bandeau sur `PaymentAnomaly`.
-- Détail `/gestion/commandes/:id` : lignes, personnalisations, note, TVA, paiements, historique ;
+- Détail `/service/commandes/:id` : lignes, personnalisations, note, TVA, paiements, historique ;
   gestes selon le statut (masquage seulement) : accepter / refuser avec motif (US-E06-3),
   encaisser (US-E05-3 : une touche par moyen = tout le reste, paiement mixte par montant),
   remettre si payée (US-E06-4), client non venu après retrait + délai de grâce (US-E06-5),
@@ -165,8 +178,8 @@ et payée en espèces en 4 touches ; détail (TVA, paiement, historique) et list
 
 ## F6 — KDS (E07) — 🟡
 
-**Fait (feature `features/kitchen`, route `/cuisine` plein écran, `managerGuard`, lien
-« Cuisine » dans le menu du back-office) :**
+**Fait (feature `features/kitchen`, route `/service/cuisine`, `managerGuard`, onglet
+« Cuisine » de la coquille Service) :**
 - File `GET /manage/orders/kitchen` en deux colonnes, « À préparer » (`Confirmée`) et « En
   préparation », dans l'ordre de l'API (heure de retrait puis validation) avec leur nombre
   (US-E07-1). Bon : numéro du jour en très grand, heure de retrait (« dès que possible » si
@@ -180,7 +193,7 @@ et payée en espèces en 4 touches ; détail (TVA, paiement, historique) et list
   des colonnes, visible seulement s'il y en a : bon complet avec total, touches « Accepter »
   (la commande passe dans « À préparer », sans carillon de la cuisine) et « Refuser » (motif
   obligatoire dans une boîte de dialogue). Liste et carillon d'`ApprovalAlertService`, partagés
-  avec le back-office ; le Manager n'a plus à quitter `/cuisine`.
+  avec le back-office ; le Manager n'a plus à quitter la cuisine.
 - Colonne « Prêtes » (`GET /manage/orders?Status=Ready`, par heure de retrait) jusqu'à la
   remise : numéro, heure, prénom, « Payée » ou « À encaisser » avec le total ; trois colonnes
   à partir de 80rem (US-E07-2, décision du 2026-11-26).
@@ -188,8 +201,9 @@ et payée en espèces en 4 touches ; détail (TVA, paiement, historique) et list
   ouvrent une fenêtre (`components/kitchen-order-details.ts`) : lignes avec prix, suppléments
   chiffrés, composants de menus, note, total, paiements, reste à encaisser ; relue à
   l'ouverture et à chaque événement, la version déjà à l'écran s'affiche d'abord (hors ligne
-  compris). « Remis au client » pour une commande prête et payée ; sinon lien vers le
-  back-office pour encaisser.
+  compris). Encaissement déclaratif dans la fenêtre pour toute commande acceptée non
+  payée (`shared/ordering/payment-panel.ts`, partagé avec le comptoir ; règle `collect` de
+  `shared/ordering/order-actions.ts`), puis « Remis au client » dès qu'elle est prête et payée.
 - Une touche par étape : « Commencer », « Prête » ; pas de mise à jour optimiste. Barre
   « N° 12 : Prête — Annuler (9 s) » après chaque geste, proposée 9 s (marge sous les 10 s du
   serveur), refus du serveur affiché (US-E07-2).

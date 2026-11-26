@@ -10,7 +10,7 @@ dans le bon ordre.
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** File faite en J2 (`GET /manage/orders/kitchen`, tri et visibilité des commandes programmées) ; écran `/cuisine` fait (F6 : deux colonnes, personnalisations mises en évidence, carillon, bande « À valider » pour accepter ou refuser les commandes à payer au retrait), à éprouver en service simulé.
+**Avancement :** File faite en J2 (`GET /manage/orders/kitchen`, tri et visibilité des commandes programmées) ; écran `/service/cuisine` fait (F6 : deux colonnes, personnalisations mises en évidence, carillon, bande « À valider » pour accepter ou refuser les commandes à payer au retrait), à éprouver en service simulé.
 
 **Critères d'acceptation**
 - Affiche les commandes `Confirmée` et `En préparation`, en colonnes ou en cartes.
@@ -65,7 +65,7 @@ quitter cet écran.
 **Avancement :** écran fait le 2026-11-26 (F6 : numéro du bon et cartes « Prêtes » ouvrent une
 fenêtre par-dessus l'écran ; aucune API nouvelle, `GET /manage/orders/{id}` et
 `GET /manage/orders?Status=Ready`), testé unitairement ; à vérifier en navigateur et sur la
-tablette de la cuisine.
+tablette de la cuisine ; encaissement depuis la fenêtre ajouté le 2026-11-26.
 
 **Critères d'acceptation**
 - Toucher le numéro d'une commande (à valider, à préparer, en préparation, prête) ouvre son
@@ -74,8 +74,9 @@ tablette de la cuisine.
   (prix unitaire si quantité > 1), suppléments chiffrés, composants de menus avec leur surcoût,
   note, total, paiements reçus par moyen, reste à encaisser.
 - Une commande `Prête` et payée se remet au client depuis le détail (« Remis au client », deux
-  touches : la remise ne s'annule pas) ; non payée, le détail indique le reste à encaisser et
-  renvoie au back-office pour l'encaissement.
+  touches : la remise ne s'annule pas) ; non payée, elle s'encaisse dans la même fenêtre
+  (déclaration de l'encaissement fait sur la caisse, ADR-0006 ; paiement mixte possible), puis
+  se remet. Toute commande acceptée et non payée s'encaisse de même.
 - Hors ligne, le détail d'une commande déjà à l'écran reste consultable.
 
 ### US-E07-4 — Vue « à préparer » agrégée
