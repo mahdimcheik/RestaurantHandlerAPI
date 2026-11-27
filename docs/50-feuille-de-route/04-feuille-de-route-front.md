@@ -409,6 +409,9 @@ clair et sombre.
   commande, lignes, total HT, TVA par taux, TTC, paiements réussis ; imprimable (en-tête et
   boutons masqués). Proposé depuis le suivi pour une commande payée en ligne seulement (sur
   place, le ticket vient de la caisse certifiée). Contenu provisoire (question 2).
+  Depuis le 2026-11-27, le reçu donne aussi le statut de la commande (icône et libellé, avec sa
+  date s'il est définitif) et les paiements remboursés : une commande annulée garde son reçu,
+  marqué « Annulée » et « Remboursée : … ».
 - Facture professionnelle (US-E05-6, 2026-11-26) : à la validation, étape « Facture » pour un
   client professionnel, case cochée par défaut (`requestInvoice`) ; sur le reçu, état de la
   demande en termes client (un échec technique reste « en cours de préparation »). **Reste :**

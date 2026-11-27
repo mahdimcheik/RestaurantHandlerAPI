@@ -83,12 +83,13 @@ présenter (note de frais).
 
 **Priorité :** V1
 **État :** Partielle
-**Avancement :** API faite en J3 (`GET /orders/{id}/receipt`, commande payée uniquement) ; contenu à valider (question 2) ; page faite (F8b : `/commandes/:id/recu`, imprimable).
+**Avancement :** API faite en J3 (`GET /orders/{id}/receipt`, commande payée uniquement) ; contenu à valider (question 2) ; page faite (F8b : `/commandes/:id/recu`, imprimable) ; statut et remboursement ajoutés le 2026-11-27 (`OrderReceipt.status`, `statusChangedAt`, `OrderPaymentDto.refundedAt`).
 
 **Critères d'acceptation**
 - Une page « reçu » de la commande, accessible depuis l'historique, affiche : restaurant
   (raison sociale, adresse, SIRET, n° TVA), date, numéro, lignes, total HT / TVA par taux / TTC,
-  moyen de paiement.
+  moyen de paiement, statut de la commande (en cours, retirée, non retirée, annulée) avec sa
+  date, et remboursement éventuel : le reçu reste disponible après une annulation.
 - Le contenu exact est à valider avec l'expert-comptable (question ouverte n° 2).
 
 ### US-E05-6 — Demander une facture professionnelle
