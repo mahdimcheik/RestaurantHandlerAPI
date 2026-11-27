@@ -329,8 +329,12 @@ Les puces ci-dessous sont l'historique d'avant ce changement.
 - Accueil branché sur `/restaurant/info` et l'état d'ouverture (horaires de la semaine,
   fermetures à venir, téléphone).
 - `features/shop` : carte `/commander` (rubriques, prix TTC, ruptures grisées avec libellé,
-  état d'ouverture et délai), fiche produit `/commander/produit/:id` (retraits, remplacements au
-  surcoût affiché, prix par le devis ; pas de sélecteur de quantité sur les fiches produit et
+  état d'ouverture et délai ; ingrédient retirable en rupture retiré d'office à l'envoi par
+  `lineWithForcedRemovals` de `shared/ordering/customization.ts`, sans toucher au panier stocké,
+  produit devenu indisponible signalé sur le ticket sans attendre le devis, « Prix
+  indisponible » / « À corriger » quand le devis est refusé), fiche produit
+  `/commander/produit/:id` (retraits, remplacements au surcoût affiché sous un libellé visible
+  « Remplacer X par », prix par le devis ; pas de sélecteur de quantité sur les fiches produit et
   menu, une portion par ajout, petites commandes ; les groupes d'options se choisissent pas à pas
   dans un second dialogue ouvert d'office à l'ouverture de la fiche ; compteur « − n + » à côté
   du prix sur chaque carte de commande : « + » ajoute d'office un produit sans options, sinon
