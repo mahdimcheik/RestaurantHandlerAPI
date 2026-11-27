@@ -18,6 +18,9 @@ je veux.
 - Seuls les ingrédients retirables peuvent être retirés ou remplacés ; un remplacement se fait
   par un ingrédient proposé en remplacement et disponible, au surcoût
   `max(0, écart de prix de référence)` affiché avant l'ajout.
+- Un ingrédient retirable en rupture est retiré d'office (« Sans tomate (rupture) » sur la carte,
+  la fiche et le ticket), y compris dans un panier déjà rempli ; le client peut le remplacer
+  sur la fiche par un ingrédient proposé (R7). Le panier n'est jamais bloqué par cette rupture.
 - Les suppléments sont les choix d'un groupe d'options facultatif du produit.
 - Chaque groupe d'options (pain, sauces, taille) reçoit entre son minimum et son maximum de
   choix distincts et disponibles ([US-E02-9](E02-carte.md#us-e02-9--définir-les-groupes-doptions-et-les-proposer-sur-les-produits)).
