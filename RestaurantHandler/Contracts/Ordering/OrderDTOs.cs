@@ -201,6 +201,7 @@ public class OrderPaymentDto
     [Required] public PaymentStatus Status { get; set; }
     [Required] public int AmountCents { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }
+    public DateTimeOffset? RefundedAt { get; set; }
 }
 
 public class OrderSummary
@@ -282,6 +283,12 @@ public class OrderReceipt
     [Required] public int OrderNumber { get; set; }
     [Required] public int DailyNumber { get; set; }
     [Required] public DateTimeOffset PaidAt { get; set; }
+
+    /// <summary>Statut actuel : un reçu reste lisible après annulation ou remboursement.</summary>
+    [Required] public OrderStatus Status { get; set; }
+
+    /// <summary>Date du passage au statut actuel.</summary>
+    public DateTimeOffset? StatusChangedAt { get; set; }
     [Required] public List<OrderItemDto> Items { get; set; } = [];
     [Required] public List<VatLineDto> Vat { get; set; } = [];
     [Required] public int TotalCents { get; set; }

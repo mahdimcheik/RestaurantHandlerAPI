@@ -73,6 +73,7 @@ public static class OrderMapping
                 Status = p.Status,
                 AmountCents = p.AmountCents,
                 CompletedAt = p.CompletedAt,
+                RefundedAt = p.RefundedAt,
             })
             .ToList();
         return details;
