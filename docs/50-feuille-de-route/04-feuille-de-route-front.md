@@ -440,6 +440,14 @@ clair et sombre.
   `/api` en cache**, `/api` et `/hubs` exclus de la navigation ; bandeau « Une nouvelle version
   est disponible — Recharger », jamais pendant la validation d'une commande ni la saisie
   comptoir.
+- Partage (2026-11-28) : balises Open Graph et `twitter:card` statiques dans `index.html`
+  (titre, description, photo de pizza ImageKit recadrée en 1200 × 630 sur fond pêche, sans
+  `og:url` : les réseaux prennent l'adresse partagée). Sans prérendu, **l'aperçu est le même pour
+  toutes les pages**, fiches produit comprises (aperçu par produit = SSR ou prérendu, à décider).
+  Boutons `shared/ui/share-buttons` (WhatsApp, Facebook par simples liens sans script tiers,
+  copie du lien, feuille de partage de l'appareil si disponible) dans le pied de page, la
+  section Contact de l'accueil, `/carte` et les fiches produit et menu. À vérifier après mise
+  en ligne : Facebook Sharing Debugger et un envoi WhatsApp.
 
 **Vérifié (2026-11-23, Chrome, build de production servi tel quel) :** service worker actif
 en état normal ; seul `/api/menu` dans le cache de données (commandes et état d'ouverture
