@@ -81,6 +81,8 @@ public class PaymentApiTests(ApiFixture api) : IAsyncLifetime
         var receipt = await DataAsync(await client.GetAsync($"/orders/{id}/receipt"));
         Assert.Equal(1900, receipt.GetProperty("totalCents").GetInt32());
         Assert.Equal("SumupOnline", receipt.GetProperty("payments")[0].GetProperty("method").GetString());
+        Assert.Equal("Confirmed", receipt.GetProperty("status").GetString());
+        Assert.Equal(JsonValueKind.String, receipt.GetProperty("statusChangedAt").ValueKind);
     }
 
     [Fact]
@@ -183,6 +185,13 @@ public class PaymentApiTests(ApiFixture api) : IAsyncLifetime
         (await manager.PostAsync($"/manage/orders/{id}/refund", null)).EnsureSuccessStatusCode();
         Assert.Equal(PaymentStatus.Refunded, (await OrderAsync(id)).Payments.Single().Status);
         Assert.Equal(HttpStatusCode.Conflict, (await manager.PostAsync($"/manage/orders/{id}/refund", null)).StatusCode);
+
+        // Le reçu reste disponible et dit ce qu'est devenue la commande.
+        var receipt = await DataAsync(await client.GetAsync($"/orders/{id}/receipt"));
+        Assert.Equal("Cancelled", receipt.GetProperty("status").GetString());
+        var payment = receipt.GetProperty("payments").EnumerateArray().Single();
+        Assert.Equal("Refunded", payment.GetProperty("status").GetString());
+        Assert.Equal(JsonValueKind.String, payment.GetProperty("refundedAt").ValueKind);
     }
 
     [Fact]

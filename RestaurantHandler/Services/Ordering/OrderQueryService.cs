@@ -47,6 +47,8 @@ public class OrderQueryService(MainContext db, TimeProvider clock)
             OrderNumber = order.OrderNumber,
             DailyNumber = order.DailyNumber,
             PaidAt = paidAt,
+            Status = order.Status,
+            StatusChangedAt = order.History.LastOrDefault(h => h.Status == order.Status)?.ChangedAt,
             Items = order.Items,
             Vat = order.Vat,
             TotalCents = order.TotalCents,

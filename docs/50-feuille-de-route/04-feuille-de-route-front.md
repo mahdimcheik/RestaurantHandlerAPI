@@ -409,6 +409,9 @@ clair et sombre.
   commande, lignes, total HT, TVA par taux, TTC, paiements réussis ; imprimable (en-tête et
   boutons masqués). Proposé depuis le suivi pour une commande payée en ligne seulement (sur
   place, le ticket vient de la caisse certifiée). Contenu provisoire (question 2).
+  Depuis le 2026-11-27, le reçu donne aussi le statut de la commande (icône et libellé, avec sa
+  date s'il est définitif) et les paiements remboursés : une commande annulée garde son reçu,
+  marqué « Annulée » et « Remboursée : … ».
 - Facture professionnelle (US-E05-6, 2026-11-26) : à la validation, étape « Facture » pour un
   client professionnel, case cochée par défaut (`requestInvoice`) ; sur le reçu, état de la
   demande en termes client (un échec technique reste « en cours de préparation »). **Reste :**
@@ -454,6 +457,23 @@ nouveau design (`shared/ui/site-topbar` : menu, panier) à la place de l'en-têt
 `public/images/home/`, polices auto-hébergées (`@fontsource/dela-gothic-one`,
 `@fontsource/archivo`), rendu vérifié dans le navigateur, nombre d'articles sur le bouton
 panier (déplacer `CartStore` dans `shared`).
+
+**Accueil — second bloc « diapositives » (2026-11-27) :** design alternatif du premier écran,
+choisi au build par `HOME_HERO` dans `src/environments/` (`'carousel'` en production, inchangé ;
+`'slider'` en développement). `features/home/components/hero-slider` (géométrie pure dans
+`hero-slider-geometry.ts`, contenu dans `hero-slides.ts`) : une couleur pleine par plat (jetons
+`--slide-<plat>-bg/-ink`, encre AA de 6,08 à 7,72:1), mot géant blanc décoratif derrière la photo,
+changement par balayage mesuré de 970 ms avec parallaxe par calque, onglets à soulignement
+glissant, flèches, clavier (focus dans le bloc), glissement au doigt, défilement automatique
+toutes les 2,6 s suspendu 6 s après une action, bouton pause (WCAG 2.2.2), mouvement réduit
+(changement instantané). Police Poppins auto-hébergée (`@fontsource/poppins`), chargée avec le
+bloc seulement. Sur téléphone, le mot monte au-dessus du plat pour rester lisible. Ingrédients
+flottants : trois images détourées par plat (`INGREDIENTS` dans `hero-slides.ts`), placées comme
+dans Blendy (5 nets et 2 flous dans les coins en bureau, 4 autour du plat sur téléphone), avec un
+balancement continu ; vides tant que les images ne sont pas fournies. Rendu vérifié en
+Chrome headless (1440 × 900, 390 × 844, 360 × 640, 844 × 390). Reste : axe, essai sur un vrai
+téléphone (glissement), images des ingrédients par plat, photo du tiramisu détourée (fond clair
+visible sur la couleur du plat).
 
 **Nouveau design — écrans de compte (2026-11-24) :** connexion, inscription, mot de passe
 oublié, nouveau mot de passe, confirmations et lien d'activation expiré passent au nouveau
