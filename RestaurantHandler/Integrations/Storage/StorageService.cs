@@ -1,16 +1,15 @@
-using Amazon.S3;
-using Amazon.S3.Model;
 using RestaurantHandler.Models;
 using RestaurantHandler.Utilities;
 
 namespace RestaurantHandler.Integrations.Storage;
 
 /// <summary>
-/// Seule porte vers le stockage objet (ADR-0008) : un compartiment S3 unique (OVH, MinIO en local). Les avatars et la carte
-/// (préfixes <see cref="AvatarFolder"/> et <see cref="CatalogFolder"/>, en lecture anonyme) sont servis par URL publique stable, tout le reste
-/// par lien signé. Seule la clé d'objet est persistée ; l'URL est calculée à la lecture.
+/// Seule porte vers le stockage de fichiers (ADR-0003), vers le backend choisi par STORAGE_PROVIDER
+/// (<see cref="IObjectStore"/> : S3 ou disque local). Les avatars et la carte (préfixes
+/// <see cref="AvatarFolder"/> et <see cref="CatalogFolder"/>, en lecture anonyme) sont servis par URL
+/// publique stable, tout le reste par lien signé. Seule la clé est persistée ; l'URL est calculée à la lecture.
 /// </summary>
-public class StorageService(IAmazonS3 s3, ILogger<StorageService> logger)
+public class StorageService(IObjectStore store, ILogger<StorageService> logger)
 {
     /// <summary>Dossiers publics : seuls leurs objets sont envoyés avec l'ACL public-read.</summary>
     public const string AvatarFolder = "avatars";
@@ -83,7 +82,7 @@ public class StorageService(IAmazonS3 s3, ILogger<StorageService> logger)
 
         try
         {
-            await s3.DeleteObjectAsync(EnvironmentVariables.S3_BUCKET, key, ct);
+            await store.DeleteAsync(key, ct);
         }
         catch (Exception ex)
         {
@@ -92,25 +91,15 @@ public class StorageService(IAmazonS3 s3, ILogger<StorageService> logger)
     }
 
     /// <summary>
-    /// URL publique stable pour un avatar, lien GET signé pour tout autre fichier, ou null pour une
-    /// clé absente ou invalide. La signature est calculée localement (aucun appel réseau) et lie
-    /// l'hôte : S3_UPLOAD_URL doit être joignable par les navigateurs.
+    /// URL publique stable pour un fichier public, lien signé pour tout autre fichier, ou null pour
+    /// une clé absente ou invalide (ou un fichier privé que le backend ne sait pas servir).
     /// </summary>
     public string? Url(string? key)
     {
         if (!IsValidKey(key))
             return null;
 
-        if (IsPublic(key!))
-            return $"{EnvironmentVariables.S3_PUBLIC_URL.TrimEnd('/')}/{key}";
-
-        return s3.GetPreSignedURL(new GetPreSignedUrlRequest
-        {
-            BucketName = EnvironmentVariables.S3_BUCKET,
-            Key = key,
-            Verb = HttpVerb.GET,
-            Expires = DateTime.UtcNow.AddMinutes(EnvironmentVariables.SIGNED_URL_MINUTES),
-        });
+        return IsPublic(key!) ? store.PublicUrl(key!) : store.SignedUrl(key!);
     }
 
     /// <summary>
@@ -155,28 +144,13 @@ public class StorageService(IAmazonS3 s3, ILogger<StorageService> logger)
     {
         try
         {
-            var request = new PutObjectRequest
-            {
-                BucketName = EnvironmentVariables.S3_BUCKET,
-                Key = key,
-                InputStream = content,
-                ContentType = ContentTypeFor(key),
-                AutoCloseStream = false,
-            };
-            // Une clé publique contient un GUID et n'est jamais réécrite : cache illimité sans risque.
-            if (IsPublic(key))
-            {
-                request.Headers.CacheControl = "public, max-age=31536000, immutable";
-                request.CannedACL = S3CannedACL.PublicRead;
-            }
-
-            await s3.PutObjectAsync(request, ct);
+            await store.PutAsync(key, content, ContentTypeFor(key), IsPublic(key), ct);
 
             return new Response<string> { Status = 201, Message = "Fichier téléversé.", Data = key };
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Téléversement de {Key} vers {Endpoint} impossible", key, EnvironmentVariables.S3_UPLOAD_URL);
+            logger.LogError(ex, "Téléversement de {Key} impossible", key);
             return Fail(503, "Stockage indisponible.");
         }
     }

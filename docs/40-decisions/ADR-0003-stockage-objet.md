@@ -1,4 +1,4 @@
-# ADR-0003 — Un seul stockage objet S3
+# ADR-0003 — Une seule façade de stockage, disque local ou S3
 
 **Statut :** Accepté (repris du socle)
 **Date :** 2026-11-22
@@ -11,8 +11,14 @@ Le socle dispose d'une abstraction unique, `StorageService`
 
 ## Décision
 
-- **Un seul fournisseur S3, une seule classe** ; le fournisseur est un détail de configuration
-  (`S3_*`).
+- **Une seule façade, `StorageService`**, devant un backend `IObjectStore` choisi au démarrage par
+  `STORAGE_PROVIDER` (amendement du 2026-11-28 : le client refuse de payer un stockage objet, et un
+  MinIO auto-hébergé n'apporte rien pour un seul serveur) :
+  - `local` : `LocalObjectStore` écrit sous `wwwroot/uploads` (volume Docker), servi en statique par
+    l'API sous `/uploads` (cache immutable, `nosniff`). Tout y est public : les fichiers privés y sont
+    **refusés** tant qu'aucun endpoint authentifié ne les sert ;
+  - `s3` (défaut) : `S3ObjectStore`, compartiment compatible S3 (OVH), variables `S3_*`.
+  Les clés sont identiques dans les deux modes ; changer de mode demande de copier les fichiers.
 - Les images **publiques** (photos de produits, catégories, avatars) sont rangées sous des
   préfixes ouverts en lecture anonyme, sans listing, avec des clés immuables
   (`{dossier}/{aaaa}/{mm}/{guid}{ext}`) mises en cache longtemps.
@@ -27,6 +33,9 @@ Le socle dispose d'une abstraction unique, `StorageService`
 - Chaque upload est validé : taille, extension, signature binaire.
 
 ## Conséquences
+
+- En mode local, les fichiers partagent le disque et les sauvegardes du serveur : le volume
+  `uploads` doit être archivé avec la base (cf. exploitation).
 
 - Une image de carte a une URL stable, cachable par le navigateur et le service worker.
 - Risque surveillé : ranger un fichier privé sous un préfixe public le rend public ; les

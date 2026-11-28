@@ -29,4 +29,8 @@ ENV APP_VERSION=$APP_VERSION
 ENV ASPNETCORE_ENVIRONMENT=Production
 WORKDIR /app
 COPY --from=publish /app/publish .
+# STORAGE_PROVIDER=local : le volume monté ici hérite de ce propriétaire, sinon l'API ne peut pas y écrire.
+USER root
+RUN mkdir -p /app/wwwroot/uploads && chown $APP_UID /app/wwwroot/uploads
+USER $APP_UID
 ENTRYPOINT ["dotnet", "RestaurantHandler.dll"]

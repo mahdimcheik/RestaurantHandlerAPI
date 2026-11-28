@@ -178,7 +178,22 @@ public static class EnvironmentVariables
     public static string ADMIN_EMAIL => GetRequiredEnvVar("ADMIN_EMAIL");
     public static string ADMIN_PASSWORD => GetRequiredEnvVar("ADMIN_PASSWORD");
    
-    // Stockage objet (ADR-0008) : un compartiment compatible S3 (OVH Object Storage). avatars/ est
+    // Backend des fichiers (ADR-0003) : "s3" (compartiment S3, variables S3_*) ou "local" (disque
+    // de l'API, servi sous /uploads ; fichiers publics seulement). Toute autre valeur bloque le démarrage.
+    public static string STORAGE_PROVIDER => GetEnvVar("STORAGE_PROVIDER", "s3").Trim().ToLowerInvariant();
+    public static bool UsesLocalStorage => STORAGE_PROVIDER switch
+    {
+        "local" => true,
+        "s3" => false,
+        var other => throw new InvalidOperationException(
+            $"STORAGE_PROVIDER doit valoir \"local\" ou \"s3\" (reçu : \"{other}\")."),
+    };
+    // Mode local : dossier des fichiers (vide = {racine du contenu}/wwwroot/uploads, un volume en
+    // Docker) et base des URL publiques (vide = {API_BACK_URL}/uploads, via le proxy /api du front).
+    public static string STORAGE_LOCAL_PATH => GetEnvVar("STORAGE_LOCAL_PATH", "");
+    public static string STORAGE_PUBLIC_URL => GetEnvVar("STORAGE_PUBLIC_URL", "");
+
+    // Stockage objet (ADR-0003) : un compartiment compatible S3 (OVH Object Storage). avatars/ est
     // envoyé en public-read et lu via S3_PUBLIC_URL ; tout le reste est servi par lien signé.
     // S3_UPLOAD_URL est l'endpoint S3 (https://s3.<région>.io.cloud.ovh.net) : la signature SigV4
     // lie cet hôte, il doit donc être joignable par les navigateurs.

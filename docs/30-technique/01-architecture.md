@@ -13,7 +13,7 @@
                                          │ PostgreSQL                            │
                                          └──────────┬───────────────┬────────────┘
                                                     │               │
-                                     SumUp (paiement en ligne)   Stockage objet S3 (OVH)
+                                     SumUp (paiement en ligne)   Fichiers : disque ou S3
                                      Google (connexion)          SMTP (e-mails de compte)
 
  Hors système : caisse du restaurant (ventes au comptoir, sans lien avec l'app)
@@ -30,7 +30,7 @@
 | SignalR (`RealtimeHub` sur `/hubs/realtime`, émission via `RealtimeService`) | en place (J0) | groupe `restaurant` (Managers, attribué à la connexion), envoi par utilisateur (claim `NameIdentifier`) : le suivi client passe par l'envoi au propriétaire, sans groupe par commande |
 | Hangfire + PostgreSQL | en place | expirations de paiement, refus auto, reprise de pause, réconciliation SumUp |
 | HybridCache | en place | carte publique, état d'ouverture ([ADR-0004](../40-decisions/ADR-0004-cache-memoire.md)) |
-| `StorageService` (S3) | en place | photos de produits et catégories ([ADR-0003](../40-decisions/ADR-0003-stockage-objet.md)) |
+| `StorageService` (disque local ou S3, `STORAGE_PROVIDER`) | en place | photos de produits et catégories ([ADR-0003](../40-decisions/ADR-0003-stockage-objet.md)) |
 | Mail (MailKit + RazorLight) | en place | e-mails de compte uniquement en V1 |
 | Rate limiting | en place | validation de commande, auth |
 | Notifications en base (cloche) | en place | disponibles |

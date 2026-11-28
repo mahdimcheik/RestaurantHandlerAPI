@@ -485,3 +485,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Fichiers envoyés en STORAGE_PROVIDER=local
+wwwroot/uploads/

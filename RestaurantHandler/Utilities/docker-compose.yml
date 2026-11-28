@@ -39,6 +39,9 @@ services:
       ASPNETCORE_URLS: http://+:8080
     expose:
       - 8080
+    # Fichiers envoyés en STORAGE_PROVIDER=local (photos de la carte, avatars) : à sauvegarder.
+    volumes:
+      - uploads:/app/wwwroot/uploads
     networks:
       - local-network
       - global-network
@@ -69,6 +72,7 @@ services:
 
 volumes:
   postgres_data:
+  uploads:
 
 networks:
   local-network:

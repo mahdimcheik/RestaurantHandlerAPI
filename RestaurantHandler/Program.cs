@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
@@ -124,26 +125,41 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<PushNotificationService>();
     services.AddSingleton<IWebPushSender, VapidWebPushSender>();
 
-    services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client(
-        new BasicAWSCredentials(
-            EnvironmentVariables.S3_ACCESS_KEY,
-            EnvironmentVariables.S3_SECRET_KEY
-        ),
-        new AmazonS3Config
-        {
-            ServiceURL = EnvironmentVariables.S3_UPLOAD_URL,
-            AuthenticationRegion = EnvironmentVariables.S3Region,
-            ForcePathStyle = true,
-            // Presigned URLs take their scheme from this flag, not from ServiceURL: leaving it
-            // false hands out https:// links for a plaintext local endpoint.
-            UseHttp = EnvironmentVariables.S3_UPLOAD_URL.StartsWith(
-                "http://",
-                StringComparison.OrdinalIgnoreCase
+    if (EnvironmentVariables.UsesLocalStorage)
+    {
+        services.AddSingleton<IObjectStore>(sp => new LocalObjectStore(
+            string.IsNullOrWhiteSpace(EnvironmentVariables.STORAGE_LOCAL_PATH)
+                ? Path.Combine(sp.GetRequiredService<IWebHostEnvironment>().ContentRootPath, "wwwroot", "uploads")
+                : EnvironmentVariables.STORAGE_LOCAL_PATH,
+            string.IsNullOrWhiteSpace(EnvironmentVariables.STORAGE_PUBLIC_URL)
+                ? $"{EnvironmentVariables.API_BACK_URL?.TrimEnd('/')}{LocalObjectStore.RequestPath}"
+                : EnvironmentVariables.STORAGE_PUBLIC_URL
+        ));
+    }
+    else
+    {
+        services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client(
+            new BasicAWSCredentials(
+                EnvironmentVariables.S3_ACCESS_KEY,
+                EnvironmentVariables.S3_SECRET_KEY
             ),
-            RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
-            ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED,
-        }
-    ));
+            new AmazonS3Config
+            {
+                ServiceURL = EnvironmentVariables.S3_UPLOAD_URL,
+                AuthenticationRegion = EnvironmentVariables.S3Region,
+                ForcePathStyle = true,
+                // Presigned URLs take their scheme from this flag, not from ServiceURL: leaving it
+                // false hands out https:// links for a plaintext local endpoint.
+                UseHttp = EnvironmentVariables.S3_UPLOAD_URL.StartsWith(
+                    "http://",
+                    StringComparison.OrdinalIgnoreCase
+                ),
+                RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
+                ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED,
+            }
+        ));
+        services.AddSingleton<IObjectStore, S3ObjectStore>();
+    }
     services.AddSingleton<StorageService>();
 
     // Cache mémoire seul (une instance). Brancher Redis en L2 = enregistrer un
@@ -483,6 +499,22 @@ static void ConfigureMiddlewarePipeline(WebApplication app)
             await next.Invoke();
         }
     );
+
+    // Mode local : fichiers envoyés, tous publics, clés à GUID jamais réécrites (cache illimité).
+    // Avant le UseStaticFiles par défaut, qui servirait aussi wwwroot/uploads sans ces en-têtes.
+    if (app.Services.GetRequiredService<IObjectStore>() is LocalObjectStore localStore)
+    {
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new PhysicalFileProvider(localStore.Root),
+            RequestPath = LocalObjectStore.RequestPath,
+            OnPrepareResponse = ctx =>
+            {
+                ctx.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+                ctx.Context.Response.Headers.XContentTypeOptions = "nosniff";
+            },
+        });
+    }
 
     app.UseStaticFiles();
 
